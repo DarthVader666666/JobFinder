@@ -1,31 +1,40 @@
 <template>
   <button @click="findJobs()">Find Job</button>
-  <p>{{ jobs }}</p>
+  <div v-for="(el, index) in jobs" :key="index">
+    <a :href="el['url']">{{index}}</a>
+  </div>
 </template>
 
 <script>
 export default {
   data() {
     return {
-      jobs: ''
+      jobs: []
     }
   },
 
   methods: {
-    findJobs() {
-      var result = fetch(
-        'https://rabota.by/vacancies/net-developer',
-        //'https://www.google.com/search?q=.net+%D0%B2%D0%B0%D0%BA%D0%B0%D0%BD%D1%81%D0%B8%D0%B8',
+    async findJobs() {
+      const url = 'https://rabota.by/search/vacancy';
+      const speciality = '.net';
+      const area = '1002';
+      const body = {
+            url: `${url}`,
+            speciality: `${speciality}`,
+            area: `${area}`
+          }
+
+      this.jobs = await fetch(
+        `https://localhost:7150/Jobs/GetList`,
         {
-          mode: 'no-cors',
+          body: JSON.stringify(body),
+          mode: 'cors',
+          method: 'POST',
           headers: {
-            'Access-Control-Allow-Origin':'*'
+            'Content-Type' : 'application/json'            
           }
         }
-      )
-      .then(result => {
-        console.log(result);
-      })
+      ).then(response => response.json());
     }
   }
 }
