@@ -2,8 +2,7 @@
 using JobFinder.WebApp.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System.Text;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace JobFinder.WebApp.Controllers
 {
@@ -11,26 +10,73 @@ namespace JobFinder.WebApp.Controllers
     public class JobsController : Controller
     {
         [HttpPost]
-        public async Task<IActionResult> GetList([FromBody] RequestModel requestModel)
+        public IActionResult GetList([FromBody] RequestModel requestModel)
         {
-            using var client = new HttpClient();
+            var responseModels = GetLinkedInResponseModels(requestModel);
+            return Ok(responseModels);
+        }
 
-            var doc = await new HtmlWeb().LoadFromWebAsync(requestModel.Url + $"?text={requestModel.Speciality}" + $"&area={requestModel.Area}");
-            var anchors = doc.DocumentNode.SelectNodes("//a[@href]");
+        private static async IAsyncEnumerable<ResponseModel> GetRabotaByResponseModels(RequestModel requestModel)
+        {
+            int page = 1;
 
-            List<ResponseModel> responseModels = [];
-
-            foreach (HtmlNode link in anchors)
+            while (page < 5)
             {
-                HtmlAttribute att = link.Attributes["href"];
+                var url = requestModel.Url + $"text={requestModel.Speciality}" +
+                    (requestModel.Area?.Length > 0 ? $" {requestModel.Area}" : "") + $"&page={page - 1}";
 
-                if (att.Value.Contains("rabota.by/vacancy/"))
+                var doc = await new HtmlWeb().LoadFromWebAsync(url);
+                var pageNode = doc.DocumentNode.SelectNodes("//span").FirstOrDefault(x => x.InnerText == $"{page}");
+
+                if (pageNode != null)
                 {
-                    responseModels.Add(new ResponseModel { Url = att.Value });
+                    var nodes = doc.DocumentNode.SelectNodes("//div/h2/span/a[@href]").Where(x => 
+                        x.Attributes["href"].Value.Contains("rabota.by/vacancy/") || x.Attributes["href"].Value.Contains("hh.ru/vacancy/"));
+
+                    if (nodes != null)
+                    {
+                        foreach (HtmlNode node in nodes)
+                        {
+                            HtmlAttribute href = node.Attributes["href"];
+                            yield return new ResponseModel { Link = href.Value, Title = node.InnerText };
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    page++;
+                }
+                else
+                {
+                    break;
                 }
             }
+        }
 
-            return Ok(responseModels);
+        private static async IAsyncEnumerable<ResponseModel> GetLinkedInResponseModels(RequestModel requestModel)
+        {
+            var url = requestModel.Url + $"keywords={requestModel.Speciality}" +
+                (requestModel.Area?.Length > 0 ? $"&location={requestModel.Area}" : "");
+
+            var doc = await new HtmlWeb().LoadFromWebAsync(url);
+
+            if (doc != null)
+            {
+                var nodes = doc.DocumentNode.SelectNodes("//div/a[@href]").Where(x => x.Attributes["href"].Value.Contains("jobs/view"));
+
+                if (nodes != null)
+                {
+                    foreach (HtmlNode node in nodes)
+                    {
+                        HtmlAttribute href = node.Attributes["href"];
+                        var responseModel = new ResponseModel { Link = href.Value, Title = node.InnerText.Trim() };
+
+                        yield return responseModel;
+                    }
+                }
+            }
         }
     }
 }
