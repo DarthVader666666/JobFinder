@@ -16,6 +16,5 @@ props: {
         required: true
     }
 }
-
 }
 </script>

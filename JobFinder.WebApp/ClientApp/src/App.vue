@@ -1,11 +1,19 @@
-<template>
-  <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea"></CriteriaInput>
-  <button @click="findJobs()">Find Job</button>
+<template>  
+  <div style="display: flex;">
+    <ul>
+      <li v-for="(source, index) in sources" :key="index" @click="setUrl(source)" :className="isUrlActive(source) ? 'active' : ''">{{ source }}</li>
+    </ul>
 
-  <h3 v-if="loading">Loading...</h3>
+    <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea"></CriteriaInput>
+    <button @click="findJobs()">Find Job</button>
+    <h3 v-if="loading">Loading...</h3>
 
-  <div v-for="(el, index) in jobs" :key="index">
-    <a :href="el['link']" target="_blank">{{el['title']}}</a>
+    <div>
+      <a className="jobRef" v-for="(el, index) in jobs" :key="index" :href="el['link']" target="_blank">
+        {{el['title']}}
+      </a>
+    </div>
+
   </div>
 </template>
 
@@ -19,35 +27,60 @@ components: {
 
   data() {
     return {
+      sources: [
+        'linkedIn',
+        'rabotaBy'
+      ],
       jobs: [],
-      url: 'https://www.linkedin.com/jobs/search?',//'https://rabota.by/search/vacancy?',
+      urls: [
+        {
+          name: 'linkedIn',
+          path: 'https://www.linkedin.com/jobs/search?',
+          active: false
+        },
+        {
+          name: 'rabotaBy',
+          path: 'https://rabota.by/search/vacancy?',
+          active: false
+        }
+      ],
       speciality: '',
       area: '',
-      loading: false
+      loading: false,      
     }
   },
 
   methods: {
     async findJobs() {
-      this.jobs = [];      
-      this.loading = true;
+      var loadedJobs = [];
+      this.jobs = [];
       
-      this.jobs = await fetch(
-        'https://localhost:7150/Jobs/GetList',
+      this.urls.forEach(async url => {
+        if(url.active)
         {
-          body: JSON.stringify({
-            url: this.url,
-            speciality: this.speciality,
-            area: this.area
-          }),
-          method: 'POST',
-          headers: {
-            'Content-Type' : 'application/json'            
-          }
-        }
-      ).then(response => response.json());
+          this.loading = true;
 
-      this.loading = false;
+          loadedJobs = await fetch(
+            'https://localhost:7150/Jobs/GetList',
+            {
+              body: JSON.stringify({
+                url: url.path,
+                speciality: this.speciality,
+                area: this.area,
+                source: url.name
+              }),
+              method: 'POST',
+              headers: {
+                'Content-Type' : 'application/json'            
+              }
+            }
+          ).then(response => response.json());
+
+          loadedJobs.forEach(job => this.jobs.push(job));          
+        }
+
+        this.loading = false;
+      });      
     },
 
     changeSpeciality(value) {
@@ -56,6 +89,20 @@ components: {
 
     changeArea(value) {
       this.area = String(value).trim();
+    },
+
+    setUrl(value) {
+      this.urls.forEach(url => {
+        if (url['name'] === value) {
+          url['active'] = !url['active'];
+          return;
+        }
+      })
+    },
+
+    isUrlActive(value) {
+      const active = this.urls.find(x => x['name'] == value)['active'];      
+      return active;
     }
   }  
 }
@@ -67,11 +114,38 @@ components: {
   }
 
   a:hover {
-    color:gray;
+    color:black;
   }
 
   h3 {
     color:white;
     font-weight: bold;
   }
+
+  ul {
+        list-style: none;
+        width: 200px;
+        padding: 0;
+        border-radius: 3px;
+        border: 3px solid #000
+    }
+
+    li {
+        display: block;
+        background: #1A032D;
+        color: #fff;
+        padding: 20px 0;
+    }   
+
+    li:hover, li.active {
+        background: #24043e;
+        cursor: pointer;
+    }
+
+    .jobRef {
+      border: 2px;
+      border-radius: 12px;
+      background: gray;
+      padding: 2px 2px 2px 2px;
+    }
 </style>

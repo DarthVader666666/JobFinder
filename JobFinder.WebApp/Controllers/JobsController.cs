@@ -1,8 +1,8 @@
 ﻿using HtmlAgilityPack;
+using JobFinder.WebApp.Enums;
 using JobFinder.WebApp.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace JobFinder.WebApp.Controllers
 {
@@ -12,8 +12,14 @@ namespace JobFinder.WebApp.Controllers
         [HttpPost]
         public IActionResult GetList([FromBody] RequestModel requestModel)
         {
-            var responseModels = GetLinkedInResponseModels(requestModel);
-            return Ok(responseModels);
+            var responseModels = requestModel.Source switch
+            {
+                var source when GetParseResult(source, SourceNames.RabotaBy) => GetRabotaByResponseModels(requestModel),
+                var source when GetParseResult(source, SourceNames.LinkedIn) => GetLinkedInResponseModels(requestModel),
+                _ => null
+            };
+
+            return responseModels != null ? Ok(responseModels) : BadRequest();
         }
 
         private static async IAsyncEnumerable<ResponseModel> GetRabotaByResponseModels(RequestModel requestModel)
@@ -77,6 +83,11 @@ namespace JobFinder.WebApp.Controllers
                     }
                 }
             }
+        }
+
+        private static bool GetParseResult(string? source, string sourceName)
+        {
+            return source?.ToUpper() == sourceName;
         }
     }
 }
