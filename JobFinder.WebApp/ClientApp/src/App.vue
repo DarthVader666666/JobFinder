@@ -1,20 +1,17 @@
 <template>  
-  <div style="display: flex;">
     <ul>
       <li v-for="(source, index) in sources" :key="index" @click="setUrl(source)" :className="isUrlActive(source) ? 'active' : ''">{{ source }}</li>
     </ul>
 
     <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea"></CriteriaInput>
+
     <button @click="findJobs()">Find Job</button>
+    
     <h3 v-if="loading">Loading...</h3>
 
-    <div>
-      <a className="jobRef" v-for="(el, index) in jobs" :key="index" :href="el['link']" target="_blank">
-        {{el['title']}}
-      </a>
-    </div>
-
-  </div>
+    <a v-for="(el, index) in jobs" :key="index" :href="el['link']" target="_blank">
+      {{el['title']}}
+    </a>
 </template>
 
 <script>
@@ -46,7 +43,7 @@ components: {
       ],
       speciality: '',
       area: '',
-      loading: false,      
+      loading: false
     }
   },
 
@@ -79,8 +76,8 @@ components: {
           loadedJobs.forEach(job => this.jobs.push(job));          
         }
 
-        this.loading = false;
-      });      
+        this.loading = false
+      });
     },
 
     changeSpeciality(value) {
@@ -110,11 +107,17 @@ components: {
 
 <style scoped>
   a {
-    color:white;
+      text-decoration:none;
+      margin-top:10px;
+      color:black;
+      border: 2px;
+      border-radius: 12px;
+      background: gray;
+      padding: 2px 2px 2px 2px;
   }
 
   a:hover {
-    color:black;
+    color:darkgray;
   }
 
   h3 {
@@ -140,12 +143,5 @@ components: {
     li:hover, li.active {
         background: #24043e;
         cursor: pointer;
-    }
-
-    .jobRef {
-      border: 2px;
-      border-radius: 12px;
-      background: gray;
-      padding: 2px 2px 2px 2px;
     }
 </style>

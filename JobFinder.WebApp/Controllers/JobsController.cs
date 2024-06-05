@@ -36,12 +36,13 @@ namespace JobFinder.WebApp.Controllers
 
                 if (pageNode != null)
                 {
-                    var nodes = doc.DocumentNode.SelectNodes("//div/h2/span/a[@href]").Where(x => 
-                        x.Attributes["href"].Value.Contains("rabota.by/vacancy/") || x.Attributes["href"].Value.Contains("hh.ru/vacancy/"));
+                    var nodes = doc.DocumentNode.SelectNodes("//div/h2/span/a[@href]");
+                    var nodeSequence = nodes?.Where(x => x.Attributes["href"].Value.Contains("rabota.by/vacancy/") || 
+                            x.Attributes["href"].Value.Contains("hh.ru/vacancy/"));
 
-                    if (nodes != null)
+                    if (nodeSequence != null)
                     {
-                        foreach (HtmlNode node in nodes)
+                        foreach (HtmlNode node in nodeSequence)
                         {
                             HtmlAttribute href = node.Attributes["href"];
                             yield return new ResponseModel { Link = href.Value, Title = node.InnerText };
@@ -70,11 +71,12 @@ namespace JobFinder.WebApp.Controllers
 
             if (doc != null)
             {
-                var nodes = doc.DocumentNode.SelectNodes("//div/a[@href]").Where(x => x.Attributes["href"].Value.Contains("jobs/view"));
+                var nodes = doc.DocumentNode.SelectNodes("//div/a[@href]");
+                var nodeSequence = nodes?.Where(x => x.Attributes["href"].Value.Contains("jobs/view"));
 
-                if (nodes != null)
+                if (nodeSequence != null)
                 {
-                    foreach (HtmlNode node in nodes)
+                    foreach (HtmlNode node in nodeSequence)
                     {
                         HtmlAttribute href = node.Attributes["href"];
                         var responseModel = new ResponseModel { Link = href.Value, Title = node.InnerText.Trim() };

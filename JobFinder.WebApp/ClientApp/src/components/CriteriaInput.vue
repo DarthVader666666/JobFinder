@@ -1,8 +1,6 @@
 <template>
-    <div>
-        <input @input="changeSpeciality($event.target.value)" type="text" placeholder="Enter spiciality">
-        <input @input="changeArea($event.target.value)" type="text" placeholder="Enter area">
-    </div>
+    <input @input="changeSpeciality($event.target.value)" type="text" placeholder="Enter spiciality">
+    <input @input="changeArea($event.target.value)" type="text" placeholder="Enter area">
 </template>
 <script>
 export default {
