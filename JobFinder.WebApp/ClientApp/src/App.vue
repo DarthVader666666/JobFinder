@@ -1,17 +1,21 @@
-<template>  
-    <ul>
-      <li v-for="(source, index) in sources" :key="index" @click="setUrl(source)" :className="isUrlActive(source) ? 'active' : ''">{{ source }}</li>
-    </ul>
+<template>
+  <div style="border: white dotted 3px; width: 100%; position:relative;">
+    <div style="width:28%; border: red solid 3px;">
+      <ul>
+        <li v-for="(source, index) in sources" :key="index" @click="setUrl(source)" :className="isUrlActive(source) ? 'active' : ''">{{ source }}</li>
+      </ul>
+      <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea"></CriteriaInput>
+      <button @click="findJobs()">Find Job</button>
+    </div>
 
-    <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea"></CriteriaInput>
+    <div style="position: absolute; top:5%; left: 30%; border: red dashed 3px; width:70%;">
+      <h3 v-if="loading">Loading...</h3>
 
-    <button @click="findJobs()">Find Job</button>
-    
-    <h3 v-if="loading">Loading...</h3>
-
-    <a v-for="(el, index) in jobs" :key="index" :href="el['link']" target="_blank">
-      {{el['title']}}
-    </a>
+      <a v-for="(el, index) in jobs" :key="index" :href="el['link']" target="_blank" style="width:48%">
+        {{el['title']}}
+      </a>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -32,12 +36,12 @@ components: {
       urls: [
         {
           name: 'linkedIn',
-          path: 'https://www.linkedin.com/jobs/search?',
+          path: 'https://www.linkedin.com/search/results/all/?',
           active: false
         },
         {
           name: 'rabotaBy',
-          path: 'https://rabota.by/search/vacancy?',
+          path: 'https://rabota.by/search/vacancy/?',
           active: false
         }
       ],
@@ -106,18 +110,27 @@ components: {
 </script>
 
 <style scoped>
+  .root-container {
+    display: inline;
+  }
+
   a {
+      display: block;
       text-decoration:none;
-      margin-top:10px;
       color:black;
-      border: 2px;
-      border-radius: 12px;
-      background: gray;
-      padding: 2px 2px 2px 2px;
+      padding: 3px;
+      margin: 2px;
+      background-color: gray;
   }
 
   a:hover {
+    color:lightgray;
+    background: #333;
+  }
+
+  a:visited {
     color:darkgray;
+    font-style: italic;
   }
 
   h3 {
@@ -138,6 +151,7 @@ components: {
         background: #1A032D;
         color: #fff;
         padding: 20px 0;
+        text-align: center;
     }   
 
     li:hover, li.active {

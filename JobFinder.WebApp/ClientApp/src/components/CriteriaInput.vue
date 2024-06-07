@@ -1,6 +1,9 @@
 <template>
+<div>
     <input @input="changeSpeciality($event.target.value)" type="text" placeholder="Enter spiciality">
     <input @input="changeArea($event.target.value)" type="text" placeholder="Enter area">
+</div>
+    
 </template>
 <script>
 export default {
@@ -16,3 +19,9 @@ props: {
 }
 }
 </script>
+
+<style>
+    input {
+        margin: 5px;
+    }
+</style>
