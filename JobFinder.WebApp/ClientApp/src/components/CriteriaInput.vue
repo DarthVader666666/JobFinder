@@ -1,7 +1,7 @@
 <template>
 <div>
-    <input @input="changeSpeciality($event.target.value)" type="text" placeholder="Enter spiciality">
-    <input @input="changeArea($event.target.value)" type="text" placeholder="Enter area">
+    <input @keyup.enter="findJobs()" @input="changeSpeciality($event.target.value)" type="text" placeholder="Enter spiciality">
+    <input @keyup.enter="findJobs()" @input="changeArea($event.target.value)" type="text" placeholder="Enter area">
 </div>
     
 </template>
@@ -15,13 +15,19 @@ props: {
     changeArea: {
         type: Function,
         required: true
+    },
+    findJobs: {
+        type:Function,
+        required:true
     }
 }
 }
 </script>
 
 <style>
-    input {
-        margin: 5px;
-    }
+input {
+    width: inherit;
+    margin-bottom: 0.5rem;
+    margin-inline: 0.5rem;
+}
 </style>

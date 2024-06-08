@@ -1,19 +1,25 @@
 <template>
-  <div style="border: white dotted 3px; width: 100%; position:relative;">
-    <div style="width:28%; border: red solid 3px;">
+  <div className="head">
+    <h1>Welcome to Job Finder!</h1>
+  </div>
+  <div className="container">
+
+    <div className="inputBox">
       <ul>
         <li v-for="(source, index) in sources" :key="index" @click="setUrl(source)" :className="isUrlActive(source) ? 'active' : ''">{{ source }}</li>
       </ul>
-      <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea"></CriteriaInput>
-      <button @click="findJobs()">Find Job</button>
+      <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea" :findJobs="findJobs"></CriteriaInput>
+      <button @click="findJobs()" style="margin-inline: 0.5rem;">Find Job</button>
     </div>
 
-    <div style="position: absolute; top:5%; left: 30%; border: red dashed 3px; width:70%;">
+    <div className="listBox">      
       <h3 v-if="loading">Loading...</h3>
+      <div v-for="(el, index) in jobs" :key="index">
+        <a :href="el['link']" target="_blank">
+          {{el['title']}}
+        </a>
+      </div>
 
-      <a v-for="(el, index) in jobs" :key="index" :href="el['link']" target="_blank" style="width:48%">
-        {{el['title']}}
-      </a>
     </div>
   </div>
 </template>
@@ -110,8 +116,33 @@ components: {
 </script>
 
 <style scoped>
-  .root-container {
-    display: inline;
+  div {
+    display: flex; 
+    flex-wrap: wrap;
+  }
+
+  .head {
+    flex-direction: column; 
+    align-items: center;
+  }
+
+  .container {
+    flex-direction: row;
+    max-width: 100%;
+  }
+
+  .inputBox {
+    width:16%; 
+    flex-direction: column; 
+    align-content: flex-start;
+  }
+
+  .listBox {
+    max-width: 83%; 
+    flex-direction: row;
+    padding-top: 8px;
+    justify-content: start;
+    gap: 2px;
   }
 
   a {
@@ -133,14 +164,19 @@ components: {
     font-style: italic;
   }
 
-  h3 {
-    color:white;
+  h1, h3 {
+    color:rgb(180, 29, 29);
     font-weight: bold;
+    background-color: #1A032D;
+    border-radius:10px;
+    width: fit-content;
+    padding: 5px;
+    text-align: center;
   }
 
   ul {
+        margin: 5px;
         list-style: none;
-        width: 200px;
         padding: 0;
         border-radius: 3px;
         border: 3px solid #000
@@ -155,7 +191,7 @@ components: {
     }   
 
     li:hover, li.active {
-        background: #24043e;
+        background: hsl(273, 88%, 23%);
         cursor: pointer;
     }
 </style>
