@@ -4,22 +4,29 @@
   </div>
   <div className="container">
 
-    <div className="inputBox">
-      <ul>
-        <li v-for="(source, index) in sources" :key="index" @click="setUrl(source)" :className="isUrlActive(source) ? 'active' : ''">{{ source }}</li>
-      </ul>
+    <div className="input-box">
+      <div className="sources">
+        <section @click="setUrl(linkedIn)" :className="isUrlActive(linkedIn) ? 'active' : ''">
+          <img src="./img/linkedin-logo-2.png" alt="linkedIn">
+        </section>
+        <section @click="setUrl(rabotaBy)" :className="isUrlActive(rabotaBy) ? 'active' : ''">
+          <img src="./img/rabotaby-logo-2.png" alt="rabotaBy">
+        </section>
+        <section @click="setUrl(devBy)" :className="isUrlActive(devBy) ? 'active' : ''">
+          <img src="./img/devby-logo-2.png" alt="devBy">
+        </section>
+      </div>
       <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea" :findJobs="findJobs"></CriteriaInput>
       <button @click="findJobs()" style="margin-inline: 0.5rem;">Find Job</button>
     </div>
 
-    <div className="listBox">      
+    <div className="list-box">      
       <h3 v-if="loading">Loading...</h3>
       <div v-for="(el, index) in jobs" :key="index">
         <a :href="el['link']" target="_blank">
           {{el['title']}}
         </a>
       </div>
-
     </div>
   </div>
 </template>
@@ -34,10 +41,9 @@ components: {
 
   data() {
     return {
-      sources: [
-        'linkedIn',
-        'rabotaBy'
-      ],
+      linkedIn: 'linkedIn',
+      rabotaBy: 'rabotaBy',
+      devBy: 'devBy',
       jobs: [],
       urls: [
         {
@@ -48,6 +54,11 @@ components: {
         {
           name: 'rabotaBy',
           path: 'https://rabota.by/search/vacancy/?',
+          active: false
+        },
+        {
+          name: 'devBy',
+          path: 'https://jobs.devby.io/?',
           active: false
         }
       ],
@@ -131,13 +142,13 @@ components: {
     max-width: 100%;
   }
 
-  .inputBox {
-    width:16%; 
+  .input-box {
+    width:fit-content; 
     flex-direction: column; 
-    align-content: flex-start;
+    align-content: start;
   }
 
-  .listBox {
+  .list-box {
     max-width: 83%; 
     flex-direction: row;
     padding-top: 8px;
@@ -146,6 +157,7 @@ components: {
   }
 
   a {
+      max-height: 18px;
       display: block;
       text-decoration:none;
       color:black;
@@ -167,31 +179,42 @@ components: {
   h1, h3 {
     color:rgb(180, 29, 29);
     font-weight: bold;
-    background-color: #1A032D;
     border-radius:10px;
     width: fit-content;
     padding: 5px;
     text-align: center;
+    text-shadow: 0.2rem 0.2rem black;
   }
 
-  ul {
-        margin: 5px;
-        list-style: none;
-        padding: 0;
-        border-radius: 3px;
-        border: 3px solid #000
-    }
+  .sources {
+    display: flex;
+    flex-direction: column;
+    gap:0.2rem;
+    width: fit-content;
+    height: fit-content;
+    padding: 0;
+  }
 
-    li {
-        display: block;
-        background: #1A032D;
-        color: #fff;
-        padding: 20px 0;
-        text-align: center;
-    }   
+  .sources section {
+    width: 10rem;
+    height: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid black;
+    margin:0.1rem;
+    background-color: rgb(0, 164, 164);
+    border-radius: 10px;
+  }
 
-    li:hover, li.active {
-        background: hsl(273, 88%, 23%);
-        cursor: pointer;
-    }
+  .sources section img {
+    height:95%;
+    width:95%;
+  }
+
+  section:hover, section.active {
+    background-color: aqua;
+    cursor: pointer;
+  }
 </style>

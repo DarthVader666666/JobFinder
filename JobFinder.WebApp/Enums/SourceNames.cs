@@ -4,5 +4,6 @@
     {
         public const string LinkedIn = "LINKEDIN";
         public const string RabotaBy = "RABOTABY";
+        public const string DevBy = "DEVBY";
     }
 }

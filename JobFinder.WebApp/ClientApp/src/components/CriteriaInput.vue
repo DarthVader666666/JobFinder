@@ -1,5 +1,5 @@
 <template>
-<div>
+<div className="input-box">
     <input @keyup.enter="findJobs()" @input="changeSpeciality($event.target.value)" type="text" placeholder="Enter spiciality">
     <input @keyup.enter="findJobs()" @input="changeArea($event.target.value)" type="text" placeholder="Enter area">
 </div>
@@ -25,9 +25,15 @@ props: {
 </script>
 
 <style>
+.input-box {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    padding: px;
+}
+
 input {
     width: inherit;
     margin-bottom: 0.5rem;
-    margin-inline: 0.5rem;
 }
 </style>

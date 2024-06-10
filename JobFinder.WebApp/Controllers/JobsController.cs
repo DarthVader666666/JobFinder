@@ -16,6 +16,7 @@ namespace JobFinder.WebApp.Controllers
             var responseModels = requestModel.Source switch
             {
                 var source when GetParseResult(source, SourceNames.RabotaBy) => GetRabotaByResponseModels(requestModel),
+                var source when GetParseResult(source, SourceNames.DevBy) => GetDevByResponseModels(requestModel),
                 //var source when GetParseResult(source, SourceNames.LinkedIn) => GetLinkedInResponseModels(requestModel),
                 _ => null
             };
@@ -50,6 +51,32 @@ namespace JobFinder.WebApp.Controllers
                 else
                 {
                     break;
+                }
+            }
+        }
+
+        private static async IAsyncEnumerable<ResponseModel>? GetDevByResponseModels(RequestModel requestModel)
+        {
+            var url = requestModel.Url;
+            var doc = await new HtmlWeb().LoadFromWebAsync(url);
+
+            var cityCode = doc.DocumentNode?.SelectNodes("//select/option")?
+                .FirstOrDefault(x => x.InnerText.ToUpper() == requestModel?.Area?.ToUpper())?.Attributes["value"].Value;
+
+            url = requestModel.Url + $"filter[search]={requestModel.Speciality}" + 
+                (requestModel.Area?.Length > 0 ? $"&filter[city_id][]={cityCode}" : "");
+
+            doc = await new HtmlWeb().LoadFromWebAsync(url);
+            var nodes = doc.DocumentNode.SelectNodes("//div/a[@href]");
+
+            var nodeSequence = nodes?.Where(x => x.Attributes["href"].Value.Contains("/vacancies/"));
+
+            if (nodeSequence != null && nodeSequence.Any())
+            {
+                foreach (HtmlNode node in nodeSequence)
+                {
+                    HtmlAttribute href = node.Attributes["href"];
+                    yield return new ResponseModel { Link = requestModel.Url?[..(requestModel.Url.Length - 2)] + href.Value, Title = node.InnerText };
                 }
             }
         }
