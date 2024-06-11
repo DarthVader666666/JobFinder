@@ -4,6 +4,7 @@ using JobFinder.WebApp.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using NickBuhro.Translit;
 
 namespace JobFinder.WebApp.Controllers
 {
@@ -17,6 +18,7 @@ namespace JobFinder.WebApp.Controllers
             {
                 var source when GetParseResult(source, SourceNames.RabotaBy) => GetRabotaByResponseModels(requestModel),
                 var source when GetParseResult(source, SourceNames.DevBy) => GetDevByResponseModels(requestModel),
+                var source when GetParseResult(source, SourceNames.PracaBy) => GetPracaByResponseModels(requestModel),
                 //var source when GetParseResult(source, SourceNames.LinkedIn) => GetLinkedInResponseModels(requestModel),
                 _ => null
             };
@@ -57,11 +59,14 @@ namespace JobFinder.WebApp.Controllers
 
         private static async IAsyncEnumerable<ResponseModel>? GetDevByResponseModels(RequestModel requestModel)
         {
+            requestModel.Area = Transliteration.LatinToCyrillic(requestModel.Area);
+
             var url = requestModel.Url;
             var doc = await new HtmlWeb().LoadFromWebAsync(url);
 
             var cityCode = doc.DocumentNode?.SelectNodes("//select/option")?
-                .FirstOrDefault(x => x.InnerText.ToUpper() == requestModel?.Area?.ToUpper())?.Attributes["value"].Value;
+                .FirstOrDefault(x => x.InnerText.Equals(requestModel?.Area, StringComparison.InvariantCultureIgnoreCase))?
+                .Attributes["value"].Value;
 
             url = requestModel.Url + $"filter[search]={requestModel.Speciality}" + 
                 (requestModel.Area?.Length > 0 ? $"&filter[city_id][]={cityCode}" : "");
@@ -77,6 +82,27 @@ namespace JobFinder.WebApp.Controllers
                 {
                     HtmlAttribute href = node.Attributes["href"];
                     yield return new ResponseModel { Link = requestModel.Url?[..(requestModel.Url.Length - 2)] + href.Value, Title = node.InnerText };
+                }
+            }
+        }
+
+        private static async IAsyncEnumerable<ResponseModel>? GetPracaByResponseModels(RequestModel requestModel)
+        {
+            requestModel.Area = Transliteration.LatinToCyrillic(requestModel.Area);
+
+            var url = requestModel.Url + $"search%5Bquery%5D={requestModel.Speciality}" + (requestModel.Area?.Length > 0 ? $"+{requestModel.Area}" : "");
+
+            var doc = await new HtmlWeb().LoadFromWebAsync(url);
+            var nodes = doc.DocumentNode.SelectNodes("//div/a[@href]");
+
+            var nodeSequence = nodes?.Where(x => x.Attributes["href"].Value.Contains("/vacancy/") && x.InnerText.Length > 0);
+
+            if (nodeSequence != null && nodeSequence.Any())
+            {
+                foreach (HtmlNode node in nodeSequence)
+                {
+                    HtmlAttribute href = node.Attributes["href"];
+                    yield return new ResponseModel { Link = href.Value, Title = node.InnerText };
                 }
             }
         }
@@ -111,6 +137,9 @@ namespace JobFinder.WebApp.Controllers
                 }
             }
         }
+
+
+
 
         private static bool GetParseResult(string? source, string sourceName)
         {

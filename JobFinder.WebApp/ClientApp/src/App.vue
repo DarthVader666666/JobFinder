@@ -2,32 +2,32 @@
   <div className="head">
     <h1>Welcome to Job Finder!</h1>
   </div>
-  <div className="container">
 
+  <div className="container">
     <div className="input-box">
       <div className="sources">
-        <section @click="setUrl(linkedIn)" :className="isUrlActive(linkedIn) ? 'active' : ''">
-          <img src="./img/linkedin-logo-2.png" alt="linkedIn">
-        </section>
-        <section @click="setUrl(rabotaBy)" :className="isUrlActive(rabotaBy) ? 'active' : ''">
-          <img src="./img/rabotaby-logo-2.png" alt="rabotaBy">
-        </section>
-        <section @click="setUrl(devBy)" :className="isUrlActive(devBy) ? 'active' : ''">
-          <img src="./img/devby-logo-2.png" alt="devBy">
+        <section v-for="source in sources" @click="setUrl(source.name)" :className="isUrlActive(source.name) ? 'active' : ''">
+          <img v-bind:src="source.img" :alt="source.name">
         </section>
       </div>
       <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea" :findJobs="findJobs"></CriteriaInput>
       <button @click="findJobs()" style="margin-inline: 0.5rem;">Find Job</button>
     </div>
 
-    <div className="list-box">      
+    <div>
       <h3 v-if="loading">Loading...</h3>
-      <div v-for="(el, index) in jobs" :key="index">
-        <a :href="el['link']" target="_blank">
-          {{el['title']}}
-        </a>
+
+      <div v-for="(job, index) in jobs" :key="index" style="display: flex; flex-direction: column;">
+        <img v-bind:src="jobs[index].img" width="50px" height="50px">
+
+        <div className="list-box">
+          <a v-for="link in job.links" :href="link.link" target="_blank">
+            {{link.title}}
+          </a>
+        </div>        
       </div>
     </div>
+    
   </div>
 </template>
 
@@ -41,24 +41,49 @@ components: {
 
   data() {
     return {
-      linkedIn: 'linkedIn',
-      rabotaBy: 'rabotaBy',
-      devBy: 'devBy',
+      sources: [
+        {
+          name:'linkedIn',
+          img:'/src/img/linkedin-logo-large.png'
+        },
+        {
+          name:'rabotaBy',
+          img:'/src/img/rabotaby-logo-large.png'
+        },
+        {
+          name:'devBy',
+          img:'/src/img/devby-logo-large.png'
+        },
+        {
+          name:'pracaBy',
+          img:'/src/img/pracaby-logo-large.png'
+        }
+      ],
+
       jobs: [],
       urls: [
         {
+          img: '/src/img/linkedin-logo-small.png',
           name: 'linkedIn',
           path: 'https://www.linkedin.com/search/results/all/?',
           active: false
         },
         {
+          img: '/src/img/rabotaby-logo-small.png',
           name: 'rabotaBy',
           path: 'https://rabota.by/search/vacancy/?',
           active: false
         },
         {
+          img: '/src/img/devby-logo-small.png',
           name: 'devBy',
           path: 'https://jobs.devby.io/?',
+          active: false
+        },
+        {
+          img: '/src/img/pracaby-logo-small.png',
+          name: 'pracaBy',
+          path: 'https://praca.by/search/vacancies/?',
           active: false
         }
       ],
@@ -69,9 +94,10 @@ components: {
   },
 
   methods: {
-    async findJobs() {
+    findJobs() {
       var loadedJobs = [];
       this.jobs = [];
+      var index = 0;
       
       this.urls.forEach(async url => {
         if(url.active)
@@ -94,10 +120,12 @@ components: {
             }
           ).then(response => response.json());
 
-          loadedJobs.forEach(job => this.jobs.push(job));          
+          this.jobs.push({ img: url.img, links: [] })
+          loadedJobs.forEach(job => this.jobs[index].links.push(job));
+          
+          index++;
+          this.loading = false;
         }
-
-        this.loading = false
       });
     },
 
@@ -122,7 +150,7 @@ components: {
       const active = this.urls.find(x => x['name'] == value)['active'];      
       return active;
     }
-  }  
+  }
 }
 </script>
 
@@ -138,21 +166,23 @@ components: {
   }
 
   .container {
-    flex-direction: row;
+    display:grid;
+    grid-template-columns: 15% 85%;
     max-width: 100%;
   }
 
   .input-box {
     width:fit-content; 
+    display:flex;
     flex-direction: column; 
     align-content: start;
   }
 
   .list-box {
-    max-width: 83%; 
     flex-direction: row;
     padding-top: 8px;
-    justify-content: start;
+    padding-bottom: 8px;
+    align-content: start;
     gap: 2px;
   }
 

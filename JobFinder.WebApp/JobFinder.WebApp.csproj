@@ -723,6 +723,7 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NickBuhro.Translit" Version="1.4.5" />
   </ItemGroup>
 
   <ItemGroup>
@@ -1121,6 +1122,7 @@
 
   <ItemGroup>
     <Folder Include="ClientApp\src\components\" />
+    <Folder Include="img\" />
   </ItemGroup>
 
 </Project>
