@@ -1,0 +1,24 @@
+version: '3.4'
+services:
+
+  front:
+    container_name: jobfinder-front-container
+    image: jobfinder-front
+    ports:
+      - 80:80
+    networks:
+      - jobfinder
+    depends_on:
+      - api
+
+  api:
+    container_name: jobfinder-api-container
+    build:
+        dockerfile: JobFinder.WebApp\Dockerfile
+    image: jobfinder-api
+    networks:
+      - jobfinder
+
+networks:
+  jobfinder:
+    driver: bridge

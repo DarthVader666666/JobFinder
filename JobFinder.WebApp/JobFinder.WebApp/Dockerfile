@@ -12,6 +12,7 @@ WORKDIR /src
 COPY ["JobFinder.WebApp.csproj", "."]
 RUN dotnet restore "./JobFinder.WebApp.csproj"
 COPY . .
+
 WORKDIR "/src/."
 RUN dotnet build "./JobFinder.WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

@@ -44,44 +44,44 @@ components: {
       sources: [
         {
           name:'linkedIn',
-          img:'/src/img/linkedin-logo-large.png'
+          img:'./img/linkedin-logo-large.png'
         },
         {
           name:'rabotaBy',
-          img:'/src/img/rabotaby-logo-large.png'
+          img:'./img/rabotaby-logo-large.png'
         },
         {
           name:'devBy',
-          img:'/src/img/devby-logo-large.png'
+          img:'./img/devby-logo-large.png'
         },
         {
           name:'pracaBy',
-          img:'/src/img/pracaby-logo-large.png'
+          img:'./img/pracaby-logo-large.png'
         }
       ],
 
       jobs: [],
       urls: [
         {
-          img: '/src/img/linkedin-logo-small.png',
+          img: '.img/linkedin-logo-small.png',
           name: 'linkedIn',
           path: 'https://www.linkedin.com/search/results/all/?',
           active: false
         },
         {
-          img: '/src/img/rabotaby-logo-small.png',
+          img: '.img/rabotaby-logo-small.png',
           name: 'rabotaBy',
           path: 'https://rabota.by/search/vacancy/?',
           active: false
         },
         {
-          img: '/src/img/devby-logo-small.png',
+          img: '.img/devby-logo-small.png',
           name: 'devBy',
           path: 'https://jobs.devby.io/?',
           active: false
         },
         {
-          img: '/src/img/pracaby-logo-small.png',
+          img: '.img/pracaby-logo-small.png',
           name: 'pracaBy',
           path: 'https://praca.by/search/vacancies/?',
           active: false
@@ -105,7 +105,7 @@ components: {
           this.loading = true;
 
           loadedJobs = await fetch(
-            'https://localhost:7150/Jobs/GetList',
+            'https://localhost:49606/Jobs/GetList',
             {
               body: JSON.stringify({
                 url: url.path,

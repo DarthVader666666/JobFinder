@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,7 +7,15 @@
     <UserSecretsId>ef09a48e-75b7-4a16-87b7-d3af8c46b6c0</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="img\**" />
+    <Content Remove="img\**" />
+    <EmbeddedResource Remove="img\**" />
+    <None Remove="img\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="ClientApp\.vscode\extensions.json" />
@@ -1122,7 +1130,6 @@
 
   <ItemGroup>
     <Folder Include="ClientApp\src\components\" />
-    <Folder Include="img\" />
   </ItemGroup>
 
 </Project>
