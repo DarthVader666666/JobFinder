@@ -15,6 +15,9 @@ builder.Services.AddCors(options => options.AddPolicy("AllowAll",
 
 var app = builder.Build();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseRouting();
 app.UseCors();
 app.MapControllerRoute(
