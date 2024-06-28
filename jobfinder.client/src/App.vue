@@ -6,7 +6,7 @@
   <div className="container">
     <div className="input-box">
       <div className="sources">
-        <section v-for="source in sources" @click="setUrl(source.name)" :className="isUrlActive(source.name) ? 'active' : ''">
+        <section v-for="(source, index) in sources" @click="setUrl(source.name)" :key="index" :className="isUrlActive(source.name) ? 'active' : ''">
           <img v-bind:src="source.img" :alt="source.name">
         </section>
       </div>
@@ -21,7 +21,7 @@
         <img v-bind:src="jobs[index].img" width="50px" height="50px">
 
         <div className="list-box">
-          <a v-for="link in job.links" :href="link.link" target="_blank">
+          <a v-for="(link, index) in job.links" :href="link.link" :key="index" target="_blank">
             {{link.title}}
           </a>
         </div>        
