@@ -3,9 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.Server", "JobFinder.Server\JobFinder.Server.csproj", "{7BEDD2AD-6D5F-41CE-A2C8-076CE6DA7DE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JobFinder.Server", "JobFinder.Server\JobFinder.Server.csproj", "{7BEDD2AD-6D5F-41CE-A2C8-076CE6DA7DE0}"
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "jobfinder.client", "jobfinder.client\jobfinder.client.esproj", "{D766B4A0-303F-4BC6-BEBC-A841E0365F76}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{15EBFEDC-BCFC-47A3-84A0-208443D15322}"
+	ProjectSection(SolutionItems) = preProject
+		Dockerfile = Dockerfile
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
