@@ -6,7 +6,7 @@
   <div className="container">
     <div className="input-box">
       <div className="sources">
-        <section v-for="(source, index) in sources" @click="setUrl(source.name)" :key="index" :className="isUrlActive(source.name) ? 'active' : ''">
+        <section v-for="(source, index) in sources" @click="setSearchSource(source.name)" :key="index" :className="isSearchSourceOptionActive(source.name) ? 'active' : ''">
           <img v-bind:src="source.img" :alt="source.name">
         </section>
       </div>
@@ -57,33 +57,56 @@ components: {
         {
           name:'pracaBy',
           img:'pracaby-logo-large.png'
+        },
+        {
+          name:'trabajo',
+          img:'trabajo-logo-large.png'
+        },
+        {
+          name:'beBee',
+          img:'bebee-logo-large.png'
+        },
+        {
+          name: 'joblum',
+          img: 'joblum-logo-large.png'
         }
       ],
 
       jobs: [],
-      urls: [
+      searchSourceOptions: [
         {
           img: 'linkedin-logo-small.png',
           name: 'linkedIn',
-          path: 'https://www.linkedin.com/search/results/all/?',
           active: false
         },
         {
           img: 'rabotaby-logo-small.png',
           name: 'rabotaBy',
-          path: 'https://rabota.by/search/vacancy/?',
           active: false
         },
         {
           img: 'devby-logo-small.png',
           name: 'devBy',
-          path: 'https://jobs.devby.io/?',
           active: false
         },
         {
           img: 'pracaby-logo-small.png',
           name: 'pracaBy',
-          path: 'https://praca.by/search/vacancies/?',
+          active: false
+        },
+        {
+          img: 'trabajo-logo-small.png',
+          name: 'trabajo',
+          active: false
+        },
+        {
+          img: 'bebee-logo-small.png',
+          name: 'beBee',
+          active: false
+        },
+        {
+          img: 'joblum-logo-small.png',
+          name: 'joblum',
           active: false
         }
       ],
@@ -99,8 +122,8 @@ components: {
       this.jobs = [];
       var index = 0;
       
-      this.urls.forEach(async url => {
-        if(url.active)
+      this.searchSourceOptions.forEach(async searchSourceOption => {
+        if(searchSourceOption.active)
         {
           this.loading = true;
 
@@ -108,10 +131,9 @@ components: {
             'https://localhost:7150/Jobs/GetList',
             {
               body: JSON.stringify({
-                url: url.path,
                 speciality: this.speciality,
                 area: this.area,
-                source: url.name
+                source: searchSourceOption.name
               }),
               method: 'POST',
               headers: {
@@ -120,7 +142,7 @@ components: {
             }
           ).then(response => response.json());
 
-          this.jobs.push({ img: url.img, links: [] })
+          this.jobs.push({ img: searchSourceOption.img, links: [] })
           loadedJobs.forEach(job => this.jobs[index].links.push(job));
           
           index++;
@@ -137,17 +159,17 @@ components: {
       this.area = String(value).trim();
     },
 
-    setUrl(value) {
-      this.urls.forEach(url => {
-        if (url['name'] === value) {
-          url['active'] = !url['active'];
+    setSearchSource(value) {
+      this.searchSourceOptions.forEach(searchSourceOption => {
+        if (searchSourceOption['name'] === value) {
+          searchSourceOption['active'] = !searchSourceOption['active'];
           return;
         }
       })
     },
 
-    isUrlActive(value) {
-      const active = this.urls.find(x => x['name'] == value)['active'];      
+    isSearchSourceOptionActive(value) {
+      const active = this.searchSourceOptions.find(x => x['name'] == value)['active'];     
       return active;
     }
   }

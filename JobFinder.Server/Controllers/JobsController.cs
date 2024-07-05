@@ -14,151 +14,92 @@ namespace JobFinder.WebApp.Controllers
         [HttpPost]
         public IActionResult GetList([FromBody] RequestModel requestModel)
         {
-            var responseModels = requestModel.Source switch
-            {
-                var source when GetParseResult(source, SourceNames.RabotaBy) => GetRabotaByResponseModels(requestModel),
-                var source when GetParseResult(source, SourceNames.DevBy) => GetDevByResponseModels(requestModel),
-                var source when GetParseResult(source, SourceNames.PracaBy) => GetPracaByResponseModels(requestModel),
-                //var source when GetParseResult(source, SourceNames.LinkedIn) => GetLinkedInResponseModels(requestModel),
-                _ => null
-            };
+            var responseModels = GetResponseModels(requestModel);
 
             return responseModels != null ? Ok(responseModels) : BadRequest();
         }
 
-        private static async IAsyncEnumerable<ResponseModel>? GetRabotaByResponseModels(RequestModel requestModel)
+        private static IEnumerable<ResponseModel>? GetResponseModels(RequestModel requestModel)
         {
-            int page = 1;
-
-            while (page < 5)
-            {
-                var url = requestModel.Url + $"text={requestModel.Speciality}" +
-                    (requestModel.Area?.Length > 0 ? $" {requestModel.Area}" : "") + $"&page={page - 1}";
-
-                var doc = await new HtmlWeb().LoadFromWebAsync(url);
-                var nodes = doc.DocumentNode.SelectNodes("//div/h2/span/a[@href]");
-                var nodeSequence = nodes?.Where(x => x.Attributes["href"].Value.Contains("rabota.by/vacancy/")
-                    || x.Attributes["href"].Value.Contains("hh.ru/vacancy/"));
-
-                if (nodeSequence != null && nodeSequence.Any())
-                {
-                    foreach (HtmlNode node in nodeSequence)
-                    {
-                        HtmlAttribute href = node.Attributes["href"];
-                        yield return new ResponseModel { Link = href.Value, Title = node.InnerText };
-                    }
-
-                    page++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-
-        private static async IAsyncEnumerable<ResponseModel>? GetDevByResponseModels(RequestModel requestModel)
-        {
-            requestModel.Area = Transliteration.LatinToCyrillic(requestModel.Area);
-
-            var url = requestModel.Url;
-            var doc = await new HtmlWeb().LoadFromWebAsync(url);
-
-            var cityCode = doc.DocumentNode?.SelectNodes("//select/option")?
-                .FirstOrDefault(x => x.InnerText.Equals(requestModel?.Area, StringComparison.InvariantCultureIgnoreCase))?
-                .Attributes["value"].Value;
-
-            url = requestModel.Url + $"filter[search]={requestModel.Speciality}" + 
-                (requestModel.Area?.Length > 0 ? $"&filter[city_id][]={cityCode}" : "");
-
-            doc = await new HtmlWeb().LoadFromWebAsync(url);
-            var nodes = doc.DocumentNode.SelectNodes("//div/a[@href]");
-
-            var nodeSequence = nodes?.Where(x => x.Attributes["href"].Value.Contains("/vacancies/"));
+            var nodeSequence = GetNodeSequence(requestModel).Result;
 
             if (nodeSequence != null && nodeSequence.Any())
             {
                 foreach (HtmlNode node in nodeSequence)
                 {
                     HtmlAttribute href = node.Attributes["href"];
-                    yield return new ResponseModel { Link = requestModel.Url?[..(requestModel.Url.Length - 2)] + href.Value, Title = node.InnerText };
+
+                    yield return new ResponseModel 
+                    { 
+                        Link = requestModel?.Source?.ToUpper() switch
+                        {
+                            SourceNames.JobLum => "https://by.joblum.com/" + href.Value,
+                            SourceNames.DevBy => "https://jobs.devby.io/" + href.Value,
+                            _ => href.Value
+                        },
+                        Title = node.InnerText 
+                    };
                 }
             }
         }
 
-        private static async IAsyncEnumerable<ResponseModel>? GetPracaByResponseModels(RequestModel requestModel)
+        private static async Task<IEnumerable<HtmlNode>?> GetNodeSequence(RequestModel requestModel)
         {
-            requestModel.Area = Transliteration.LatinToCyrillic(requestModel.Area);
+            HtmlDocument? doc = null;
+            string? url = null;
 
-            var url = requestModel.Url + $"search%5Bquery%5D={requestModel.Speciality}" + (requestModel.Area?.Length > 0 ? $"+{requestModel.Area}" : "");
-
-            var doc = await new HtmlWeb().LoadFromWebAsync(url);
-            var nodes = doc.DocumentNode.SelectNodes("//div/a[@href]");
-
-            var nodeSequence = nodes?.Where(x => x.Attributes["href"].Value.Contains("/vacancy/") && x.InnerText.Length > 0);
-
-            if (nodeSequence != null && nodeSequence.Any())
+            if (requestModel?.Source?.ToUpper() == SourceNames.DevBy)
             {
-                foreach (HtmlNode node in nodeSequence)
-                {
-                    HtmlAttribute href = node.Attributes["href"];
-                    yield return new ResponseModel { Link = href.Value, Title = node.InnerText };
-                }
+                doc = await new HtmlWeb().LoadFromWebAsync("https://jobs.devby.io");
+
+                requestModel.Area = doc.DocumentNode?.SelectNodes("//select/option")?
+                    .FirstOrDefault(x => x.InnerText.Equals(Transliteration.LatinToCyrillic(requestModel.Area), StringComparison.InvariantCultureIgnoreCase))?
+                    .Attributes["value"].Value;
             }
-        }
 
-        private static async IAsyncEnumerable<ResponseModel> GetLinkedInResponseModels(RequestModel requestModel)
-        {
-            var url = requestModel?.Url + $"&keywords={requestModel?.Speciality}"
-                    + (requestModel?.Area?.Length > 0 ? $" {requestModel.Area}" : "");
-
-            var doc = await new HtmlWeb().LoadFromWebAsync(url);
-
-            var urls = doc.DocumentNode.SelectNodes("//a");
-                
-            url = urls.FirstOrDefault(x => 
-                x.InnerText.Contains("See all job results"))?.Attributes["href"].Value;
-
+            url = GetUrl(requestModel?.Source?.ToUpper(), requestModel?.Speciality, requestModel?.Area);
             doc = await new HtmlWeb().LoadFromWebAsync(url);
 
-            var nodes = doc.DocumentNode.SelectNodes("//div/a[@href]");
+            var nodes = doc?.DocumentNode?.SelectNodes("//a[@href]");
 
-            var nodeSequence = nodes?.Where(x => x.Attributes["href"].Value.Contains("jobs/view")
-                && SpecialityMatches(requestModel?.Speciality ?? "", x.InnerText));
+            var nodeSequence = nodes?.Where(x => IsJobRefference(x, requestModel?.Source?.ToUpper()) && x.InnerText.Trim().Any());
 
-            if (nodeSequence != null && nodeSequence.Any())
-            {
-                foreach (HtmlNode node in nodeSequence)
-                {
-                    HtmlAttribute href = node.Attributes["href"];
-                    var responseModel = new ResponseModel { Link = href.Value, Title = node.InnerText.Trim() };
-
-                    yield return responseModel;
-                }
-            }
+            return nodeSequence;
         }
 
-
-
-
-        private static bool GetParseResult(string? source, string sourceName)
+        private static bool IsJobRefference(HtmlNode node, string? resource)
         {
-            return source?.ToUpper() == sourceName;
-        }
-
-        private static bool SpecialityMatches(string speciality, string innerText)
-        { 
-            var lines = speciality.Split(' ');
-
-            foreach (var item in lines)
-            {
-                if (innerText.Contains(item, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return true;
-                }
+            static bool ContainsUri(HtmlNode x, string uri)
+            { 
+                return x.Attributes["href"].Value.Contains(uri);
             }
 
-            return false;
+            return resource switch
+            {
+                SourceNames.RabotaBy => ContainsUri(node, "rabota.by/vacancy/") || ContainsUri(node, "hh.ru/vacancy/"),
+                SourceNames.DevBy => ContainsUri(node, "/vacancies/"),
+                SourceNames.PracaBy => ContainsUri(node, "praca.by/vacancy/"),
+                SourceNames.LinkedIn => ContainsUri(node, "/job/"),
+                SourceNames.Trabajo => ContainsUri(node, "by.trabajo.org/работа-"),
+                SourceNames.BeBee => ContainsUri(node, "by.bebee.com/job/"),
+                SourceNames.JobLum => ContainsUri(node, "/job/"),
+                _ => false
+            };
+        }
+
+        private static string? GetUrl(string? resource, string? speciality, string? area, int page = 1)
+        {
+            return resource switch
+            {
+                SourceNames.RabotaBy => $"https://rabota.by/search/vacancy/?text={speciality} {area}&page={page - 1}",
+                SourceNames.DevBy => $"https://jobs.devby.io/?filter[search]={speciality}&filter[city_id][]={area}",
+                SourceNames.PracaBy => $"https://praca.by/search/vacancies/?search%5Bquery%5D={speciality}+{Transliteration.LatinToCyrillic(area)}",
+                SourceNames.LinkedIn => $"https://www.linkedin.com/search/results/all/?&keywords={speciality} {area}",
+                SourceNames.Trabajo => $"https://by.trabajo.org/работы-{speciality!.Trim('.',',')}/{Transliteration.LatinToCyrillic(area)}",
+                SourceNames.BeBee => $"https://by.bebee.com/jobs?term={speciality}&location={area}",
+                SourceNames.JobLum => $"https://by.joblum.com/jobs?q={speciality}&sort=0&lo%5B%5D={Transliteration.LatinToCyrillic(area)}",
+                _ => null
+            };
         }
     }
 }

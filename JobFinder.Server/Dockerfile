@@ -3,19 +3,13 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
-EXPOSE 8000
-EXPOSE 8001
+EXPOSE 8080
+EXPOSE 8081
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS with-node
-RUN apt-get update
-RUN apt-get install curl
-RUN curl -sL https://deb.nodesource.com/setup_20.x | bash
-RUN apt-get -y install nodejs
-
-
-FROM with-node AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+COPY ["jobfinder.client/nuget.config", "jobfinder.client/"]
 COPY ["JobFinder.Server/JobFinder.Server.csproj", "JobFinder.Server/"]
 COPY ["jobfinder.client/jobfinder.client.esproj", "jobfinder.client/"]
 RUN dotnet restore "./JobFinder.Server/JobFinder.Server.csproj"
