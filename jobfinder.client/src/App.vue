@@ -35,6 +35,9 @@
 import CriteriaInput from './components/CriteriaInput.vue'
 
 export default {
+  created() {
+    this.url = import.meta.env.VITE_API_URL;
+  },
 components: {
   CriteriaInput
 },
@@ -112,7 +115,8 @@ components: {
       ],
       speciality: '',
       area: '',
-      loading: false
+      loading: false,
+      url:null
     }
   },
 
@@ -128,7 +132,7 @@ components: {
           this.loading = true;
 
           loadedJobs = await fetch(
-            'https://localhost:7150/Jobs/GetList',
+            `${this.url}/Jobs/GetList`,
             {
               body: JSON.stringify({
                 speciality: this.speciality,
