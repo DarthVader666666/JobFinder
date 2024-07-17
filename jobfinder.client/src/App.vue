@@ -1,21 +1,22 @@
 <template>
   <div className="head">
-    <h1>Welcome to Job Finder!</h1>
+    <h2>Welcome to Job Finder!</h2>
+    <button @click="showResources" className="menu-button">Resources</button>
+  </div>
+  
+  <div className="sources" v-show="show">        
+    <section v-for="(source, index) in sources" @click="setSearchSource(source.name)" :key="index" :className="isSearchSourceOptionActive(source.name) ? 'active' : ''">
+      <img v-bind:src="source.img" :alt="source.name">
+    </section>
   </div>
 
-  <div className="container">
-    <div className="input-box">
-      <div className="sources">
-        <section v-for="(source, index) in sources" @click="setSearchSource(source.name)" :key="index" :className="isSearchSourceOptionActive(source.name) ? 'active' : ''">
-          <img v-bind:src="source.img" :alt="source.name">
-        </section>
-      </div>
+  <div className="input-box">      
       <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea" :findJobs="findJobs"></CriteriaInput>
       <button @click="findJobs()" style="margin-inline: 0.5rem;">Find Job</button>
     </div>
 
     <div>
-      <h3 v-if="loading">Loading...</h3>
+      <h2 v-if="loading">Loading...</h2>
 
       <div v-for="(job, index) in jobs" :key="index" style="display: flex; flex-direction: column;">
         <img v-bind:src="jobs[index].img" width="50px" height="50px">
@@ -27,8 +28,6 @@
         </div>        
       </div>
     </div>
-    
-  </div>
 </template>
 
 <script>
@@ -116,12 +115,14 @@ components: {
       speciality: '',
       area: '',
       loading: false,
-      url:null
+      url:null,
+      show: false
     }
   },
 
   methods: {
     findJobs() {
+      this.show = false;
       var loadedJobs = [];
       this.jobs = [];
       var index = 0;
@@ -175,6 +176,10 @@ components: {
     isSearchSourceOptionActive(value) {
       const active = this.searchSourceOptions.find(x => x['name'] == value)['active'];     
       return active;
+    },
+
+    showResources() {
+      this.show = !this.show;
     }
   }
 }
@@ -187,21 +192,16 @@ components: {
   }
 
   .head {
-    flex-direction: column; 
+    flex-direction: row; 
     align-items: center;
-  }
-
-  .container {
-    display:grid;
-    grid-template-columns: 15% 85%;
-    max-width: 100%;
+    justify-content: space-between;
   }
 
   .input-box {
-    width:fit-content; 
     display:flex;
     flex-direction: column; 
-    align-content: start;
+    justify-items: center;
+    margin-bottom: 10px;
   }
 
   .list-box {
@@ -232,14 +232,14 @@ components: {
     font-style: italic;
   }
 
-  h1, h3 {
+  h1, h2 {
     color:rgb(180, 29, 29);
     font-weight: bold;
     border-radius:10px;
     width: fit-content;
     padding: 5px;
     text-align: center;
-    text-shadow: 0.2rem 0.2rem black;
+    text-shadow: 0.1rem 0.1rem black;
   }
 
   .sources {
@@ -248,7 +248,8 @@ components: {
     gap:0.2rem;
     width: fit-content;
     height: fit-content;
-    padding: 0;
+    padding: 10px;
+    float: inline-end;
   }
 
   .sources section {
@@ -272,5 +273,14 @@ components: {
   section:hover, section.active {
     background-color: aqua;
     cursor: pointer;
+  }
+
+  .menu-button {
+    height: 50px;
+    background-color: rgb(16, 16, 181);
+    color:rgb(224, 223, 242);
+    border-radius: 15%;
+    font-weight: bold;
+    font-size: 1rem;
   }
 </style>
