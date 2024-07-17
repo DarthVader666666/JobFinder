@@ -1,6 +1,6 @@
 <template>
   <div className="head">
-    <h2>Welcome to Job Finder!</h2>
+    <h3>Welcome to Job Finder!</h3>
     <button @click="showResources" className="menu-button">Resources</button>
   </div>
   
@@ -10,24 +10,23 @@
     </section>
   </div>
 
-  <div className="input-box">      
-      <CriteriaInput :changeSpeciality="changeSpeciality" :changeArea="changeArea" :findJobs="findJobs"></CriteriaInput>
-      <button @click="findJobs()" style="margin-inline: 0.5rem;">Find Job</button>
+  <CriteriaInput 
+    :changeSpeciality="changeSpeciality" 
+    :changeArea="changeArea" 
+    :findJobs="findJobs"
+  ></CriteriaInput>  
+
+  <div>
+    <h2 v-if="loading">Loading...</h2>
+    <div v-for="(job, index) in jobs" :key="index" style="display: flex; flex-direction: column;">
+      <img v-bind:src="jobs[index].img" width="50px" height="50px">
+      <div className="list-box">
+        <a v-for="(link, index) in job.links" :href="link.link" :key="index" target="_blank">
+          {{link.title}}
+        </a>
+      </div>        
     </div>
-
-    <div>
-      <h2 v-if="loading">Loading...</h2>
-
-      <div v-for="(job, index) in jobs" :key="index" style="display: flex; flex-direction: column;">
-        <img v-bind:src="jobs[index].img" width="50px" height="50px">
-
-        <div className="list-box">
-          <a v-for="(link, index) in job.links" :href="link.link" :key="index" target="_blank">
-            {{link.title}}
-          </a>
-        </div>        
-      </div>
-    </div>
+  </div>
 </template>
 
 <script>
@@ -197,13 +196,6 @@ components: {
     justify-content: space-between;
   }
 
-  .input-box {
-    display:flex;
-    flex-direction: column; 
-    justify-items: center;
-    margin-bottom: 10px;
-  }
-
   .list-box {
     flex-direction: row;
     padding-top: 8px;
@@ -232,7 +224,7 @@ components: {
     font-style: italic;
   }
 
-  h1, h2 {
+  h1, h3 {
     color:rgb(180, 29, 29);
     font-weight: bold;
     border-radius:10px;
@@ -270,7 +262,7 @@ components: {
     width:95%;
   }
 
-  section:hover, section.active {
+  section.active {
     background-color: aqua;
     cursor: pointer;
   }
