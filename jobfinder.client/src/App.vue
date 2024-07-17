@@ -17,7 +17,7 @@
   ></CriteriaInput>  
 
   <div>
-    <h2 v-if="loading">Loading...</h2>
+    <h3 v-if="loading">Loading...</h3>
     <div v-for="(job, index) in jobs" :key="index" style="display: flex; flex-direction: column;">
       <img v-bind:src="jobs[index].img" width="50px" height="50px">
       <div className="list-box">
