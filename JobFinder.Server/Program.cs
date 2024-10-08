@@ -8,6 +8,8 @@ builder.Services.AddRouting();
 builder.Services.AddCors(options => options.AddPolicy("AllowAll",
     new CorsPolicyBuilder().AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().Build()));
 
+builder.Services.AddLogging(builder => builder.AddConsole());
+
 //builder.Services.Configure<KestrelServerOptions>(options =>
 //{
 //    options.AllowSynchronousIO = true;
@@ -16,7 +18,6 @@ builder.Services.AddCors(options => options.AddPolicy("AllowAll",
 var app = builder.Build();
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
 
 app.UseRouting();
 app.UseCors();
