@@ -268,6 +268,10 @@ components: {
     cursor: pointer;
   }
 
+  section:hover {
+    cursor: pointer;
+  }
+
   .menu-button {
     height: 50px;
     background-color: rgb(16, 16, 181);
