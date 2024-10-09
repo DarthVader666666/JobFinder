@@ -22,7 +22,8 @@
       <img v-bind:src="jobs[index].img" width="50px" height="50px">
       <div className="list-box">
         <a v-for="(link, index) in job.links" :href="link.link" :key="index" target="_blank">
-          {{link.title}}
+          <span style="font-weight: bold;">{{link.title}}</span>
+          <span>{{link.salary}}</span>
         </a>
       </div>        
     </div>
