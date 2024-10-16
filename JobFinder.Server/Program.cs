@@ -10,10 +10,10 @@ builder.Services.AddCors(options => options.AddPolicy("AllowAll",
 
 builder.Services.AddLogging(builder => builder.AddConsole());
 
-//builder.Services.Configure<KestrelServerOptions>(options =>
-//{
-//    options.AllowSynchronousIO = true;
-//});
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.AllowSynchronousIO = true;
+});
 
 var app = builder.Build();
 
