@@ -26,7 +26,7 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
         'Pem',
         '--no-password',
     ], { stdio: 'inherit', }).status) {
-        throw new Error(`Could not create certificate. ${certFilePath} ${keyFilePath}`);
+        throw new Error(`Could not create certificate.\n\r${certFilePath}\n\r${keyFilePath}`);
     }
 }
 
@@ -43,7 +43,7 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '^/weatherforecast': {
+            '^/jobs': {
                 target,
                 secure: false
             }
