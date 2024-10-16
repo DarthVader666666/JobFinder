@@ -1,8 +1,0 @@
-version: '3.4'
-
-services:
-  jobfinder.server:
-    image: ${DOCKER_REGISTRY-}jobfinderserver
-    build:
-      context: .
-      dockerfile: JobFinder.Server/Dockerfile
