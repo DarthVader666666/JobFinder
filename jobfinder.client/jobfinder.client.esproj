@@ -9,7 +9,9 @@
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include=".vscode\" />
     <Folder Include="src\components\icons\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".vscode\launch.json" />
   </ItemGroup>
 </Project>
