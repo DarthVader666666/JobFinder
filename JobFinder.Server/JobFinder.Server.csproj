@@ -13,9 +13,6 @@
     <ProjectReference Include="..\jobfinder.client\jobfinder.client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.67" />
-	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
-	  <PackageReference Include="NickBuhro.Translit" Version="1.4.5" />
   </ItemGroup>
 
   <ItemGroup>
