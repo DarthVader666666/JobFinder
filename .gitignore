@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Dft/Dft.Web/ClientApp/dist
+Dft/Dft.Web/ClientApp/.vscode/launch.json
+/Dft/Dft.Web/appsettings.local.json

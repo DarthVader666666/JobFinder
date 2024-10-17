@@ -1,4 +1,4 @@
-@JobFinder.Server_HostAddress = http://localhost:5235
+@JobFinder.Server_HostAddress = http://localhost:5065
 
 GET {{JobFinder.Server_HostAddress}}/weatherforecast/
 Accept: application/json
