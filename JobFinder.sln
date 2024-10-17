@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "jobfinder.client", "jobfinder.client\jobfinder.client.esproj", "{33A4967A-0BD6-43EE-9E09-062C0D1EBDDF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JobFinder.Server", "JobFinder.Server\JobFinder.Server.csproj", "{980975BD-85D0-48C7-BB05-7A7B0C2A6E3F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{33A4967A-0BD6-43EE-9E09-062C0D1EBDDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33A4967A-0BD6-43EE-9E09-062C0D1EBDDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33A4967A-0BD6-43EE-9E09-062C0D1EBDDF}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{33A4967A-0BD6-43EE-9E09-062C0D1EBDDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33A4967A-0BD6-43EE-9E09-062C0D1EBDDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33A4967A-0BD6-43EE-9E09-062C0D1EBDDF}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{980975BD-85D0-48C7-BB05-7A7B0C2A6E3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{980975BD-85D0-48C7-BB05-7A7B0C2A6E3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{980975BD-85D0-48C7-BB05-7A7B0C2A6E3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{980975BD-85D0-48C7-BB05-7A7B0C2A6E3F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {49DDB71C-D999-45F9-9C2A-2927DBB1D27C}
+	EndGlobalSection
+EndGlobal
