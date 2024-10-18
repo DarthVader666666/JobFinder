@@ -20,19 +20,18 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.402
-          include-prerelease: true
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.GITHUB_WORKSPACE}}\myapp"
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}\myapp"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.GITHUB_WORKSPACE}}\myapp
+          path: ${{env.DOTNET_ROOT}}\myapp
 
   deploy:
     runs-on: windows-latest
