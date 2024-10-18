@@ -269,4 +269,12 @@
       font-weight: bold;
       font-size: 1rem;
     }
+
+    .menu-button:hover {
+      cursor: pointer;
+    }
+
+    .menu-button:active {
+      background-color: rgba(16, 16, 181, 0.658);;
+    }
   </style>
