@@ -18,7 +18,6 @@ namespace JobFinder.WebApp.Controllers
         private const string bebee = "https://by.bebee.com/jobs?term=";
         private const string joblum = "https://by.joblum.com/jobs?q=";
 
-
         [HttpPost]
         public async Task<IActionResult> GetList([FromBody] RequestModel requestModel)
         {
@@ -29,22 +28,37 @@ namespace JobFinder.WebApp.Controllers
 
         private static async Task<IEnumerable<ResponseModel>> GetNodeSequence(RequestModel requestModel)
         {
-            var nodes = requestModel?.Source?.ToUpper() switch
-            {
-                SourceNames.RabotaBy => GetNodesCore($"{rabotaBy}{requestModel.Speciality} {requestModel.Area}", "vacancy-info", requestModel.Source),
-                SourceNames.DevBy => GetNodesCore(await GetUrlForDevBy(requestModel), "vacancies-list-item", requestModel.Source),
-                SourceNames.PracaBy => GetNodesCore($"{pracaBy}{requestModel.Speciality}+{Transliteration.LatinToCyrillic(requestModel.Area)}", "vac-small__column vac-small__column_2", requestModel.Source),
-                SourceNames.LinkedIn => GetNodesCore($"{linkedIn}{requestModel.Speciality} {requestModel.Area}", "", requestModel.Source),
-                SourceNames.Trabajo => GetNodesCore($"{trabajo}{requestModel.Speciality!.Trim('.', ',')}/{Transliteration.LatinToCyrillic(requestModel.Area)}", "job-item", requestModel.Source),
-                SourceNames.BeBee => GetNodesCore($"{bebee}{requestModel.Speciality}&location={requestModel.Area}", "clickable-job", requestModel.Source),
-                SourceNames.JobLum => GetNodesCore($"{joblum}{requestModel.Speciality}&sort=0&lo%5B%5D={Transliteration.LatinToCyrillic(requestModel.Area)}", "result-wrp row", requestModel.Source),
-                _ => Task.Run(Enumerable.Empty<ResponseModel>)
-            };
+            var responseSequence = new List<ResponseModel>();
 
-            return await nodes ?? [];
+            if (requestModel.Sources == null)
+            { 
+                return responseSequence;
+            }
+
+            foreach (var source in requestModel.Sources)
+            {
+                var response = new ResponseModel();
+                response.SourceName = source;
+                response.SourceUrl = GetSourceUrl(source);
+                response.Jobs = source?.ToUpper() switch
+                {
+                    SourceNames.RabotaBy => await GetJobsCore($"{rabotaBy}{requestModel.Speciality} {requestModel.Area}", "vacancy-info", source),
+                    SourceNames.DevBy => await GetJobsCore(await GetUrlForDevBy(requestModel), "vacancies-list-item", source),
+                    SourceNames.PracaBy => await GetJobsCore($"{pracaBy}{requestModel.Speciality}+{Transliteration.LatinToCyrillic(requestModel.Area)}", "vac-small__column vac-small__column_2", source),
+                    SourceNames.LinkedIn => await GetJobsCore($"{linkedIn}{requestModel.Speciality} {requestModel.Area}", "", source),
+                    SourceNames.Trabajo => await GetJobsCore($"{trabajo}{requestModel.Speciality!.Trim('.', ',')}/{Transliteration.LatinToCyrillic(requestModel.Area)}", "job-item", source),
+                    SourceNames.BeBee => await GetJobsCore($"{bebee}{requestModel.Speciality}&location={requestModel.Area}", "clickable-job", source),
+                    SourceNames.JobLum => await GetJobsCore($"{joblum}{requestModel.Speciality}&sort=0&lo%5B%5D={Transliteration.LatinToCyrillic(requestModel.Area)}", "result-wrp row", source),
+                    _ => await Task.Run(Enumerable.Empty<JobModel>)
+                };
+
+                responseSequence.Add(response);
+            }
+
+            return responseSequence;
         }
 
-        private static async Task<IEnumerable<ResponseModel>> GetNodesCore(string url, string className, string source)
+        private static async Task<IEnumerable<JobModel>> GetJobsCore(string url, string className, string source)
         {
             HtmlDocument? doc = null;
             doc = await new HtmlWeb().LoadFromWebAsync(url);
@@ -56,9 +70,20 @@ namespace JobFinder.WebApp.Controllers
                 _ => doc?.DocumentNode?.Descendants("div")
             })?.Where(n => n?.Attributes["class"] != null ? n.Attributes["class"].Value.Contains($"{className}") : false) ?? [];
 
-            return GetNodesCoreIterator();
+            var jobs = Enumerable.Empty<JobModel>();
 
-            IEnumerable<ResponseModel> GetNodesCoreIterator()
+            try
+            {
+                jobs = GetJobsCoreIterator();
+            }
+            catch (Exception ex)
+            {
+                jobs = Enumerable.Empty<JobModel>().Append(new JobModel { Title = "Server Error" });
+            }
+
+            return jobs;
+
+            IEnumerable<JobModel> GetJobsCoreIterator()
             {
                 foreach (var node in nodes)
                 {
@@ -67,7 +92,7 @@ namespace JobFinder.WebApp.Controllers
 
                     if (anchor != null)
                     {
-                        yield return new ResponseModel
+                        yield return new JobModel
                         {
                             Link = source.ToUpper() switch
                             {
@@ -140,6 +165,21 @@ namespace JobFinder.WebApp.Controllers
                 .Attributes["value"].Value;
 
             return $"{devBy}{requestModel.Speciality}&filter[city_id][]={area}";
+        }
+
+        private static string? GetSourceUrl(string? source)
+        {
+            return source?.ToUpper() switch
+            {
+                SourceNames.RabotaBy => rabotaBy,
+                SourceNames.DevBy => devBy,
+                SourceNames.PracaBy => pracaBy,
+                SourceNames.LinkedIn => linkedIn,
+                SourceNames.Trabajo => trabajo,
+                SourceNames.BeBee => bebee,
+                SourceNames.JobLum => joblum,
+                _ => null
+            };
         }
     }
 }

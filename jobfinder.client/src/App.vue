@@ -17,13 +17,19 @@
 
   <div>
     <h3 v-if="loading">Loading...</h3>
-    <div v-for="(job, index) in jobs" :key="index" style="display: flex; flex-direction: column;">
-      <img v-bind:src="jobs[index].img" width="50px" height="50px">
-      <div className="list-box">
-        <a v-for="(link, index) in job.links" :href="link.link" :key="index" target="_blank">
-          <span style="font-weight: bold;">{{link.title}}</span>
-          <span>{{link.salary}}</span>
-        </a>
+    <div style="display: flex; flex-direction: column;">
+      <div v-for="(response, index) in responses" :key="index" style="display: flex; flex-direction: column;">
+        <div className="list-box">
+          <a :href="response.sourceUrl" target="_blank">
+           <img v-bind:src="response.img" width="50px" height="50px">
+          </a>
+        </div>  
+        <div >
+          <a v-for="(job, index) in response.jobs" :key="index" className="jobLink" :href="job.link" target="_blank">
+            <span style="font-weight: bold;">{{job.title}}</span>
+            <span>{{job.salary}}</span>
+          </a>
+        </div>          
       </div>
     </div>
   </div>
@@ -71,7 +77,7 @@
               img: 'joblum-logo-large.png'
             }
           ],
-          jobs: [],
+          responses: [],
           searchSourceOptions: [
             {
               img: 'linkedin-logo-small.png',
@@ -117,23 +123,23 @@
         }
       },
       methods: {
-        findJobs() {
+        async findJobs() {
           this.show = false;
-          var loadedJobs = [];
-          this.jobs = [];
-          var index = 0;
-
-          this.searchSourceOptions.forEach(async searchSourceOption => {
-            if (searchSourceOption.active) {
-              this.loading = true;
-              loadedJobs = await fetch(
-                `${this.url}/Jobs/GetList`,
-                {
-                  body: JSON.stringify({
+          var loadedResponses = [];
+          this.responses = [];
+          var bodyValue = {
                     speciality: this.speciality,
                     area: this.area,
-                    source: searchSourceOption.name
-                  }),
+                    sources: [] 
+                  };
+
+          this.searchSourceOptions.forEach(option => { if(option.active) bodyValue.sources.push(option.name) })                  
+
+          this.loading = true;
+              loadedResponses = await fetch(
+                `${this.url}/Jobs/GetList`,
+                {
+                  body: JSON.stringify(bodyValue),
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json'
@@ -141,13 +147,20 @@
                 }
               ).then(response => response.json());
 
-              this.jobs.push({ img: searchSourceOption.img, links: [] })
-              loadedJobs.forEach(job => this.jobs[index].links.push(job));
+              this.searchSourceOptions.forEach(option => {
+                  if(option.active)
+                  {
+                    this.responses.push(
+                      { 
+                        img: option.img, 
+                        sourceName: option.name, 
+                        sourceUrl: loadedResponses.find(lr => lr.sourceName === option.name).sourceUrl,
+                        jobs: loadedResponses.find(lr => lr.sourceName === option.name).jobs
+                      })
+                  }
+              });
 
-              index++;
               this.loading = false;
-            }
-          });
         },
         changeSpeciality(value) {
           this.speciality = String(value).trim();
@@ -194,7 +207,7 @@
       gap: 2px;
     }
 
-    a {
+    .jobLink {
       max-height: 18px;
       display: block;
       text-decoration: none;
@@ -204,15 +217,14 @@
       background-color: gray;
     }
 
-      a:hover {
-        color: lightgray;
-        background: #333;
-      }
-
-      a:visited {
-        color: darkgray;
-        font-style: italic;
-      }
+    .jobLink:hover {
+      color: lightgray;
+      background: #333;
+    }
+    .jobLink:visited {
+      color: darkgray;
+      font-style: italic;
+    }
 
     h1, h3 {
       color: rgb(180, 29, 29);

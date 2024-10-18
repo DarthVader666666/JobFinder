@@ -2,8 +2,8 @@
 {
     public class ResponseModel
     {
-        public string? Link { get; set; }
-        public string? Title { get; set; }
-        public string? Salary { get; set; }
+        public string? SourceName { get; set; }
+        public string? SourceUrl { get; set; }
+        public IEnumerable<JobModel>? Jobs { get; set; }
     }
 }
