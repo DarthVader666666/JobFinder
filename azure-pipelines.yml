@@ -38,3 +38,11 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'Pay-As-You-Go Dev/Test(7ea259f7-c666-4703-b4c1-df983f852504)'
+    appType: 'webApp'
+    appName: 'it-job-finder'
+    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    deploymentMethod: 'auto'
