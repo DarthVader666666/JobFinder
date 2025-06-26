@@ -39,10 +39,10 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: AzureWebApp@1
+- task: AzureRmWebAppDeployment@5
   inputs:
+    ConnectionType: 'AzureRM'
     azureSubscription: 'Pay-As-You-Go Dev/Test(7ea259f7-c666-4703-b4c1-df983f852504)'
     appType: 'webApp'
-    appName: 'it-job-finder'
-    package: '$(build.artifactStagingDirectory)/**/*.zip'
-    deploymentMethod: 'auto'
+    WebAppName: 'it-job-finder'
+    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
