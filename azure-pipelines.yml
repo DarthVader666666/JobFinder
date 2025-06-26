@@ -21,6 +21,12 @@ steps:
   inputs:
     restoreSolution: '$(solution)'
 
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.0.402'
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
