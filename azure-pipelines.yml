@@ -6,6 +6,7 @@
 trigger: 
  branches:
   include:
+    - main
     - AMPTK_DEVELOPMENT_MASTER
     - AMPTK_STAGING_MASTER
     - AMPTK_PRODUCTION_MASTER
