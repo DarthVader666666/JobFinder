@@ -9,7 +9,7 @@ trigger:
     - main
     - AMPTK_DEVELOPMENT_MASTER
     - AMPTK_STAGING_MASTER
-    - AMPTK_PRODUCTION_MASTER 
+    - AMPTK_PRODUCTION_MASTER
   exclude:
     - dev-remote  # Exclude the source branch used for PRs
     - feature/*   # Optionally exclude feature branches
