@@ -3,24 +3,7 @@
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
-trigger: 
- branches:
-  include:
-    - main
-    - AMPTK_DEVELOPMENT_MASTER
-    - AMPTK_STAGING_MASTER
-    - AMPTK_PRODUCTION_MASTER
-  exclude:
-    - dev-remote  # Exclude the source branch used for PRs
-    - feature/*   # Optionally exclude feature branches
-    - bugfix/*    # Optionally exclude bugfix branches
 
-pr:
-  branches:
-    include:
-      - AMPTK_DEVELOPMENT_MASTER
-      - AMPTK_STAGING_MASTER
-      - AMPTK_PRODUCTION_MASTER
 
 pool:
   vmImage: 'windows-latest'
