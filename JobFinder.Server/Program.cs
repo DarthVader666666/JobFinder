@@ -2,19 +2,18 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
+var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>();
 
-builder.Services.AddCors(options => options.AddPolicy("AllowAll",
-    new CorsPolicyBuilder().AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().Build()));
+builder.Services.AddCors(options => options.AddPolicy("AllowClient",
+    new CorsPolicyBuilder()
+    .WithOrigins(origins ?? [])
+    .AllowAnyHeader().AllowAnyMethod().Build()));
 
 var app = builder.Build();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
-
-// Configure the HTTP request pipeline.
 
 app.UseHttpsRedirection();
 

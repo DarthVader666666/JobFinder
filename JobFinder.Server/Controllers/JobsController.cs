@@ -7,7 +7,7 @@ using NickBuhro.Translit;
 
 namespace JobFinder.WebApp.Controllers
 {
-    [EnableCors("AllowAll")]
+    [EnableCors("AllowClient")]
     public class JobsController : Controller
     {
         private const string rabotaBy = "https://rabota.by/search/vacancy/?text=";
