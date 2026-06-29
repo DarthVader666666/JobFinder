@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using NickBuhro.Translit;
 
-namespace JobFinder.WebApp.Controllers
+namespace JobFinder.Server.Controllers
 {
     [EnableCors("AllowClient")]
     public class JobsController : Controller
@@ -28,45 +28,47 @@ namespace JobFinder.WebApp.Controllers
 
         private static async Task<IEnumerable<ResponseModel>> GetNodeSequence(RequestModel requestModel)
         {
-            var responseSequence = new List<ResponseModel>();
+            var response = new List<ResponseModel>();
 
             if (requestModel.Sources == null)
             { 
-                return responseSequence;
+                return response;
             }
 
             foreach (var source in requestModel.Sources)
             {
-                var response = new ResponseModel();
-                response.SourceName = source;
-                response.SourceUrl = GetSourceUrl(source);
-                response.Jobs = source?.ToUpper() switch
+                var jobFinder = Enum.Parse<JobFinders>(source);
+
+                var responseModel = new ResponseModel();
+                responseModel.SourceName = source;
+                responseModel.SourceUrl = GetSourceUrl(jobFinder);
+                responseModel.Jobs = jobFinder switch
                 {
-                    SourceNames.RabotaBy => await GetJobsCore($"{rabotaBy}{requestModel.Speciality} {requestModel.Area}", "vacancy-info", source),
-                    SourceNames.DevBy => await GetJobsCore(await GetUrlForDevBy(requestModel), "vacancies-list-item", source),
-                    SourceNames.PracaBy => await GetJobsCore($"{pracaBy}{requestModel.Speciality}+{Transliteration.LatinToCyrillic(requestModel.Area)}", "vac-small__column vac-small__column_2", source),
-                    SourceNames.LinkedIn => await GetJobsCore($"{linkedIn}{requestModel.Speciality} {requestModel.Area}", "", source),
-                    SourceNames.Trabajo => await GetJobsCore($"{trabajo}{requestModel.Speciality!.Trim('.', ',')}/{Transliteration.LatinToCyrillic(requestModel.Area)}", "job-item", source),
-                    SourceNames.BeBee => await GetJobsCore($"{bebee}{requestModel.Speciality}&location={requestModel.Area}", "clickable-job", source),
-                    SourceNames.JobLum => await GetJobsCore($"{joblum}{requestModel.Speciality}&sort=0&lo%5B%5D={Transliteration.LatinToCyrillic(requestModel.Area)}", "result-wrp row", source),
+                    JobFinders.RabotaBy => await GetJobsCore($"{rabotaBy}{requestModel.Speciality} {requestModel.Area}", "vacancy-info", jobFinder),
+                    JobFinders.DevBy => await GetJobsCore(await GetUrlForDevBy(requestModel), "vacancies-list-item", jobFinder),
+                    JobFinders.PracaBy => await GetJobsCore($"{pracaBy}{requestModel.Speciality}+{Transliteration.LatinToCyrillic(requestModel.Area)}", "vac-small__column vac-small__column_2", jobFinder),
+                    JobFinders.LinkedIn => await GetJobsCore($"{linkedIn}{requestModel.Speciality} {requestModel.Area}", "", jobFinder),
+                    JobFinders.Trabajo => await GetJobsCore($"{trabajo}{requestModel.Speciality!.Trim('.', ',')}/{Transliteration.LatinToCyrillic(requestModel.Area)}", "job-item", jobFinder),
+                    JobFinders.BeBee => await GetJobsCore($"{bebee}{requestModel.Speciality}&location={requestModel.Area}", "clickable-job", jobFinder),
+                    JobFinders.JobLum => await GetJobsCore($"{joblum}{requestModel.Speciality}&sort=0&lo%5B%5D={Transliteration.LatinToCyrillic(requestModel.Area)}", "result-wrp row", jobFinder),
                     _ => await Task.Run(Enumerable.Empty<JobModel>)
                 };
 
-                responseSequence.Add(response);
+                response.Add(responseModel);
             }
 
-            return responseSequence;
+            return response;
         }
 
-        private static async Task<IEnumerable<JobModel>> GetJobsCore(string url, string className, string source)
+        private static async Task<IEnumerable<JobModel>> GetJobsCore(string url, string className, JobFinders jobFinder)
         {
             HtmlDocument? doc = null;
             doc = await new HtmlWeb().LoadFromWebAsync(url);
 
-            var nodes = (source.ToUpper() switch
+            var nodes = (jobFinder switch
             {
-                SourceNames.Trabajo => doc?.DocumentNode?.Descendants("li"),
-                SourceNames.BeBee => doc?.DocumentNode?.Descendants("li"),
+                JobFinders.Trabajo => doc?.DocumentNode?.Descendants("li"),
+                JobFinders.BeBee => doc?.DocumentNode?.Descendants("li"),
                 _ => doc?.DocumentNode?.Descendants("div")
             })?.Where(n => n?.Attributes["class"] != null ? n.Attributes["class"].Value.Contains($"{className}") : false) ?? [];
 
@@ -87,64 +89,64 @@ namespace JobFinder.WebApp.Controllers
             {
                 foreach (var node in nodes)
                 {
-                    var anchor = node.Descendants("a").FirstOrDefault(a => a.Attributes["href"] != null && IsJobRefference(a, source) && a.InnerText.Trim().Any());
+                    var anchor = node.Descendants("a").FirstOrDefault(a => a.Attributes["href"] != null && IsJobRefference(a, jobFinder) && a.InnerText.Trim().Any());
                     var href = anchor?.Attributes["href"].Value;
 
                     if (anchor != null)
                     {
                         yield return new JobModel
                         {
-                            Link = source.ToUpper() switch
+                            Link = jobFinder switch
                             {
-                                SourceNames.JobLum => "https://by.joblum.com/" + href,
-                                SourceNames.DevBy => "https://jobs.devby.io/" + href,
+                                JobFinders.JobLum => "https://by.joblum.com/" + href,
+                                JobFinders.DevBy => "https://jobs.devby.io/" + href,
                                 _ => href
                             },
-                            Title = source.ToUpper() switch
+                            Title = jobFinder switch
                             {
-                                SourceNames.JobLum => ConvertSpecialSymbols(anchor.Attributes["title"]?.Value),
+                                JobFinders.JobLum => ConvertSpecialSymbols(anchor.Attributes["title"]?.Value),
                                 _ => ConvertSpecialSymbols(anchor.InnerText)
                             } + " ",
-                            Salary = GetSalaryValue(node, source)
+                            Salary = GetSalaryValue(node, jobFinder)
                         };
                     }
                 }
             }
         }
 
-        private static bool IsJobRefference(HtmlNode node, string? resource)
+        private static bool IsJobRefference(HtmlNode node, JobFinders JobFinder)
         {
             static bool ContainsUri(HtmlNode x, string uri)
             {
                 return x.Attributes["href"].Value.Contains(uri);
             }
 
-            return resource?.ToUpper() switch
+            return JobFinder switch
             {
-                SourceNames.RabotaBy => ContainsUri(node, "rabota.by/vacancy/") || ContainsUri(node, "hh.ru/vacancy/"),
-                SourceNames.DevBy => ContainsUri(node, "/vacancies/"),
-                SourceNames.PracaBy => ContainsUri(node, "praca.by/vacancy/"),
-                SourceNames.LinkedIn => ContainsUri(node, "/job/"),
-                SourceNames.Trabajo => ContainsUri(node, "by.trabajo.org/работа-"),
-                SourceNames.BeBee => ContainsUri(node, "by.bebee.com/job/"),
-                SourceNames.JobLum => ContainsUri(node, "/job/"),
+                JobFinders.RabotaBy => ContainsUri(node, "rabota.by/vacancy/") || ContainsUri(node, "hh.ru/vacancy/"),
+                JobFinders.DevBy => ContainsUri(node, "/vacancies/"),
+                JobFinders.PracaBy => ContainsUri(node, "praca.by/vacancy/"),
+                JobFinders.LinkedIn => ContainsUri(node, "/job/"),
+                JobFinders.Trabajo => ContainsUri(node, "by.trabajo.org/работа-"),
+                JobFinders.BeBee => ContainsUri(node, "by.bebee.com/job/"),
+                JobFinders.JobLum => ContainsUri(node, "/job/"),
                 _ => false
             };
         }
 
-        private static string? GetSalaryValue(HtmlNode node, string? source)
+        private static string? GetSalaryValue(HtmlNode node, JobFinders jobFinder)
         {
             var spans = node.Descendants("span");
 
-            var result = source?.ToUpper() switch
+            var result = jobFinder switch
             {
-                SourceNames.RabotaBy => spans.FirstOrDefault(x => x.Attributes["data-sentry-element"] != null)?.InnerText,
-                SourceNames.DevBy => node.Descendants("div").FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains("vacancies-list-item__salary"))?.InnerText,
-                SourceNames.PracaBy => spans.FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains("salary-dotted"))?.InnerText,
-                SourceNames.LinkedIn => $"",
-                SourceNames.Trabajo => string.Empty,
-                SourceNames.BeBee => $"",
-                SourceNames.JobLum => ConvertSpecialSymbols(node.Descendants("div").FirstOrDefault(x => x.Attributes["class"] == null)?.InnerText),
+                JobFinders.RabotaBy => spans.FirstOrDefault(x => x.Attributes["data-sentry-element"] != null)?.InnerText,
+                JobFinders.DevBy => node.Descendants("div").FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains("vacancies-list-item__salary"))?.InnerText,
+                JobFinders.PracaBy => spans.FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains("salary-dotted"))?.InnerText,
+                JobFinders.LinkedIn => $"",
+                JobFinders.Trabajo => string.Empty,
+                JobFinders.BeBee => $"",
+                JobFinders.JobLum => ConvertSpecialSymbols(node.Descendants("div").FirstOrDefault(x => x.Attributes["class"] == null)?.InnerText),
                 _ => null
             };
 
@@ -167,17 +169,17 @@ namespace JobFinder.WebApp.Controllers
             return $"{devBy}{requestModel.Speciality}&filter[city_id][]={area}";
         }
 
-        private static string? GetSourceUrl(string? source)
+        private static string? GetSourceUrl(JobFinders jobFinder)
         {
-            return source?.ToUpper() switch
+            return jobFinder switch
             {
-                SourceNames.RabotaBy => rabotaBy,
-                SourceNames.DevBy => devBy,
-                SourceNames.PracaBy => pracaBy,
-                SourceNames.LinkedIn => linkedIn,
-                SourceNames.Trabajo => trabajo,
-                SourceNames.BeBee => bebee,
-                SourceNames.JobLum => joblum,
+                JobFinders.RabotaBy => rabotaBy,
+                JobFinders.DevBy => devBy,
+                JobFinders.PracaBy => pracaBy,
+                JobFinders.LinkedIn => linkedIn,
+                JobFinders.Trabajo => trabajo,
+                JobFinders.BeBee => bebee,
+                JobFinders.JobLum => joblum,
                 _ => null
             };
         }

@@ -5,23 +5,23 @@ import CriteriaInput from "./components/CriteriaInput.vue";
 const url = import.meta.env.VITE_API_URL;
 
 const sources = [
-  { name: "linkedIn", img: "linkedin-logo-large.png" },
-  { name: "rabotaBy", img: "rabotaby-logo-large.png" },
-  { name: "devBy", img: "devby-logo-large.png" },
-  { name: "pracaBy", img: "pracaby-logo-large.png" },
-  { name: "trabajo", img: "trabajo-logo-large.png" },
-  { name: "beBee", img: "bebee-logo-large.png" },
-  { name: "joblum", img: "joblum-logo-large.png" },
+  { name: "LinkedIn", img: "linkedin-logo-large.png" },
+  { name: "RabotaBy", img: "rabotaby-logo-large.png" },
+  { name: "DevBy", img: "devby-logo-large.png" },
+  { name: "PracaBy", img: "pracaby-logo-large.png" },
+  { name: "Trabajo", img: "trabajo-logo-large.png" },
+  { name: "BeBee", img: "bebee-logo-large.png" },
+  { name: "Joblum", img: "joblum-logo-large.png" },
 ];
 
 const searchSourceOptions = ref([
-  { img: "linkedin-logo-small.png", name: "linkedIn", active: false },
-  { img: "rabotaby-logo-small.png", name: "rabotaBy", active: false },
-  { img: "devby-logo-small.png", name: "devBy", active: false },
-  { img: "pracaby-logo-small.png", name: "pracaBy", active: false },
-  { img: "trabajo-logo-small.png", name: "trabajo", active: false },
-  { img: "bebee-logo-small.png", name: "beBee", active: false },
-  { img: "joblum-logo-small.png", name: "joblum", active: false },
+  { img: "linkedin-logo-small.png", name: "LinkedIn", active: false },
+  { img: "rabotaby-logo-small.png", name: "RabotaBy", active: false },
+  { img: "devby-logo-small.png", name: "DevBy", active: false },
+  { img: "pracaby-logo-small.png", name: "PracaBy", active: false },
+  { img: "trabajo-logo-small.png", name: "Trabajo", active: false },
+  { img: "bebee-logo-small.png", name: "BeBee", active: false },
+  { img: "joblum-logo-small.png", name: "Joblum", active: false },
 ]);
 
 const speciality = ref("");
@@ -129,7 +129,7 @@ function showResources() {
           <a
             v-for="(job, index) in response.jobs"
             :key="index"
-            className="jobLink"
+            className="job-link"
             :href="job.link"
             target="_blank"
           >
@@ -162,7 +162,7 @@ div {
   gap: 2px;
 }
 
-.jobLink {
+.job-link {
   max-height: 18px;
   display: block;
   text-decoration: none;
@@ -172,11 +172,11 @@ div {
   background-color: gray;
 }
 
-.jobLink:hover {
+.job-link:hover {
   color: lightgray;
   background: #333;
 }
-.jobLink:visited {
+.job-link:visited {
   color: darkgray;
   font-style: italic;
 }
