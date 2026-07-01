@@ -1,6 +1,6 @@
-﻿namespace JobFinder.Server.Models
+﻿namespace JobFinders.Server.Models
 {
-    public class RequestModel
+    public class JobsRequestModel
     {
         public string? Url { get; set; }
         public string? Speciality { get; set; }

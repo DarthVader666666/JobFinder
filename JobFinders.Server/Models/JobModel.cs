@@ -1,4 +1,4 @@
-﻿namespace JobFinder.Server.Models
+﻿namespace JobFinders.Server.Models
 {
     public class JobModel
     {

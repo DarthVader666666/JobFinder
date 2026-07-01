@@ -36,7 +36,7 @@ async function findJobs() {
 
   const bodyValue = {
     speciality: speciality.value.trim(),
-    area: area.value.trim(),
+    area: area.value?.trim(),
     sources: searchSourceOptions.value
       .filter((o) => o.active)
       .map((o) => o.name),
@@ -163,7 +163,7 @@ div {
 }
 
 .job-link {
-  max-height: 18px;
+  min-height: 18px;
   display: block;
   text-decoration: none;
   color: black;

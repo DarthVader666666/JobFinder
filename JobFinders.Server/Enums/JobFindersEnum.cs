@@ -1,6 +1,6 @@
-﻿namespace JobFinder.Server.Enums
+﻿namespace JobFinders.Server.Enums
 {
-    public enum JobFinders
+    public enum JobFindersEnum
     {
         LinkedIn,
         RabotaBy,
@@ -8,6 +8,6 @@
         PracaBy,
         Trabajo,
         BeBee,
-        JobLum
+        Joblum
     }
 }
