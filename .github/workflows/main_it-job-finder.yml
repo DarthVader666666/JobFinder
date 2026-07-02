@@ -26,8 +26,23 @@ jobs:
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ./publish
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build Vue app
+        run: |
+          cd jobfinders.client
+          npm install
+          npm run build
+
+      - name: Copy Vue build output to ASP.NET Core wwwroot
+        run: |
+          xcopy jobfinders.client/dist jobfinders.server/wwwroot /E /I /Y
+  
+      - name: Publish ASP.NET Core app
+        run: dotnet publish JobFinders.server/JobFinders.Server.csproj -c Release -o ./publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
