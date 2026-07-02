@@ -39,15 +39,19 @@ jobs:
     runs-on: windows-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+          path: ./publish
+
+      - name: List downloaded files
+        run: dir ./publish
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -60,5 +64,4 @@ jobs:
         with:
           app-name: 'it-job-finder'
           slot-name: 'Production'
-          package: ./.net-app
-          
+          package: ./publish
