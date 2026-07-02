@@ -61,5 +61,5 @@ jobs:
         with:
           app-name: 'it-job-finder'
           slot-name: 'Production'
-          package: ./publish
+          package: ./.net-app
           
