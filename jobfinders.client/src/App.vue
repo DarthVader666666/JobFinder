@@ -25,7 +25,7 @@ const searchSourceOptions = ref([
 ]);
 
 const speciality = ref("");
-const area = ref("");
+const area = ref(null);
 const loading = ref(false);
 const show = ref(false);
 const responses = ref([]);

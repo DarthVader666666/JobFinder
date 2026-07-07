@@ -1,14 +1,20 @@
-﻿namespace JobFinders.Data.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace JobFinders.Data.Entities
 {
     public class JobFinder
     {
-        int JobFinderId { get; set; }
-        string? Name { get; set; }
-        string? CssClass { get; set; }
-        bool AddBaseUrlToHref { get; set; }
-        string? Href { get; set; }
-        string? BaseUrl { get; set; }
-        string? LinkTemplate { get; set; }
-        string? LocationTransliteration { get; set; }
+        [Key]
+        public int JobFinderId { get; set; }
+        public string? Name { get; set; }
+        public string? LinkTemplate { get; set; }
+        public string? CssClass { get; set; }
+        public string? HrefPrefix { get; set; }
+        public string? BaseUrl { get; set; }
+        public string? LocationTransliteration { get; set; }
+        public string? NodeTag { get; set; } = "div";
+        public bool AddBaseUrlToHrefPrefix { get; set; } = false;
+        public bool ZeroPagination { get; set; } = false;
+        public bool MandatoryLocation { get; set; } = false;
     }
 }

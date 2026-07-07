@@ -2,6 +2,8 @@
 
 using HtmlAgilityPack;
 
+using JobFinders.Data.Entities;
+using JobFinders.Data.Repositories;
 using JobFinders.Server.Enums;
 using JobFinders.Server.Models;
 using Microsoft.AspNetCore.Cors;
@@ -15,6 +17,7 @@ namespace JobFinders.Server.Controllers
     {
         private const string areaPlaceholder = "#area#";
         private const string specialityPlaceholder = "#speciality#";
+        private const string pagePlaceholder = "#page#";
 
         private readonly string rabotaByBaseUrl;
         private readonly string devByBaseUrl;
@@ -24,15 +27,19 @@ namespace JobFinders.Server.Controllers
         private readonly string bebeeBaseUrl;
         private readonly string joblumBaseUrl;
 
-        public JobsController()
+        private readonly IRepository<JobFinder> _jobFinderRepository;
+
+        public JobsController(IRepository<JobFinder> jobFinderRepositiory)
         {
-            rabotaByBaseUrl = $"https://rabota.by/search/vacancy/?text={areaPlaceholder} {specialityPlaceholder}";
+            _jobFinderRepository = jobFinderRepositiory;
+
+            rabotaByBaseUrl = $"https://rabota.by/search/vacancy/?text={areaPlaceholder} {specialityPlaceholder}&page={pagePlaceholder}";
             devByBaseUrl = $"https://jobs.devby.io/?[city_id][]={areaPlaceholder}&filter[search]={specialityPlaceholder}";
             pracaByBaseUrl = $"https://praca.by/rabota-{areaPlaceholder}/?search%5Bquery%5D={specialityPlaceholder}";
             linkedInBaseUrl = $"https://www.linkedin.com/search/results/all/?&keywords={areaPlaceholder} {specialityPlaceholder}";
             trabajoBaseUrl = $"https://by.trabajo.org/работы-{specialityPlaceholder}/{areaPlaceholder}";
             bebeeBaseUrl = $"https://bebee.com/by/jobs?q={specialityPlaceholder}&location={areaPlaceholder}";
-            joblumBaseUrl = $"https://by.joblum.com/jobs?q={specialityPlaceholder}&sort=0&lo%5B%5D={areaPlaceholder}";
+            joblumBaseUrl = $"https://by.joblum.com/jobs?q={specialityPlaceholder}&sort=0&lo%5B%5D={areaPlaceholder}&p={pagePlaceholder}";
         }
 
         [HttpPost]
@@ -42,6 +49,13 @@ namespace JobFinders.Server.Controllers
 
             return responseModels != null ? Ok(responseModels) : BadRequest();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetJobFinders()
+        {
+            return Ok(await _jobFinderRepository.GetAllAsync());
+        }
+
 
         private async Task<IEnumerable<JobsResponseModel>> GetNodeSequence(JobsRequestModel requestModel)
         {
@@ -64,11 +78,11 @@ namespace JobFinders.Server.Controllers
                 {
                     JobFindersEnum.RabotaBy => await GetJobsCore(GetSourceUrl(rabotaByBaseUrl, requestModel.Speciality, requestModel.Area, TransliterationEnum.Cyrillic, ref sourceUrl), "vacancy-info", jobFinder),
                     JobFindersEnum.DevBy => await GetJobsCore(GetSourceUrl(devByBaseUrl, requestModel.Speciality, requestModel.Area, TransliterationEnum.Latin, ref sourceUrl), "vacancies-list-item", jobFinder),
-                    JobFindersEnum.PracaBy => await GetJobsCore(GetSourceUrl(pracaByBaseUrl, requestModel.Speciality, requestModel.Area, TransliterationEnum.Latin, ref sourceUrl), "vac-small__column vac-small__column_2", jobFinder),
+                    JobFindersEnum.PracaBy => await GetJobsCore(GetSourceUrl(pracaByBaseUrl, requestModel.Speciality, requestModel.Area ?? "minsk", TransliterationEnum.Latin, ref sourceUrl), "vac-small__column vac-small__column_2", jobFinder),
                     //JobFindersEnum.LinkedIn => await GetJobsCore($"{linkedIn}{requestModel.Speciality} {requestModel.Area}", "", jobFinder),
-                    JobFindersEnum.Trabajo => await GetJobsCore(GetSourceUrl(trabajoBaseUrl, requestModel.Speciality, requestModel.Area, TransliterationEnum.Latin, ref sourceUrl), "job-item", jobFinder),
+                    //JobFindersEnum.Trabajo => await GetJobsCore(GetSourceUrl(trabajoBaseUrl, requestModel.Speciality, requestModel.Area, TransliterationEnum.Latin, ref sourceUrl), "job-item", jobFinder),
                     JobFindersEnum.BeBee => await GetJobsCore(GetSourceUrl(bebeeBaseUrl, requestModel.Speciality, requestModel.Area, TransliterationEnum.Latin, ref sourceUrl), "group relative", jobFinder),
-                    JobFindersEnum.Joblum => await GetJobsCore(GetSourceUrl(joblumBaseUrl, requestModel.Speciality, requestModel.Area, TransliterationEnum.Cyrillic, ref sourceUrl), "result-wrp row", jobFinder),
+                    JobFindersEnum.Joblum => await GetJobsCore(GetSourceUrl(joblumBaseUrl, requestModel.Speciality, requestModel.Area ?? "minsk", TransliterationEnum.Cyrillic, ref sourceUrl), "result-wrp row", jobFinder),
                     _ => await Task.Run(Enumerable.Empty<JobModel>)
                 };
 
@@ -246,13 +260,15 @@ namespace JobFinders.Server.Controllers
 
         private static string? GetSourceUrl(string? baseUrl, string? speciality, string? area, TransliterationEnum transliteration, ref string? sourceUrl)
         {
+            area ??= string.Empty;
+
             area = transliteration switch
             {
                 TransliterationEnum.Cyrillic => Transliteration.LatinToCyrillic(area),
                 _ => Transliteration.CyrillicToLatin(area)
             };
 
-            sourceUrl = baseUrl?.Replace(areaPlaceholder, area).Replace(specialityPlaceholder, speciality);
+            sourceUrl = baseUrl?.Replace(areaPlaceholder, area).Replace(specialityPlaceholder, speciality).Replace(pagePlaceholder, "1");
            return sourceUrl;
         }
     }

@@ -1,6 +1,7 @@
 ﻿namespace JobFinders.Data.Repositories
 {
-    internal interface IRepository
+    public interface IRepository<T>
     {
+        Task<List<T>> GetAllAsync();
     }
 }
