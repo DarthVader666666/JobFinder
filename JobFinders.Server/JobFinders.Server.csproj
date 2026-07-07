@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\jobfinders.client\jobfinders.client.esproj" />
     <ProjectReference Include="..\JobFinders.Data\JobFinders.Data.csproj" />
   </ItemGroup>
 
