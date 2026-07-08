@@ -4,7 +4,7 @@
     {
         public string? Source { get; set; }
         public string? LinkTemplate { get; set; }
-        public string? HrefCssClass { get; set; }
+        public string? TagCssClass { get; set; }
         public string? SalaryCssClass { get; set; }
         public string? HrefPrefix { get; set; }
         public string? BaseUrl { get; set; }

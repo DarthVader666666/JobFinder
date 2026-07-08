@@ -65,7 +65,7 @@ namespace JobFinders.Bll.Services
             }
 
             var nodes = doc?.DocumentNode?.Descendants(setting.NodeTag)
-                .Where(n => n?.Attributes["class"] != null ? n.Attributes["class"].Value.Contains($"{setting.HrefCssClass}") : false) ?? [];
+                .Where(n => n?.Attributes["class"] != null ? n.Attributes["class"].Value.Contains($"{setting.TagCssClass}") : false) ?? [];
 
             var jobs = Enumerable.Empty<Job>();
 
