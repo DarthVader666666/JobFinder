@@ -1,20 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace JobFinders.Data.Entities
+﻿namespace JobFinders.Bll.Models
 {
-    public class JobFinder
+    public record JobFinderSetting
     {
-        [Key]
-        public int JobFinderId { get; set; }
-        public string? Name { get; set; }
+        public string? Source { get; set; }
         public string? LinkTemplate { get; set; }
-        public string? CssClass { get; set; }
+        public string? HrefCssClass { get; set; }
+        public string? SalaryCssClass { get; set; }
         public string? HrefPrefix { get; set; }
         public string? BaseUrl { get; set; }
         public string? LocationTransliteration { get; set; }
         public string? NodeTag { get; set; } = "div";
         public bool AddBaseUrlToHrefPrefix { get; set; } = false;
-        public bool ZeroPagination { get; set; } = false;
+        public bool ZeroBasedPagination { get; set; } = false;
         public bool MandatoryLocation { get; set; } = false;
     }
 }

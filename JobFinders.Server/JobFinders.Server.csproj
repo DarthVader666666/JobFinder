@@ -10,7 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.67" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy">
       <Version>8.*-*</Version>
     </PackageReference>
@@ -19,16 +18,16 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NickBuhro.Translit" Version="1.4.5" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Services\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\JobFinders.BLL\JobFinders.BLL.csproj" />
     <ProjectReference Include="..\jobfinders.client\jobfinders.client.esproj" />
-    <ProjectReference Include="..\JobFinders.Data\JobFinders.Data.csproj" />
   </ItemGroup>
 
 </Project>

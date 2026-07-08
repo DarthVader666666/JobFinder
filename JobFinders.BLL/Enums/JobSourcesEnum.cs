@@ -1,6 +1,6 @@
-﻿namespace JobFinders.Server.Enums
+﻿namespace JobFinders.Bll.Enums
 {
-    public enum JobFindersEnum
+    public enum JobSourcesEnum
     {
         LinkedIn,
         RabotaBy,

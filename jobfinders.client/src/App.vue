@@ -4,61 +4,51 @@ import CriteriaInput from "./components/CriteriaInput.vue";
 
 const url = import.meta.env.VITE_API_URL;
 
-const sources = [
-  { name: "LinkedIn", img: "linkedin-logo-large.png" },
-  { name: "RabotaBy", img: "rabotaby-logo-large.png" },
-  { name: "DevBy", img: "devby-logo-large.png" },
-  { name: "PracaBy", img: "pracaby-logo-large.png" },
-  { name: "Trabajo", img: "trabajo-logo-large.png" },
-  { name: "BeBee", img: "bebee-logo-large.png" },
-  { name: "Joblum", img: "joblum-logo-large.png" },
-];
-
-const searchSourceOptions = ref([
-  { img: "linkedin-logo-small.png", name: "LinkedIn", active: false },
-  { img: "rabotaby-logo-small.png", name: "RabotaBy", active: false },
-  { img: "devby-logo-small.png", name: "DevBy", active: false },
-  { img: "pracaby-logo-small.png", name: "PracaBy", active: false },
-  { img: "trabajo-logo-small.png", name: "Trabajo", active: false },
-  { img: "bebee-logo-small.png", name: "BeBee", active: false },
-  { img: "joblum-logo-small.png", name: "Joblum", active: false },
+const jobFinders = ref([
+  { logo: "linkedin-logo-small.png", img: "linkedin-logo-large.png", source: "LinkedIn", active: false },
+  { logo: "rabotaby-logo-small.png", img: "rabotaby-logo-large.png", source: "RabotaBy", active: false },
+  { logo: "devby-logo-small.png",    img: "devby-logo-large.png",    source: "DevBy",    active: false },
+  { logo: "pracaby-logo-small.png",  img: "pracaby-logo-large.png",  source: "PracaBy",  active: false },
+  { logo: "trabajo-logo-small.png",  img: "trabajo-logo-large.png",  source: "Trabajo",  active: false },
+  { logo: "bebee-logo-small.png",    img: "bebee-logo-large.png",    source: "BeBee",    active: false },
+  { logo: "joblum-logo-small.png",   img: "joblum-logo-large.png",   source: "Joblum",   active: false },
 ]);
 
 const speciality = ref("");
-const area = ref(null);
+const location = ref(null);
 const loading = ref(false);
-const show = ref(false);
-const responses = ref([]);
+const showJobFinders = ref(false);
+const jobs = ref([]);
 
 async function findJobs() {
-  show.value = false;
-  responses.value = [];
+  showJobFinders.value = false;
+  jobs.value = [];
 
   const bodyValue = {
     speciality: speciality.value.trim(),
-    area: area.value?.trim(),
-    sources: searchSourceOptions.value
+    location: location.value?.trim(),
+    sources: jobFinders.value
       .filter((o) => o.active)
-      .map((o) => o.name),
+      .map((o) => o.source),
   };
 
   loading.value = true;
 
-  const loadedResponses = await fetch(`${url}/Jobs/GetList`, {
+  const response = await fetch(`${url}/Jobs/GetJobs`, {
     method: "POST",
     body: JSON.stringify(bodyValue),
     headers: { "Content-Type": "application/json" },
   }).then((r) => r.json());
 
-  searchSourceOptions.value.forEach((option) => {
-    if (option.active) {
-      const match = loadedResponses.find((lr) => lr.sourceName === option.name);
-      if (match) {
-        responses.value.push({
-          img: option.img,
-          sourceName: option.name,
-          sourceUrl: match.sourceUrl,
-          jobs: match.jobs,
+  jobFinders.value.forEach((jf) => {
+    if (jf.active) {
+      const jobsGroup = response.find((job) => job.source === jf.source);
+      if (jobsGroup) {
+        jobs.value.push({
+          logo: jf.logo,
+          source: jf.source,
+          link: jobsGroup.link,
+          jobs: jobsGroup.jobs,
         });
       }
     }
@@ -71,44 +61,41 @@ function changeSpeciality(value) {
   speciality.value = String(value).trim();
 }
 
-function changeArea(value) {
-  area.value = String(value).trim();
+function changeLocation(value) {
+  location.value = String(value).trim();
 }
 
-function setSearchSource(value) {
-  const option = searchSourceOptions.value.find((o) => o.name === value);
-  if (option) option.active = !option.active;
+function activateJobFinder(value) {
+  const jobFinder = jobFinders.value.find((jf) => jf.source === value);
+  if (jobFinder) jobFinder.active = !jobFinder.active;
 }
 
-function isSearchSourceOptionActive(value) {
-  return searchSourceOptions.value.find((o) => o.name === value)?.active;
+function isJobFinderActive(value) {
+  return jobFinders.value.find((jf) => jf.source === value)?.active;
 }
 
-function showResources() {
-  show.value = !show.value;
-}
 </script>
 
 <template>
   <div className="head">
     <h3>Welcome to Job Finder!</h3>
-    <button @click="showResources" className="menu-button">Resources</button>
+    <button @click="() => showJobFinders = !showJobFinders" className="menu-button">Show Job Finders</button>
   </div>
 
-  <div className="sources" v-show="show">
+  <div className="job-finders" v-show="showJobFinders">
     <section
-      v-for="(source, index) in sources"
-      @click="setSearchSource(source.name)"
+      v-for="(jobFinder, index) in jobFinders"
+      @click="activateJobFinder(jobFinder.source)"
       :key="index"
-      :className="isSearchSourceOptionActive(source.name) ? 'active' : ''"
+      :className="isJobFinderActive(jobFinder.source) ? 'active' : ''"
     >
-      <img v-bind:src="source.img" :alt="source.name" />
+      <img v-bind:src="jobFinder.img" :alt="jobFinder.source" />
     </section>
   </div>
 
   <CriteriaInput
     :changeSpeciality="changeSpeciality"
-    :changeArea="changeArea"
+    :changeLocation="changeLocation"
     :findJobs="findJobs"
   ></CriteriaInput>
 
@@ -116,13 +103,13 @@ function showResources() {
     <h3 v-if="loading">Loading...</h3>
     <div style="display: flex; flex-direction: column">
       <div
-        v-for="(response, index) in responses"
+        v-for="(response, index) in jobs"
         :key="index"
         style="display: flex; flex-direction: column"
       >
         <div className="list-box">
-          <a :href="response.sourceUrl" target="_blank">
-            <img v-bind:src="response.img" width="50px" height="50px" />
+          <a :href="response.link" target="_blank">
+            <img v-bind:src="response.logo" width="50px" height="50px" />
           </a>
         </div>
         <div>
@@ -192,7 +179,7 @@ h3 {
   text-shadow: 0.1rem 0.1rem black;
 }
 
-.sources {
+.job-finders {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -202,7 +189,7 @@ h3 {
   float: inline-end;
 }
 
-.sources section {
+.job-finders section {
   width: 10rem;
   height: 3rem;
   display: flex;
@@ -215,7 +202,7 @@ h3 {
   border-radius: 10px;
 }
 
-.sources section img {
+.job-finders section img {
   height: 95%;
   width: 95%;
 }

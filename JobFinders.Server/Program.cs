@@ -1,10 +1,7 @@
-using JobFinders.Data;
-using JobFinders.Data.Entities;
-using JobFinders.Data.Repositories;
-using JobFinders.Server.Services;
+using JobFinders.Bll.Models;
+using JobFinders.Bll.Services;
 
 using Microsoft.AspNetCore.Cors.Infrastructure;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,15 +13,11 @@ builder.Services.AddCors(options => options.AddPolicy("AllowClient",
     .WithOrigins(origins ?? [])
     .AllowAnyHeader().AllowAnyMethod().Build()));
 
-builder.Services.AddDbContext<JobFindersDbContext>(opts => opts.UseInMemoryDatabase("JobFindersInMemoryDb"));
+builder.Services.AddScoped<JobFinderManager>();
 
-builder.Services.AddScoped<IRepository<JobFinder>, JobFinderRepository>();
+builder.Services.Configure<List<JobFinderSetting>>(builder.Configuration.GetSection("JobFinderSettings"));
 
 var app = builder.Build();
-
-using var scope = app.Services.CreateScope();
-var dbContext = scope.ServiceProvider.GetRequiredService<JobFindersDbContext>();
-JobFindersHelper.Seed(dbContext);
 
 app.UseDefaultFiles();
 app.UseStaticFiles();

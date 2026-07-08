@@ -1,6 +1,4 @@
-﻿using JobFinders.Data.Entities;
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace JobFinders.Data
 {
@@ -10,7 +8,5 @@ namespace JobFinders.Data
         {
             
         }
-
-        public DbSet<JobFinder> JobFinders { get; set; }
     }
 }

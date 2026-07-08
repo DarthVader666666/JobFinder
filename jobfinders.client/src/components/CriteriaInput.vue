@@ -1,7 +1,7 @@
 <template>
   <div className="input-box">
     <input @keyup.enter="findJobs()" @input="changeSpeciality($event.target.value)" type="text" placeholder="Enter Spiciality">
-    <input @keyup.enter="findJobs()" @input="changeArea($event.target.value)" type="text" placeholder="Enter City">
+    <input @keyup.enter="findJobs()" @input="changeLocation($event.target.value)" type="text" placeholder="Enter City">
     <button className="find-btn" @click="findJobs()">Find Job</button>
   </div>
 
@@ -13,7 +13,7 @@
         type: Function,
         required: true
       },
-      changeArea: {
+      changeLocation: {
         type: Function,
         required: true
       },

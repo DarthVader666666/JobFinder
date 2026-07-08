@@ -1,6 +1,6 @@
-﻿namespace JobFinders.Server.Models
+﻿namespace JobFinders.Bll.Models
 {
-    public class JobModel
+    public class Job
     {
         public string? Link { get; set; }
         public string? Title { get; set; }

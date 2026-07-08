@@ -1,4 +1,4 @@
-﻿namespace JobFinders.Server.Enums
+﻿namespace JobFinders.Bll.Enums
 {
     public enum TransliterationEnum
     {
