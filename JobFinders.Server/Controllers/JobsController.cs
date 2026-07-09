@@ -25,22 +25,17 @@ namespace JobFinders.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> GetJobs([FromBody] JobsRequest request)
         {
-            var responseList = new ConcurrentBag<JobsResponse>();
-            var locker = new object();
+            var responseList = new ConcurrentBag<Job>();
 
             await Parallel.ForEachAsync(request.Sources, async (source, ct) =>
             {
                 var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
-                var processedJobs = await _jobFinderManager.ProcessAsync(request.Speciality, request.Location, setting);
+                var jobs = await _jobFinderManager.ProcessAsync(request.Speciality, request.Location, setting);
 
-                var response = new JobsResponse
+                foreach (var job in jobs)
                 {
-                    Source = source,
-                    Link = processedJobs.link,
-                    Jobs = processedJobs.jobs.ToList()
-                };
-
-                responseList.Add(response);
+                    responseList.Add(job);
+                }
             });            
 
             return responseList != null ? Ok(responseList) : BadRequest();

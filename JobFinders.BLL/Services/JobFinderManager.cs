@@ -30,7 +30,7 @@ namespace JobFinders.Bll.Services
             currencies = usd.Concat(euro).Concat(belRub).Concat(rusRub).ToArray();
         }
 
-        public async Task<(IEnumerable<Job>? jobs, string? link)> ProcessAsync(string? speciality, string? location, JobFinderSetting? setting)
+        public async Task<IEnumerable<Job>> ProcessAsync(string? speciality, string? location, JobFinderSetting? setting)
         {
             var transliteration = Enum.Parse<TransliterationEnum>(setting.LocationTransliteration);
 
@@ -44,16 +44,16 @@ namespace JobFinders.Bll.Services
 
             speciality ??= string.Empty;
 
-            var link = setting.LinkTemplate?.Replace(locationPlaceholder, location).Replace(specialityPlaceholder, speciality);
+            var url = setting.LinkTemplate?.Replace(locationPlaceholder, location).Replace(specialityPlaceholder, speciality);
 
             if (setting == null)
             {
                 throw new Exception("JobFinderSetting not found");
             }
 
-            var jobs = await GetJobsAsync(speciality, location, link, setting);
+            var jobs = await GetJobsAsync(speciality, location, url, setting);
 
-            return (jobs, link);
+            return jobs;
         }
 
         private async Task<IEnumerable<Job>> GetJobsAsync(string? speciality, string? location, string? url, JobFinderSetting? setting)
@@ -85,7 +85,7 @@ namespace JobFinders.Bll.Services
 
             try
             {
-                jobs = JobsIterator(setting, nodes).DistinctBy(x => x.Link);
+                jobs = JobsIterator(setting, nodes, url).DistinctBy(x => x.Link);
             }
             catch (Exception ex)
             {
@@ -95,7 +95,7 @@ namespace JobFinders.Bll.Services
             return jobs;            
         }
 
-        private IEnumerable<Job> JobsIterator(JobFinderSetting setting, IEnumerable<HtmlNode> nodes)
+        private IEnumerable<Job> JobsIterator(JobFinderSetting setting, IEnumerable<HtmlNode> nodes, string? url)
         {
             foreach (var node in nodes)
             {
@@ -113,6 +113,7 @@ namespace JobFinders.Bll.Services
                         Link = setting.AddBaseUrlToHrefPrefix ? setting.BaseUrl + href : href,
                         Title = GetTitle(anchor.InnerText),
                         Salary = GetSalary(descendants, setting),
+                        Logo = new Logo { Source = setting.Source, Url = url }
                     };
                 }
             }

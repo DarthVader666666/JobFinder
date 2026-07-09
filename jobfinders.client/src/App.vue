@@ -5,13 +5,48 @@ import CriteriaInput from "./components/CriteriaInput.vue";
 const url = import.meta.env.VITE_API_URL;
 
 const jobFinders = ref([
-  { logo: "linkedin-logo-small.png", img: "linkedin-logo-large.png", source: "LinkedIn", active: false },
-  { logo: "rabotaby-logo-small.png", img: "rabotaby-logo-large.png", source: "RabotaBy", active: false },
-  { logo: "devby-logo-small.png",    img: "devby-logo-large.png",    source: "DevBy",    active: false },
-  { logo: "pracaby-logo-small.png",  img: "pracaby-logo-large.png",  source: "PracaBy",  active: false },
-  { logo: "trabajo-logo-small.png",  img: "trabajo-logo-large.png",  source: "Trabajo",  active: false },
-  { logo: "bebee-logo-small.png",    img: "bebee-logo-large.png",    source: "BeBee",    active: false },
-  { logo: "joblum-logo-small.png",   img: "joblum-logo-large.png",   source: "Joblum",   active: false },
+  {
+    logo: "linkedin-logo-small.png",
+    img: "linkedin-logo-large.png",
+    source: "LinkedIn",
+    active: false,
+  },
+  {
+    logo: "rabotaby-logo-small.png",
+    img: "rabotaby-logo-large.png",
+    source: "RabotaBy",
+    active: false,
+  },
+  {
+    logo: "devby-logo-small.png",
+    img: "devby-logo-large.png",
+    source: "DevBy",
+    active: false,
+  },
+  {
+    logo: "pracaby-logo-small.png",
+    img: "pracaby-logo-large.png",
+    source: "PracaBy",
+    active: false,
+  },
+  {
+    logo: "trabajo-logo-small.png",
+    img: "trabajo-logo-large.png",
+    source: "Trabajo",
+    active: false,
+  },
+  {
+    logo: "bebee-logo-small.png",
+    img: "bebee-logo-large.png",
+    source: "BeBee",
+    active: false,
+  },
+  {
+    logo: "joblum-logo-small.png",
+    img: "joblum-logo-large.png",
+    source: "Joblum",
+    active: false,
+  },
 ]);
 
 const speciality = ref("");
@@ -27,32 +62,16 @@ async function findJobs() {
   const bodyValue = {
     speciality: speciality.value.trim(),
     location: location.value?.trim(),
-    sources: jobFinders.value
-      .filter((o) => o.active)
-      .map((o) => o.source),
+    sources: jobFinders.value.filter((o) => o.active).map((o) => o.source),
   };
 
   loading.value = true;
 
-  const response = await fetch(`${url}/Jobs/GetJobs`, {
+  jobs.value = await fetch(`${url}/Jobs/GetJobs`, {
     method: "POST",
     body: JSON.stringify(bodyValue),
     headers: { "Content-Type": "application/json" },
   }).then((r) => r.json());
-
-  jobFinders.value.forEach((jf) => {
-    if (jf.active) {
-      const jobsGroup = response.find((job) => job.source === jf.source);
-      if (jobsGroup) {
-        jobs.value.push({
-          logo: jf.logo,
-          source: jf.source,
-          link: jobsGroup.link,
-          jobs: jobsGroup.jobs,
-        });
-      }
-    }
-  });
 
   loading.value = false;
 }
@@ -73,13 +92,17 @@ function activateJobFinder(value) {
 function isJobFinderActive(value) {
   return jobFinders.value.find((jf) => jf.source === value)?.active;
 }
-
 </script>
 
 <template>
   <div className="head">
     <h3>Welcome to Job Finder!</h3>
-    <button @click="() => showJobFinders = !showJobFinders" className="menu-button">Show Job Finders</button>
+    <button
+      @click="() => (showJobFinders = !showJobFinders)"
+      className="menu-button"
+    >
+      Show Job Finders
+    </button>
   </div>
 
   <div className="job-finders" v-show="showJobFinders">
@@ -103,25 +126,28 @@ function isJobFinderActive(value) {
     <h3 v-if="loading">Loading...</h3>
     <div style="display: flex; flex-direction: column">
       <div
-        v-for="(response, index) in jobs"
+        v-for="(job, index) in jobs"
         :key="index"
         style="display: flex; flex-direction: column"
       >
-        <div className="list-box">
-          <a :href="response.link" target="_blank">
-            <img v-bind:src="response.logo" width="50px" height="50px" />
-          </a>
-        </div>
         <div>
-          <a
-            v-for="(job, index) in response.jobs"
-            :key="index"
-            className="job-link"
-            :href="job.link"
-            target="_blank"
-          >
+          <div className="list-box">
+            <a :href="job.logo.url" target="_blank">
+              <img
+                v-bind:src="
+                  jobFinders.find((x) => x.source === job.logo.source).logo
+                "
+                width="50px"
+                height="50px"
+              />
+            </a>
+          </div>
+          <a className="job-link" :href="job.link" target="_blank">
             <span style="font-weight: bold">{{ job.title }}</span>
-            <span>{{ job.salary && `${(job.salary.min === job.salary.max ? job.salary.min : job.salary.min + ' - ' + job.salary.max)} ${job.salary.currency}` }}</span>
+            <span>{{
+              job.salary &&
+              `${job.salary.min === job.salary.max ? job.salary.min : job.salary.min + " - " + job.salary.max} ${job.salary.currency}`
+            }}</span>
           </a>
         </div>
       </div>
@@ -151,6 +177,7 @@ div {
 
 .job-link {
   min-height: 18px;
+  width: 80%;
   display: block;
   text-decoration: none;
   color: black;
