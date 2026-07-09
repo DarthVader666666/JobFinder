@@ -32,11 +32,11 @@ namespace JobFinders.Server.Controllers
                 var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
                 var jobs = await _jobFinderManager.ProcessAsync(request.Speciality, request.Location, setting);
 
-                foreach (var job in jobs)
+                Parallel.ForEach(jobs, (job) =>
                 {
                     responseList.Add(job);
-                }
-            });            
+                });
+            });
 
             return responseList != null ? Ok(responseList) : BadRequest();
         }
