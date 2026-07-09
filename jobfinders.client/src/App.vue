@@ -121,7 +121,7 @@ function isJobFinderActive(value) {
             target="_blank"
           >
             <span style="font-weight: bold">{{ job.title }}</span>
-            <span>{{ job.salary }}</span>
+            <span>{{ job.salary && `${(job.salary.min === job.salary.max ? job.salary.min : job.salary.min + ' - ' + job.salary.max)} ${job.salary.currency}` }}</span>
           </a>
         </div>
       </div>

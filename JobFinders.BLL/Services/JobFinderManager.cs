@@ -18,6 +18,18 @@ namespace JobFinders.Bll.Services
         private const string specialityPlaceholder = "*speciality*";
         private const string pagePlaceholder = "*page*";
 
+        private readonly string[] usd = { "$", "USD" };
+        private readonly string[] euro = { "€", "EUR" };
+        private readonly string[] belRub = { "Br", "BYN", "руб" };
+        private readonly string[] rusRub = { "₽" };
+
+        private readonly string[] currencies;
+
+        public JobFinderManager()
+        {
+            currencies = usd.Concat(euro).Concat(belRub).Concat(rusRub).ToArray();
+        }
+
         public async Task<(IEnumerable<Job>? jobs, string? link)> ProcessAsync(string? speciality, string? location, JobFinderSetting? setting)
         {
             var transliteration = Enum.Parse<TransliterationEnum>(setting.LocationTransliteration);
@@ -54,7 +66,7 @@ namespace JobFinders.Bll.Services
             }
             catch (Exception ex)
             {
-                return Enumerable.Empty<Job>().Append(new Job { Title = "Server Error" });
+                return Enumerable.Empty<Job>().Append(new Job { Title = "Loading html" + " " + ex.Message });
             }
 
             var nodes = doc?.DocumentNode?.Descendants(setting.NodeTag)
@@ -68,7 +80,7 @@ namespace JobFinders.Bll.Services
             }
             catch (Exception ex)
             {
-                jobs = Enumerable.Empty<Job>().Append(new Job { Title = "Server Error" });
+                jobs = Enumerable.Empty<Job>().Append(new Job { Title = ex.Message });
             }
 
             return jobs;            
@@ -90,101 +102,122 @@ namespace JobFinders.Bll.Services
                     yield return new Job
                     {
                         Link = setting.AddBaseUrlToHrefPrefix ? setting.BaseUrl + href : href,
-                        Title = ConvertSpecialSymbols(anchor.InnerText),
-                        Salary = ConvertSpecialSymbols(string.IsNullOrEmpty(setting.SalaryCssClass)
-                            ? descendants.FirstOrDefault(x => ContainsCurrencySymbols(x.InnerText))?.InnerText
-                            : descendants.FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains(setting.SalaryCssClass))?.InnerText),
+                        Title = GetTitle(anchor.InnerText),
+                        Salary = GetSalary(descendants, setting),
                     };
                 }
             }
         }
 
-        private bool ContainsCurrencySymbols(string innerText)
+
+        private string? GetTitle(string title)
         {
-            string[] currencies = { "$", "€", "Br", "BYN", "руб", "AED", "USD", "EUR", "SEK", "NOK", "₽" };
+            return ConvertSpecialSymbols(title);
+        }
 
-            var pattern = @"(?i)(\$|€|\bBr\b|\bруб\b|\bAED\b|\bUSD\b|\bEUR\b|\bSEK\b|\bNOK\b)";
-            //return innerText.Length < 20 && Regex.IsMatch(innerText, pattern);
+        private Salary? GetSalary(IEnumerable<HtmlNode> nodes, JobFinderSetting setting)
+        {
+            var innerText =  string.IsNullOrEmpty(setting.SalaryCssClass)
+                ? nodes.FirstOrDefault(x => ContainsCurrencySymbols(x.InnerText))?.InnerText
+                : nodes.FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains(setting.SalaryCssClass))?.InnerText;
 
-            if (innerText.Length > 100)
-            {
-                return false;
+            if (string.IsNullOrEmpty(innerText))
+            { 
+                return null;
             }
 
-            foreach (var c in currencies)
+            var salary = new Salary();
+
+            innerText = ConvertSpecialSymbols(innerText);
+
+            var currencyPattern = $@"(?i){string.Join("|", currencies.Select(Regex.Escape))}";
+            var currencyMatch = Regex.Match(innerText, currencyPattern);
+
+            if (currencyMatch.Success)
             {
-                // Symbols: match directly
-                if (c == "$" || c == "€" || c == "₽")
+                int index = currencyMatch.Index;
+
+                int start = Math.Max(0, index - 20);
+                int length = Math.Min(innerText.Length - start, 20);
+
+                var substring = innerText.Substring(start, length);
+
+                if (substring.IsWhiteSpace())
                 {
-                    if (innerText.Contains(c))
-                        return true;
+                    start = index;
+                    innerText = innerText.Substring(start, length);
+                }
+                else if (Regex.IsMatch(substring, currencyPattern))
+                {
+                    innerText = substring;
                 }
                 else
                 {
-                    // Alphabetic currencies: match whole words
-                    if (Regex.IsMatch(innerText, $@"(?i)\b{Regex.Escape(c)}\b"))
-                        return true;
+                    return null;
                 }
             }
-            return false;
+            else
+            {
+                return null;
+            }
+
+            var predicate = new Predicate<string[]>(currencies => currencies.Any(c => currencyMatch.Value == c));
+
+            salary.Currency = predicate switch
+            {
+                var x when x(usd) => "$",
+                var x when x(euro) => "€",
+                var x when x(belRub) => "BYN",
+                var x when x(rusRub) => "₽",
+                _ => null
+            };
+
+            innerText = Regex.Replace(innerText, @"[^\d\s\-–—]", "");
+            innerText = Regex.Replace(innerText, @"\s+", "");
+
+            var match = Regex.Match(innerText, @"^(?<min>\d+)(?:[-–—](?<max>\d+))?$");
+
+            if (match.Success)
+            {
+                var min = match.Groups["min"].Value.Trim();
+                var max = match.Groups["max"].Success ? match.Groups["max"].Value.Trim() : min;
+
+                salary.Min = ParseSalary(min);
+                salary.Max = ParseSalary(max);
+            }
+            else
+            {
+                salary.Min = salary.Max = ParseSalary(innerText);
+            }
+
+            return salary;
         }
 
-        //private static string? GetSalaryValue(HtmlNode node, JobSourcesEnum jobFinder)
-        //{
-        //    var descendants = node.Descendants();
-
-        //    var result = jobFinder switch
-        //    {
-        //        JobSourcesEnum.RabotaBy => descendants.FirstOrDefault(x => ContainsCurrencySymbols(x.InnerText))?.InnerText,
-        //        JobSourcesEnum.DevBy => node.Descendants("div").FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains("vacancies-list-item__salary"))?.InnerText,
-        //        JobSourcesEnum.PracaBy => node.Descendants("span").FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains("salary-dotted"))?.InnerText,
-        //        //JobFindersEnum.LinkedIn => string.Empty,
-        //        //JobFindersEnum.Trabajo => string.Empty,
-        //        JobSourcesEnum.BeBee => descendants.FirstOrDefault(x => ContainsCurrencySymbols(x.InnerText))?.InnerText,
-        //        JobSourcesEnum.Joblum => ConvertSpecialSymbols(node.Descendants("div").FirstOrDefault(x => x.Attributes["class"] == null)?.InnerText),
-        //        _ => null
-        //    };
-
-        //    return ConvertSpecialSymbols(result);
-        //}
-
-        private static string? ConvertSpecialSymbols(string? line)
+        private bool ContainsCurrencySymbols(string innerText)
         {
-            var cleaned = line?.Replace("&nbsp;", " ")?
+            return currencies.Any(innerText.Contains);
+        }
+
+        private static string? ConvertSpecialSymbols(string? innerText)
+        {
+            return innerText?
+                .Replace("&nbsp;", " ")?
                 .Replace("&quot;", "\"")?
                 .Replace("&amp;", "&")?
                 .Replace("&mdash;", "-")?
                 .Replace("<!--", "")?
                 .Replace("-->", "")
+                .Replace("\n", "")
+                .Replace("\t", "")
                 .Trim();
-
-            var match = Regex.Match(cleaned ?? "",
-                @"(?i)(\d[\d \s,.]*)(?:\s*[-–—]\s*(\d[\d \s,.]*))?\s*(Br|\$|AED|руб|€)");
-
-            if (match.Success)
-            {
-                var first = match.Groups[1].Value.Trim();
-                var second = match.Groups[2].Success ? match.Groups[2].Value.Trim() : null;
-                var currency = match.Groups[3].Value.Trim();
-
-                return second != null
-                    ? $"{first} - {second} {currency}"
-                    : $"{first} {currency}";
-            }
-
-            return cleaned;
         }
 
+        private int ParseSalary(string salary)
+        {
+            salary = Regex.Replace(salary, @"\s+", " ").Trim();
+            salary = Regex.Replace(salary, @"(?<=\d)\s+(?=\d)", "");
 
-        //private static async Task<string> GetUrlForDevBy(RequestModel requestModel)
-        //{
-        //    var doc = await new HtmlWeb().LoadFromWebAsync("https://jobs.devby.io");
-
-        //    var area = doc.DocumentNode?.SelectNodes("//select/option")?
-        //        .FirstOrDefault(x => x.InnerText.Equals(Transliteration.LatinToCyrillic(requestModel.Area), StringComparison.InvariantCultureIgnoreCase))?
-        //        .Attributes["value"].Value;
-
-        //    return $"{devBy}{requestModel.Speciality}&filter[city_id][]={area}";
-        //}
+            return int.Parse(salary);
+        }
     }
 }
