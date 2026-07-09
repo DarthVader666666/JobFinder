@@ -58,19 +58,28 @@ namespace JobFinders.Bll.Services
 
         private async Task<IEnumerable<Job>> GetJobsAsync(string? speciality, string? location, string? url, JobFinderSetting? setting)
         {
-            HtmlDocument? doc = null;
+            IEnumerable<HtmlNode> nodes;
 
             try
             {
-                doc = await new HtmlWeb().LoadFromWebAsync(url);
+                var doc1 = await new HtmlWeb().LoadFromWebAsync(url);
+
+                //var client = new HttpClient();
+                //client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                //string html = await client.GetStringAsync(url);
+
+                //var doc2 = new HtmlDocument();
+                //doc2.LoadHtml(html);
+
+                nodes = (doc1?.DocumentNode?.Descendants(setting.NodeTag)
+                    .Where(n => n?.Attributes["class"] != null && n.Attributes["class"].Value.Contains($"{setting.TagCssClass}")) ?? []);
+                    //.Concat(doc2?.DocumentNode?.Descendants(setting.NodeTag)
+                    //.Where(n => n?.Attributes["class"] != null && n.Attributes["class"].Value.Contains($"{setting.TagCssClass}")) ?? []);
             }
             catch (Exception ex)
             {
                 return Enumerable.Empty<Job>().Append(new Job { Title = "Loading html" + " " + ex.Message });
-            }
-
-            var nodes = doc?.DocumentNode?.Descendants(setting.NodeTag)
-                .Where(n => n?.Attributes["class"] != null && n.Attributes["class"].Value.Contains($"{setting.TagCssClass}")) ?? [];
+            }            
 
             var jobs = Enumerable.Empty<Job>();
 
