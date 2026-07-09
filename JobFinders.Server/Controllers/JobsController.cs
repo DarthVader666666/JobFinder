@@ -45,11 +45,5 @@ namespace JobFinders.Server.Controllers
 
             return responseList != null ? Ok(responseList) : BadRequest();
         }
-
-        [HttpGet]
-        public async Task<IActionResult> GetJobFinders()
-        {
-            return Ok(JobFinderHelper.JobFinderSettings);
-        }
     }
 }

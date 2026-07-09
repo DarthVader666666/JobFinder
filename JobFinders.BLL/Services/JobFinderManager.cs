@@ -18,13 +18,6 @@ namespace JobFinders.Bll.Services
         private const string specialityPlaceholder = "*speciality*";
         private const string pagePlaceholder = "*page*";
 
-        private readonly List<JobFinderSetting> _jobFinderSettings;
-
-        public JobFinderManager(IOptions<List<JobFinderSetting>> jobFinderSettings)
-        {
-            _jobFinderSettings = jobFinderSettings.Value;
-        }
-
         public async Task<(IEnumerable<Job>? jobs, string? link)> ProcessAsync(string? speciality, string? location, JobFinderSetting? setting)
         {
             var transliteration = Enum.Parse<TransliterationEnum>(setting.LocationTransliteration);
@@ -108,7 +101,7 @@ namespace JobFinders.Bll.Services
 
         private bool ContainsCurrencySymbols(string innerText)
         {
-            string[] currencies = { "$", "€", "Br", "руб", "AED", "USD", "EUR", "SEK", "NOK", "₽" };
+            string[] currencies = { "$", "€", "Br", "BYN", "руб", "AED", "USD", "EUR", "SEK", "NOK", "₽" };
 
             var pattern = @"(?i)(\$|€|\bBr\b|\bруб\b|\bAED\b|\bUSD\b|\bEUR\b|\bSEK\b|\bNOK\b)";
             //return innerText.Length < 20 && Regex.IsMatch(innerText, pattern);
