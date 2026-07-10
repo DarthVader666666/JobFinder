@@ -78,7 +78,7 @@ namespace JobFinders.Bll.Services
             }
             catch (Exception ex)
             {
-                return Enumerable.Empty<Job>().Append(new Job { Title = "Loading html" + " " + ex.Message });
+                return Enumerable.Empty<Job>().Append(new Job { Title = "Loading html:" + " " + ex.Message });
             }            
 
             var jobs = Enumerable.Empty<Job>();

@@ -124,30 +124,24 @@ function isJobFinderActive(value) {
 
   <div>
     <h3 v-if="loading">Loading...</h3>
-    <div style="display: flex; flex-direction: column">
-      <div
-        v-for="(job, index) in jobs"
-        :key="index"
-        style="display: flex; flex-direction: column"
-      >
-        <div>
-          <div className="list-box">
-            <a :href="job.logo.url" target="_blank">
-              <img
-                v-bind:src="
-                  jobFinders.find((x) => x.source === job.logo.source).logo
-                "
-                width="50px"
-                height="50px"
-              />
-            </a>
-          </div>
+    <div class="job-list">
+      <div v-for="(job, index) in jobs" :key="index">
+        <div className="job-item">
           <a className="job-link" :href="job.link" target="_blank">
-            <span style="font-weight: bold">{{ job.title }}</span>
-            <span>{{
-              job.salary &&
-              `${job.salary.min === job.salary.max ? job.salary.min : job.salary.min + " - " + job.salary.max} ${job.salary.currency}`
-            }}</span>
+            <div class="title-salary">
+              <span class="title">{{ job.title }}</span>
+              <span class="salary">{{
+                job.salary &&
+                `${job.salary.min === job.salary.max ? job.salary.min : job.salary.min + " - " + job.salary.max} ${job.salary.currency}`
+              }}</span>
+            </div>
+          </a>
+          <a :href="job.logo.url ?? ''" target="_blank" class="job-item-logo">
+            <img
+              v-bind:src="
+                jobFinders.find((x) => x.source === job.logo.source).img
+              "
+            />
           </a>
         </div>
       </div>
@@ -167,32 +161,75 @@ div {
   justify-content: space-between;
 }
 
-.list-box {
-  flex-direction: row;
-  padding-top: 8px;
-  padding-bottom: 8px;
+.job-list {
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.job-item {
+  width: 100%;
+  max-height: 100px;
+  flex-direction: column;
   align-content: start;
-  gap: 2px;
+  background-color: rgb(185, 185, 185);
+  justify-content: space-between;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .job-link {
-  min-height: 18px;
-  width: 80%;
+  height: 70px;
+  width: 100%;
+  border-radius: 10px 10px 0 0;
   display: block;
   text-decoration: none;
   color: black;
-  padding: 3px;
-  margin: 2px;
-  background-color: gray;
 }
 
-.job-link:hover {
-  color: lightgray;
-  background: #333;
+.title-salary {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.title {
+  padding: 10px;
+}
+
+.salary {
+  font-size: large;
+  font-weight: bold;
+  max-width: fit-content;
+  padding: 10px;
+}
+
+.job-item:hover {
+  background: rgb(156, 156, 156);
 }
 .job-link:visited {
-  color: darkgray;
+  color: rgb(116, 116, 116);
   font-style: italic;
+}
+
+.job-item-logo {
+  width: 50px;
+  height: 20px;
+  min-width: 50px;
+  max-width: 70px;
+  position: sticky;
+  z-index: 1;
+}
+
+.job-item-logo img {
+  &:hover {
+    opacity: 0.7;
+  }
+  background: white;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 2px 1px rgba(0, 0, 0, 0.4);
 }
 
 h1,
@@ -258,5 +295,11 @@ section:hover {
 
 .menu-button:active {
   background-color: rgba(16, 16, 181, 0.658);
+}
+
+@media (max-width: 600px) {
+  .job-list {
+    width: 100%;
+  }
 }
 </style>
