@@ -13,5 +13,14 @@
         public bool AddBaseUrlToHrefPrefix { get; set; } = false;
         public bool ZeroBasedPagination { get; set; } = false;
         public bool MandatoryLocation { get; set; } = false;
+        public CssAttribute? Location { get; set; }
+        public CssAttribute? Company { get; set; }
+        public CssAttribute? Experience { get; set; }
+    }
+
+    public class CssAttribute
+    {
+        public string? Attribute { get; set; } = "class";
+        public string? Value { get; set; }
     }
 }

@@ -64,21 +64,12 @@ namespace JobFinders.Bll.Services
             {
                 var doc1 = await new HtmlWeb().LoadFromWebAsync(url);
 
-                //var client = new HttpClient();
-                //client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-                //string html = await client.GetStringAsync(url);
-
-                //var doc2 = new HtmlDocument();
-                //doc2.LoadHtml(html);
-
                 nodes = (doc1?.DocumentNode?.Descendants(setting.NodeTag)
                     .Where(n => n?.Attributes["class"] != null && n.Attributes["class"].Value.Contains($"{setting.TagCssClass}")) ?? []);
-                    //.Concat(doc2?.DocumentNode?.Descendants(setting.NodeTag)
-                    //.Where(n => n?.Attributes["class"] != null && n.Attributes["class"].Value.Contains($"{setting.TagCssClass}")) ?? []);
             }
             catch (Exception ex)
             {
-                return Enumerable.Empty<Job>().Append(new Job { Title = "Loading html:" + " " + ex.Message });
+                throw ex;
             }            
 
             var jobs = Enumerable.Empty<Job>();
@@ -113,6 +104,9 @@ namespace JobFinders.Bll.Services
                         Link = setting.AddBaseUrlToHrefPrefix ? setting.BaseUrl + href : href,
                         Title = GetTitle(anchor.InnerText),
                         Salary = GetSalary(descendants, setting),
+                        Company = GetCompany(descendants, setting),
+                        Experience = GetExperience(descendants, setting),
+                        Location = GetLocation(descendants, setting),
                         Logo = new Logo { Source = setting.Source, Url = url }
                     };
                 }
@@ -123,6 +117,21 @@ namespace JobFinders.Bll.Services
         private string? GetTitle(string title)
         {
             return ConvertSpecialSymbols(title);
+        }
+
+        private string? GetCompany(IEnumerable<HtmlNode> nodes, JobFinderSetting setting)
+        {
+            return GetInnerText(nodes, setting.Company);
+        }
+
+        private string? GetExperience(IEnumerable<HtmlNode> nodes, JobFinderSetting setting)
+        {
+            return GetInnerText(nodes, setting.Experience);
+        }
+
+        private string? GetLocation(IEnumerable<HtmlNode> nodes, JobFinderSetting setting)
+        {
+            return GetInnerText(nodes, setting.Location);
         }
 
         private Salary? GetSalary(IEnumerable<HtmlNode> nodes, JobFinderSetting setting)
@@ -228,6 +237,19 @@ namespace JobFinders.Bll.Services
             salary = Regex.Replace(salary, @"(?<=\d)\s+(?=\d)", "");
 
             return int.Parse(salary);
+        }
+
+        private string? GetInnerText(IEnumerable<HtmlNode> nodes, CssAttribute? cssAttribute)
+        {
+            if (cssAttribute is null)
+            {
+                return null;
+            }
+                
+            var innerText = nodes.FirstOrDefault(x => (x.Attributes[$"{cssAttribute.Attribute}"]?.Value ?? "")
+                .Contains(cssAttribute?.Value ?? ""))?.InnerText;
+
+            return ConvertSpecialSymbols(innerText);
         }
     }
 }

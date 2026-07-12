@@ -1,5 +1,6 @@
 using JobFinders.Bll.Models;
 using JobFinders.Bll.Services;
+using JobFinders.Server.Middleware;
 
 using Microsoft.AspNetCore.Cors.Infrastructure;
 
@@ -18,6 +19,8 @@ builder.Services.AddScoped<JobFinderManager>();
 builder.Services.Configure<List<JobFinderSetting>>(builder.Configuration.GetSection("JobFinderSettings"));
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();

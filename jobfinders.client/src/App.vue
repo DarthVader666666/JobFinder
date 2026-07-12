@@ -1,8 +1,13 @@
 <script setup>
 import { ref } from "vue";
 import CriteriaInput from "./components/CriteriaInput.vue";
+import { useStore } from "vuex";
+import Toast from "primevue/toast";
+import { useToast } from "primevue/usetoast";
 
-const url = import.meta.env.VITE_API_URL;
+const toast = useToast();
+
+const store = useStore();
 
 const jobFinders = ref([
   {
@@ -67,11 +72,14 @@ async function findJobs() {
 
   loading.value = true;
 
-  jobs.value = await fetch(`${url}/Jobs/GetJobs`, {
-    method: "POST",
-    body: JSON.stringify(bodyValue),
-    headers: { "Content-Type": "application/json" },
-  }).then((r) => r.json());
+  const response = await store.dispatch("getJobs", bodyValue);
+
+  if (response.status === 500) {
+    showError("Server error", response.data);
+  } else {
+    jobs.value = response.data;
+    showSuccess(200, "Fetch Successful");
+  }
 
   loading.value = false;
 }
@@ -92,9 +100,27 @@ function activateJobFinder(value) {
 function isJobFinderActive(value) {
   return jobFinders.value.find((jf) => jf.source === value)?.active;
 }
+
+function showSuccess(summary, detail) {
+  toast.add({
+    severity: "success",
+    summary: summary,
+    detail: detail,
+    life: 2000,
+  });
+}
+function showError(summary, detail) {
+  toast.add({
+    severity: "error",
+    summary: summary,
+    detail: detail,
+    life: 2000,
+  });
+}
 </script>
 
 <template>
+  <Toast />
   <div className="head">
     <h3>Welcome to Job Finder!</h3>
     <button
@@ -127,22 +153,32 @@ function isJobFinderActive(value) {
     <div class="job-list">
       <div v-for="(job, index) in jobs" :key="index">
         <div className="job-item">
-          <a className="job-link" :href="job.link" target="_blank">
-            <div class="title-salary">
-              <span class="title">{{ job.title }}</span>
-              <span class="salary">{{
-                job.salary &&
-                `${job.salary.min === job.salary.max ? job.salary.min : job.salary.min + " - " + job.salary.max} ${job.salary.currency}`
-              }}</span>
-            </div>
-          </a>
-          <a :href="job.logo.url ?? ''" target="_blank" class="job-item-logo">
-            <img
-              v-bind:src="
-                jobFinders.find((x) => x.source === job.logo.source).img
-              "
-            />
-          </a>
+          <div class="job-left">
+            <a className="job-link" :href="job.link" target="_blank">
+              <div class="title">
+                <span>{{ job.title }}</span>
+              </div>
+              <div class="job-details">
+                <span><i class="pi pi-briefcase"></i>{{ job.experience }}</span>
+                <span><i class="pi pi-building"></i>{{ job.company }}</span>
+                <span><i class="pi pi-map-marker"></i>{{ job.location }}</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="job-right">
+            <span class="salary">{{
+              job.salary &&
+              `${job.salary.min === job.salary.max ? job.salary.min : job.salary.min + " - " + job.salary.max} ${job.salary.currency}`
+            }}</span>
+            <a class="job-logo" :href="job.logo.url ?? ''" target="_blank">
+              <img
+                v-bind:src="
+                  jobFinders.find((x) => x.source === job.logo.source).img
+                "
+              />
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -170,39 +206,84 @@ div {
 
 .job-item {
   width: 100%;
-  max-height: 100px;
-  flex-direction: column;
+  height: 150px;
+  padding: 10px;
+  flex-direction: row;
   align-content: start;
-  background-color: rgb(185, 185, 185);
+  background-color: rgb(215, 215, 215);
   justify-content: space-between;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
+.job-left {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+}
+
+.job-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.job-details {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  font-size: small;
+  align-items: top;
+  color: rgb(110, 110, 110);
+
+  span {
+    display: inline-block;
+    gap: 5px;
+    max-width: 400px; /* adjust to your layout */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    i {
+      padding-right: 5px;
+    }
+  }
+}
+
 .job-link {
-  height: 70px;
+  height: 100%;
   width: 100%;
   border-radius: 10px 10px 0 0;
-  display: block;
   text-decoration: none;
   color: black;
 }
 
-.title-salary {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
 .title {
-  padding: 10px;
+  padding-bottom: 15px;
 }
 
 .salary {
   font-size: large;
   font-weight: bold;
-  max-width: fit-content;
-  padding: 10px;
+  width: 100%;
+  max-width: 90px;
+  white-space: normal;
+  word-break: break-word;
+  text-align: right;
+  display: block;
+}
+
+.job-logo {
+  &:hover {
+    opacity: 0.7;
+  }
+  background: white;
+  box-shadow: 0 2px 1px rgba(0, 0, 0, 0.4);
+  max-width: 80px;
+  img {
+    width: 100%;
+  }
 }
 
 .job-item:hover {
@@ -211,25 +292,6 @@ div {
 .job-link:visited {
   color: rgb(116, 116, 116);
   font-style: italic;
-}
-
-.job-item-logo {
-  width: 50px;
-  height: 20px;
-  min-width: 50px;
-  max-width: 70px;
-  position: sticky;
-  z-index: 1;
-}
-
-.job-item-logo img {
-  &:hover {
-    opacity: 0.7;
-  }
-  background: white;
-  width: 100%;
-  height: 100%;
-  box-shadow: 0 2px 1px rgba(0, 0, 0, 0.4);
 }
 
 h1,

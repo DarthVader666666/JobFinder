@@ -4,6 +4,9 @@
     {
         public string? Link { get; set; }
         public string? Title { get; set; }
+        public string? Location { get; set; }
+        public string? Company { get; set; }
+        public string? Experience { get; set; }
         public Salary? Salary { get; set; }
         public Logo? Logo { get; set;  }
     }
