@@ -38,7 +38,7 @@ namespace JobFinders.Server.Controllers
                 });
             });
 
-            return responseList != null ? Ok(responseList) : BadRequest();
+            return responseList != null ? Ok(responseList.OrderByDescending(x => x.Salary?.Currency)) : BadRequest();
         }
     }
 }

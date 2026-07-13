@@ -1,73 +1,80 @@
 <script setup>
-import { ref } from "vue";
-import CriteriaInput from "./components/CriteriaInput.vue";
-import { useStore } from "vuex";
+import SearchBar from "./components/SearchBar.vue";
+import FilterComponent from "./components/FilterComponent.vue";
+import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
+import { computed, ref } from "vue";
+import { useStore } from "vuex";
 import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
-
 const store = useStore();
 
-const jobFinders = ref([
+const finders = ref([
   {
     logo: "linkedin-logo-small.png",
     img: "linkedin-logo-large.png",
     source: "LinkedIn",
-    active: false,
+    active: true,
   },
   {
     logo: "rabotaby-logo-small.png",
     img: "rabotaby-logo-large.png",
     source: "RabotaBy",
-    active: false,
+    active: true,
   },
   {
     logo: "devby-logo-small.png",
     img: "devby-logo-large.png",
     source: "DevBy",
-    active: false,
+    active: true,
   },
   {
     logo: "pracaby-logo-small.png",
     img: "pracaby-logo-large.png",
     source: "PracaBy",
-    active: false,
+    active: true,
   },
   {
     logo: "trabajo-logo-small.png",
     img: "trabajo-logo-large.png",
     source: "Trabajo",
-    active: false,
+    active: true,
   },
   {
     logo: "bebee-logo-small.png",
     img: "bebee-logo-large.png",
     source: "BeBee",
-    active: false,
+    active: true,
   },
   {
     logo: "joblum-logo-small.png",
     img: "joblum-logo-large.png",
     source: "Joblum",
-    active: false,
+    active: true,
   },
 ]);
 
 const speciality = ref("");
 const location = ref(null);
 const loading = ref(false);
-const showJobFinders = ref(false);
+const showfinders = ref(false);
 const jobs = ref([]);
+const showSearchBar = ref(false);
+const showFilter = ref(false);
+
+const isJobsEmpty = computed(() => jobs.value.length === 0);
 
 async function findJobs() {
-  showJobFinders.value = false;
+  showfinders.value = false;
+  showSearchBar.value = false;
   jobs.value = [];
 
   const bodyValue = {
     speciality: speciality.value.trim(),
     location: location.value?.trim(),
-    sources: jobFinders.value.filter((o) => o.active).map((o) => o.source),
+    sources: finders.value.filter((o) => o.active).map((o) => o.source),
   };
 
   loading.value = true;
@@ -92,13 +99,9 @@ function changeLocation(value) {
   location.value = String(value).trim();
 }
 
-function activateJobFinder(value) {
-  const jobFinder = jobFinders.value.find((jf) => jf.source === value);
-  if (jobFinder) jobFinder.active = !jobFinder.active;
-}
-
-function isJobFinderActive(value) {
-  return jobFinders.value.find((jf) => jf.source === value)?.active;
+function checkFinder(finder, checked) {
+  var jobFinder = finders.value.find((x) => x === finder);
+  jobFinder.active = checked;
 }
 
 function showSuccess(summary, detail) {
@@ -109,6 +112,7 @@ function showSuccess(summary, detail) {
     life: 2000,
   });
 }
+
 function showError(summary, detail) {
   toast.add({
     severity: "error",
@@ -121,36 +125,18 @@ function showError(summary, detail) {
 
 <template>
   <Toast />
-  <div className="head">
-    <h3>Welcome to Job Finder!</h3>
-    <button
-      @click="() => (showJobFinders = !showJobFinders)"
-      className="menu-button"
-    >
-      Show Job Finders
-    </button>
-  </div>
 
-  <div className="job-finders" v-show="showJobFinders">
-    <section
-      v-for="(jobFinder, index) in jobFinders"
-      @click="activateJobFinder(jobFinder.source)"
-      :key="index"
-      :className="isJobFinderActive(jobFinder.source) ? 'active' : ''"
-    >
-      <img v-bind:src="jobFinder.img" :alt="jobFinder.source" />
-    </section>
-  </div>
-
-  <CriteriaInput
-    :changeSpeciality="changeSpeciality"
-    :changeLocation="changeLocation"
-    :findJobs="findJobs"
-  ></CriteriaInput>
-
-  <div>
-    <h3 v-if="loading">Loading...</h3>
-    <div class="job-list">
+  <div class="main">
+    <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
+      <SearchBar
+        :changeSpeciality="changeSpeciality"
+        :changeLocation="changeLocation"
+        :findJobs="findJobs"
+      ></SearchBar>
+      <FilterComponent :finders="finders" @checkFinder="checkFinder" />
+    </div>
+    <div class="job-list" :class="{ mobileVisible: isJobsEmpty }">
+      <h3 v-if="loading" style="color: red">Loading...</h3>
       <div v-for="(job, index) in jobs" :key="index">
         <div className="job-item">
           <div class="job-left">
@@ -174,7 +160,6 @@ function showError(summary, detail) {
               </div>
             </a>
           </div>
-
           <div class="job-right">
             <span class="salary">{{
               job.salary &&
@@ -183,7 +168,7 @@ function showError(summary, detail) {
             <a class="job-logo" :href="job.logo.url ?? ''" target="_blank">
               <img
                 v-bind:src="
-                  jobFinders.find((x) => x.source === job.logo.source).img
+                  finders.find((x) => x.source === job.logo.source).img
                 "
               />
             </a>
@@ -192,18 +177,69 @@ function showError(summary, detail) {
       </div>
     </div>
   </div>
+  <div class="buttons" :class="{ mobileVisible: isJobsEmpty }">
+    <Button rounded
+      ><i class="pi pi-search" @click="() => (showSearchBar = true)"></i
+    ></Button>
+    <Button rounded
+      ><i class="pi pi-sliders-h" @click="() => (showFilter = true)"></i
+    ></Button>
+  </div>
+  <Dialog
+    v-if="showSearchBar"
+    style="width: 90%"
+    v-model:visible="showSearchBar"
+    modal
+    @hide="
+      () => {
+        showSearchBar = false;
+      }
+    "
+    :draggable="false"
+  >
+    <template #header>
+      <span style="width: 90%"></span>
+    </template>
+    <SearchBar
+      :changeSpeciality="changeSpeciality"
+      :changeLocation="changeLocation"
+      :findJobs="findJobs"
+    ></SearchBar>
+  </Dialog>
+
+  <Dialog
+    v-if="showFilter"
+    style="width: 90%"
+    v-model:visible="showFilter"
+    modal
+    @hide="
+      () => {
+        showFilter = false;
+      }
+    "
+    :draggable="false"
+  >
+    <template #header>
+      <span style="width: 90%"></span>
+    </template>
+    <FilterComponent :finders="finders" @checkFinder="checkFinder" />
+  </Dialog>
 </template>
 
 <style scoped>
-div {
+.main {
+  padding: 20px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 20px;
 }
 
-.head {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+.settings {
+  position: sticky;
+  top: 10px;
+  align-self: flex-start;
+  min-width: 180px;
+  width: 25%;
 }
 
 .job-list {
@@ -214,11 +250,11 @@ div {
 }
 
 .job-item {
+  display: flex;
+  flex-direction: row;
   width: 100%;
   height: 150px;
   padding: 10px;
-  flex-direction: row;
-  align-content: start;
   background-color: rgb(215, 215, 215);
   justify-content: space-between;
   border-radius: 10px;
@@ -231,38 +267,51 @@ div {
   max-width: 70%;
 }
 
-.job-right {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-end;
-  height: 100%;
-}
-
 .job-details {
-  display: flex;
-  flex-direction: row;
-  gap: 5px;
   font-size: small;
   align-items: top;
   color: rgb(110, 110, 110);
 
-  i {
-    color: rgb(66, 66, 66);
-    font-weight: bold;
-    font-size: 0.8rem;
-    margin: 1px;
-  }
-
   span {
     display: inline-block;
-    max-width: 400px;
+    padding-right: 8px;
+    max-width: 220px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     i {
       padding-right: 5px;
+      color: rgb(66, 66, 66);
+      font-weight: bold;
+      font-size: 0.8rem;
+      margin: 1px;
     }
+  }
+}
+
+.job-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: end;
+}
+
+.salary {
+  font-size: large;
+  font-weight: bold;
+  word-break: break-word;
+  text-align: end;
+}
+
+.job-logo {
+  &:hover {
+    opacity: 0.7;
+  }
+  background: white;
+  box-shadow: 0 2px 1px rgba(0, 0, 0, 0.4);
+  max-width: 80px;
+  img {
+    width: 100%;
   }
 }
 
@@ -278,108 +327,62 @@ div {
   padding-bottom: 15px;
 }
 
-.salary {
-  font-size: large;
-  font-weight: bold;
-  width: 100%;
-  max-width: 90px;
-  white-space: normal;
-  word-break: break-word;
-  text-align: right;
-  display: block;
-}
-
-.job-logo {
-  &:hover {
-    opacity: 0.7;
-  }
-  background: white;
-  box-shadow: 0 2px 1px rgba(0, 0, 0, 0.4);
-  max-width: 80px;
-  img {
-    width: 100%;
-  }
-}
-
 .job-item:hover {
-  background: rgb(156, 156, 156);
+  background: rgb(233, 233, 233);
 }
+
 .job-link:visited {
   color: rgb(116, 116, 116);
-  font-style: italic;
 }
 
-h1,
-h3 {
-  color: rgb(180, 29, 29);
-  font-weight: bold;
-  border-radius: 10px;
-  width: fit-content;
-  padding: 5px;
-  text-align: center;
-  text-shadow: 0.1rem 0.1rem black;
+.buttons {
+  display: none;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  opacity: 0.7;
+  z-index: 1;
+
+  button {
+    width: 60px;
+    height: 60px;
+
+    i {
+      font-size: 1.4rem;
+    }
+  }
 }
 
-.job-finders {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  width: fit-content;
-  height: fit-content;
-  padding: 10px;
-  float: inline-end;
-}
+@media (max-width: 500px) {
+  .main {
+    padding: 0px;
+  }
 
-.job-finders section {
-  width: 10rem;
-  height: 3rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 3px solid black;
-  margin: 0.1rem;
-  background-color: rgb(0, 164, 164);
-  border-radius: 10px;
-}
-
-.job-finders section img {
-  height: 95%;
-  width: 95%;
-}
-
-section.active {
-  background-color: aqua;
-  cursor: pointer;
-}
-
-section:hover {
-  cursor: pointer;
-}
-
-.menu-button {
-  height: 50px;
-  background-color: rgb(16, 16, 181);
-  color: rgb(224, 223, 242);
-  border-radius: 15%;
-  font-weight: bold;
-  font-size: 1rem;
-}
-
-.menu-button:hover {
-  cursor: pointer;
-}
-
-.menu-button:active {
-  background-color: rgba(16, 16, 181, 0.658);
-}
-
-@media (max-width: 600px) {
   .job-list {
     width: 100%;
   }
-  .job-item {
-    width: 98%;
+
+  .settings {
+    display: none;
+  }
+
+  .settings.mobileVisible {
+    width: 100%;
+    display: block; /* show only when finders is empty */
+  }
+
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .buttons.mobileVisible {
+    display: none;
+  }
+
+  .job-list.mobileVisible {
+    display: none;
   }
 }
 </style>
