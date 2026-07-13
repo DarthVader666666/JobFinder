@@ -159,9 +159,18 @@ function showError(summary, detail) {
                 <span>{{ job.title }}</span>
               </div>
               <div class="job-details">
-                <span><i class="pi pi-briefcase"></i>{{ job.experience }}</span>
-                <span><i class="pi pi-building"></i>{{ job.company }}</span>
-                <span><i class="pi pi-map-marker"></i>{{ job.location }}</span>
+                <span v-if="job.experience"
+                  ><i class="pi pi-briefcase"></i>{{ job.experience }}</span
+                >
+                <span v-if="job.company"
+                  ><i class="pi pi-building"></i>{{ job.company }}</span
+                >
+                <span v-if="job.location"
+                  ><i class="pi pi-map-marker"></i>{{ job.location }}</span
+                >
+                <span v-if="job.timePosted"
+                  ><i class="pi pi-clock"></i>{{ job.timePosted }}</span
+                >
               </div>
             </a>
           </div>
@@ -233,15 +242,21 @@ div {
 .job-details {
   display: flex;
   flex-direction: row;
-  gap: 15px;
+  gap: 5px;
   font-size: small;
   align-items: top;
   color: rgb(110, 110, 110);
 
+  i {
+    color: rgb(66, 66, 66);
+    font-weight: bold;
+    font-size: 0.8rem;
+    margin: 1px;
+  }
+
   span {
     display: inline-block;
-    gap: 5px;
-    max-width: 400px; /* adjust to your layout */
+    max-width: 400px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -362,6 +377,9 @@ section:hover {
 @media (max-width: 600px) {
   .job-list {
     width: 100%;
+  }
+  .job-item {
+    width: 98%;
   }
 }
 </style>
