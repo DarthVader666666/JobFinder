@@ -124,7 +124,7 @@ function showError(summary, detail) {
 </script>
 
 <template>
-  <Toast />
+  <Toast style="width: 320px" />
 
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
@@ -142,7 +142,11 @@ function showError(summary, detail) {
           <div class="job-left">
             <a className="job-link" :href="job.link" target="_blank">
               <div class="title">
-                <span>{{ job.title }}</span>
+                <span v-if="job.title.includes('Error:')" style="color: red"
+                  ><i class="pi pi-exclamation-circle"></i
+                  >{{ ` ${job.title}` }}</span
+                >
+                <span v-else>{{ job.title }}</span>
               </div>
               <div class="job-details">
                 <span v-if="job.experience"
@@ -165,10 +169,11 @@ function showError(summary, detail) {
               job.salary &&
               `${job.salary.min === job.salary.max ? job.salary.min : job.salary.min + " - " + job.salary.max} ${job.salary.currency}`
             }}</span>
-            <a class="job-logo" :href="job.logo.url ?? ''" target="_blank">
+            <a class="job-logo" :href="job.logo?.url ?? ''" target="_blank">
               <img
+                v-if="job.logo?.source"
                 v-bind:src="
-                  finders.find((x) => x.source === job.logo.source).img
+                  finders.find((x) => x.source === job.logo?.source).img
                 "
               />
             </a>
@@ -324,7 +329,10 @@ function showError(summary, detail) {
 }
 
 .title {
+  max-height: 60px;
   padding-bottom: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .job-item:hover {

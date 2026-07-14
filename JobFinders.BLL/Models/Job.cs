@@ -16,12 +16,12 @@
     { 
         public int? Max { get; set; }
         public int? Min { get; set; }
-        public string? Currency { get; set; }
+        public string? Currency { get; set; } = "";
     }
 
     public class Logo
     { 
-        public string? Source { get; set; }
-        public string? Url { get; set; }
+        public string? Source { get; set; } = "";
+        public string? Url { get; set; } = "";
     }
 }

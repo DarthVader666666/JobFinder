@@ -1,12 +1,9 @@
-﻿using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 using HtmlAgilityPack;
 
 using JobFinders.Bll.Enums;
 using JobFinders.Bll.Models;
-
-using Microsoft.Extensions.Options;
 
 using NickBuhro.Translit;
 
@@ -58,7 +55,8 @@ namespace JobFinders.Bll.Services
 
         private async Task<IEnumerable<Job>> GetJobsAsync(string? speciality, string? location, string? url, JobFinderSetting? setting)
         {
-            IEnumerable<HtmlNode> nodes;
+            var nodes = Enumerable.Empty<HtmlNode>();
+            IEnumerable<Job> jobs;
 
             try
             {
@@ -69,24 +67,15 @@ namespace JobFinders.Bll.Services
             }
             catch (Exception ex)
             {
-                throw ex;
-            }            
-
-            var jobs = Enumerable.Empty<Job>();
-
-            try
-            {
-                jobs = JobsIterator(setting, nodes, url).DistinctBy(x => x.Link);
-            }
-            catch (Exception ex)
-            {
-                jobs = Enumerable.Empty<Job>().Append(new Job { Title = ex.Message });
+                return [new Job { Title = $"{setting?.Source} Error: {ex.Message}", Logo = new() { Source = setting?.Source, Url = url } }];
             }
 
-            return jobs;            
+            jobs = JobsIterator(setting, nodes, url).DistinctBy(x => x.Link);
+
+            return jobs;
         }
 
-        private IEnumerable<Job> JobsIterator(JobFinderSetting setting, IEnumerable<HtmlNode> nodes, string? url)
+        private IEnumerable<Job> JobsIterator(JobFinderSetting? setting, IEnumerable<HtmlNode> nodes, string? url)
         {
             foreach (var node in nodes)
             {
