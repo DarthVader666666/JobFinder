@@ -90,10 +90,10 @@ async function findJobs() {
   const response = await store.dispatch("getJobs", bodyValue);
 
   if (response.status === 500) {
-    showError("Server error", response.data);
+    showError("Ошибка сервера", response.data);
   } else {
     jobs.value = response.data;
-    showSuccess(200, "Fetch Successful");
+    showSuccess("OK", `Найдено совпадений: ${jobs.value.length}`);
   }
 }
 
