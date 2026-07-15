@@ -137,7 +137,16 @@ function showError(summary, detail) {
 
 <template>
   <Toast style="width: 320px" />
-
+  <div
+    style="
+      padding-left: 30px;
+      color: darkorchid;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    "
+  >
+    <h1>Find Your Job</h1>
+    <h3>Поиск работы в РБ</h3>
+  </div>
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
       <SearchBar
@@ -157,6 +166,7 @@ function showError(summary, detail) {
         />
       </div>
     </div>
+
     <div class="job-list" :class="{ mobileVisible: isJobsEmpty }">
       <div v-for="(job, index) in jobs" :key="index">
         <div className="job-item">
