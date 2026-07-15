@@ -4,11 +4,21 @@ import axios from "axios";
 const store = createStore({
   state: {
     serverUrl: import.meta.env.VITE_API_URL,
+    pending: false,
   },
-  getters: {},
-  mutations: {},
+  getters: {
+    getPending(state) {
+      return state.pending;
+    },
+  },
+  mutations: {
+    setPending(state, value) {
+      state.pending = value;
+    },
+  },
   actions: {
-    async getJobs({ state }, request) {
+    async getJobs({ state, commit }, request) {
+      commit("setPending", true);
       return await axios
         .post(`${state.serverUrl}/jobs/getjobs`, request, {
           headers: { "Content-Type": "application/json" },
@@ -25,6 +35,9 @@ const store = createStore({
               data: error.response.data.errorText,
             };
           }
+        })
+        .finally(() => {
+          commit("setPending", false);
         });
     },
   },

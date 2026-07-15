@@ -4,12 +4,14 @@ import FilterComponent from "./components/FilterComponent.vue";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
+import PendingModal from "./components/Modals/PendingModal.vue";
 import { computed, ref } from "vue";
 import { useStore } from "vuex";
 import { useToast } from "primevue/usetoast";
+import FilterModal from "./components/Modals/FilterModal.vue";
 
-const toast = useToast();
 const store = useStore();
+const toast = useToast();
 
 const finders = ref([
   {
@@ -25,23 +27,12 @@ const finders = ref([
     active: true,
   },
   {
-    logo: "devby-logo-small.png",
-    img: "devby-logo-large.png",
-    source: "DevBy",
-    active: true,
-  },
-  {
     logo: "pracaby-logo-small.png",
     img: "pracaby-logo-large.png",
     source: "PracaBy",
     active: true,
   },
-  {
-    logo: "trabajo-logo-small.png",
-    img: "trabajo-logo-large.png",
-    source: "Trabajo",
-    active: true,
-  },
+
   {
     logo: "bebee-logo-small.png",
     img: "bebee-logo-large.png",
@@ -54,17 +45,36 @@ const finders = ref([
     source: "Joblum",
     active: true,
   },
+  {
+    logo: "belmeta-logo-small.png",
+    img: "belmeta-logo-large.png",
+    source: "Belmeta",
+    active: true,
+  },
+  // {
+  //   logo: "devby-logo-small.png",
+  //   img: "devby-logo-large.png",
+  //   source: "DevBy",
+  //   active: true,
+  // },
+  // {
+  //   logo: "trabajo-logo-small.png",
+  //   img: "trabajo-logo-large.png",
+  //   source: "Trabajo",
+  //   active: true,
+  // },
 ]);
+
+const isPending = computed(() => store.getters.getPending);
+const isJobsEmpty = computed(() => jobs.value.length === 0);
+const allFindersChecked = ref(true);
 
 const speciality = ref("");
 const location = ref(null);
-const loading = ref(false);
 const showfinders = ref(false);
 const jobs = ref([]);
 const showSearchBar = ref(false);
 const showFilter = ref(false);
-
-const isJobsEmpty = computed(() => jobs.value.length === 0);
 
 async function findJobs() {
   showfinders.value = false;
@@ -77,8 +87,6 @@ async function findJobs() {
     sources: finders.value.filter((o) => o.active).map((o) => o.source),
   };
 
-  loading.value = true;
-
   const response = await store.dispatch("getJobs", bodyValue);
 
   if (response.status === 500) {
@@ -87,8 +95,6 @@ async function findJobs() {
     jobs.value = response.data;
     showSuccess(200, "Fetch Successful");
   }
-
-  loading.value = false;
 }
 
 function changeSpeciality(value) {
@@ -102,6 +108,12 @@ function changeLocation(value) {
 function checkFinder(finder, checked) {
   var jobFinder = finders.value.find((x) => x === finder);
   jobFinder.active = checked;
+}
+
+function setAllFinders(value) {
+  finders.value.forEach((finder) => {
+    finder.active = value;
+  });
 }
 
 function showSuccess(summary, detail) {
@@ -133,10 +145,18 @@ function showError(summary, detail) {
         :changeLocation="changeLocation"
         :findJobs="findJobs"
       ></SearchBar>
-      <FilterComponent :finders="finders" @checkFinder="checkFinder" />
+      <div class="filter">
+        <span>Источники</span>
+        <hr />
+        <FilterComponent
+          :finders="finders"
+          :allFindersChecked="allFindersChecked"
+          @checkFinder="checkFinder"
+          @setAllFinders="setAllFinders"
+        />
+      </div>
     </div>
     <div class="job-list" :class="{ mobileVisible: isJobsEmpty }">
-      <h3 v-if="loading" style="color: red">Loading...</h3>
       <div v-for="(job, index) in jobs" :key="index">
         <div className="job-item">
           <div class="job-left">
@@ -212,23 +232,14 @@ function showError(summary, detail) {
     ></SearchBar>
   </Dialog>
 
-  <Dialog
-    v-if="showFilter"
-    style="width: 90%"
+  <FilterModal
+    :finders="finders"
+    :allFindersChecked="allFindersChecked"
+    :checkFinder="checkFinder"
+    :setAllFinders="setAllFinders"
     v-model:visible="showFilter"
-    modal
-    @hide="
-      () => {
-        showFilter = false;
-      }
-    "
-    :draggable="false"
-  >
-    <template #header>
-      <span style="width: 90%"></span>
-    </template>
-    <FilterComponent :finders="finders" @checkFinder="checkFinder" />
-  </Dialog>
+  ></FilterModal>
+  <PendingModal v-model:visible="isPending"></PendingModal>
 </template>
 
 <style scoped>
@@ -359,6 +370,15 @@ function showError(summary, detail) {
       font-size: 1.4rem;
     }
   }
+}
+
+.filter {
+  padding: 15px;
+  text-align: center;
+  height: 500px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 @media (max-width: 500px) {

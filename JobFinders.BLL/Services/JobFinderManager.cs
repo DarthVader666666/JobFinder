@@ -82,7 +82,7 @@ namespace JobFinders.Bll.Services
                 var anchor = node.Descendants("a").FirstOrDefault(node =>
                     node.Attributes["href"] != null && node.Attributes["href"].Value.Contains(setting.HrefPrefix) && node.InnerText.Trim().Any());
 
-                var href = anchor?.Attributes["href"].Value;
+                var href = ConvertSpecialSymbols(anchor?.Attributes["href"].Value);
 
                 if (anchor != null)
                 {
@@ -203,6 +203,7 @@ namespace JobFinders.Bll.Services
                 .Replace("-->", "")
                 .Replace("\n", "")
                 .Replace("\t", "")
+                .Replace("&#xA0;", "")
                 .Trim();
         }
 
