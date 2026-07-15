@@ -1,28 +1,16 @@
 <script setup>
-  import InputText from 'primevue/inputtext';
-  import Button from 'primevue/button'
+import InputText from 'primevue/inputtext';
+import Button from 'primevue/button'
 
-  const props = defineProps({
-    changeSpeciality: {
-        type: Function,
-        required: true
-      },
-      changeLocation: {
-        type: Function,
-        required: true
-      },
-      findJobs: {
-        type: Function,
-        required: true
-      }
-  })
+const emit = defineEmits(["changeSpeciality", "changeLocation", "findJobs"])
+
 </script>
 
 <template>
   <div class="serch-bar">
-    <InputText @keyup.enter="findJobs()" @input="props.changeSpeciality($event.target.value)" type="text" placeholder="Специальность / должность"/>
-    <InputText @keyup.enter="findJobs()" @input="props.changeLocation($event.target.value)" type="text" placeholder="Город / локация"/>
-    <Button class="find-btn" @click="findJobs()">Найти</button>
+    <InputText @keyup.enter="emit('findJobs')" @input="emit('changeSpeciality', $event.target.value)" type="text" placeholder="Специальность / должность"/>
+    <InputText @keyup.enter="emit('findJobs')" @input="emit('changeLocation', $event.target.value)" type="text" placeholder="Город / локация"/>
+    <Button class="find-btn" @click="emit('findJobs')">Найти</button>
   </div>
 </template>
 

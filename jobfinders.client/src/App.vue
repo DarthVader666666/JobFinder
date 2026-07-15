@@ -2,24 +2,18 @@
 import SearchBar from "./components/SearchBar.vue";
 import FilterComponent from "./components/FilterComponent.vue";
 import Button from "primevue/button";
-import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
 import PendingModal from "./components/Modals/PendingModal.vue";
 import { computed, ref } from "vue";
 import { useStore } from "vuex";
 import { useToast } from "primevue/usetoast";
 import FilterModal from "./components/Modals/FilterModal.vue";
+import SearchBarModal from "./components/Modals/SearchBarModal.vue";
 
 const store = useStore();
 const toast = useToast();
 
 const finders = ref([
-  {
-    logo: "linkedin-logo-small.png",
-    img: "linkedin-logo-large.png",
-    source: "LinkedIn",
-    active: true,
-  },
   {
     logo: "rabotaby-logo-small.png",
     img: "rabotaby-logo-large.png",
@@ -51,6 +45,12 @@ const finders = ref([
     source: "Belmeta",
     active: true,
   },
+  // {
+  //   logo: "linkedin-logo-small.png",
+  //   img: "linkedin-logo-large.png",
+  //   source: "LinkedIn",
+  //   active: true,
+  // },
   // {
   //   logo: "devby-logo-small.png",
   //   img: "devby-logo-large.png",
@@ -141,9 +141,10 @@ function showError(summary, detail) {
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
       <SearchBar
-        :changeSpeciality="changeSpeciality"
-        :changeLocation="changeLocation"
-        :findJobs="findJobs"
+        :speciality="speciality"
+        @changeSpeciality="changeSpeciality"
+        @changeLocation="changeLocation"
+        @findJobs="findJobs"
       ></SearchBar>
       <div class="filter">
         <span>Источники</span>
@@ -210,27 +211,13 @@ function showError(summary, detail) {
       ><i class="pi pi-sliders-h" @click="() => (showFilter = true)"></i
     ></Button>
   </div>
-  <Dialog
-    v-if="showSearchBar"
-    style="width: 90%"
+  <SearchBarModal
+    :changeSpeciality="changeSpeciality"
+    :changeLocation="changeLocation"
+    :findJobs="findJobs"
     v-model:visible="showSearchBar"
-    modal
-    @hide="
-      () => {
-        showSearchBar = false;
-      }
-    "
-    :draggable="false"
   >
-    <template #header>
-      <span style="width: 90%"></span>
-    </template>
-    <SearchBar
-      :changeSpeciality="changeSpeciality"
-      :changeLocation="changeLocation"
-      :findJobs="findJobs"
-    ></SearchBar>
-  </Dialog>
+  </SearchBarModal>
 
   <FilterModal
     :finders="finders"

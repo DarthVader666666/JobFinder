@@ -60,9 +60,9 @@ namespace JobFinders.Bll.Services
 
             try
             {
-                var doc1 = await new HtmlWeb().LoadFromWebAsync(url);
+                var htmlDoc = await new HtmlWeb().LoadFromWebAsync(url);
 
-                nodes = (doc1?.DocumentNode?.Descendants(setting?.VacancyTag?.Tag ?? "")
+                nodes = (htmlDoc?.DocumentNode?.Descendants(setting?.VacancyTag?.Tag ?? "")
                     .Where(n => n?.Attributes["class"] != null && n.Attributes["class"].Value.Contains($"{setting?.VacancyTag?.HtmlAttribute?.Value}")) ?? []);
             }
             catch (Exception ex)
