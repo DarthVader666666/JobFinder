@@ -32,7 +32,10 @@ namespace JobFinders.Bll.Services
         {
             var transliteration = Enum.Parse<TransliterationEnum>(setting.LocationTransliteration);
 
-            location ??= setting.MandatoryLocation ? "minsk" : string.Empty;
+            if (string.IsNullOrEmpty(location) && setting.MandatoryLocation)
+            { 
+                location = "minsk";
+            }
 
             location = transliteration switch
             {
@@ -50,6 +53,7 @@ namespace JobFinders.Bll.Services
             }
 
             var jobs = (await GetJobsAsync(speciality, location, url, setting))
+                .Where(job => !(job.Experience is null && job.Location is null && job.Company is null && job.TimePosted is null))
                 .Where(job =>
                 {
                     if (filter?.ExactTitle ?? false)
