@@ -70,7 +70,7 @@ namespace JobFinders.Bll.Services
                     return true;
                 });
 
-            return filter?.OrderBySalary ?? false ? jobs.OrderBy(x => x?.Salary?.Max) : jobs;
+            return jobs;
         }
 
         private async Task<IEnumerable<Job>> GetJobsAsync(string? speciality, string? location, string? url, JobFinderSetting? setting)

@@ -41,8 +41,8 @@ const store = createStore({
       sources: [],
       exactTitle: false,
       salaryDefined: false,
-      orderBySalary: false,
     },
+    orderBySalary: false,
     jobs: [],
     allFindersChecked: true,
   },
@@ -63,13 +63,15 @@ const store = createStore({
       return state.jobsRequest.salaryDefined;
     },
     getOrderBySalary(state) {
-      return state.jobsRequest.orderBySalary;
+      return state.orderBySalary;
     },
     getFinders(state) {
       return state.finders;
     },
     getJobs(state) {
-      return state.jobs;
+      return state.orderBySalary
+        ? state.jobs.sort((x, y) => (y.salary?.max ?? 0) - (x.salary?.max ?? 0))
+        : state.jobs;
     },
     getAllFindersChecked(state) {
       return state.finders.every((x) => x.active);
@@ -87,7 +89,6 @@ const store = createStore({
         sources: state.finders.filter((f) => f.active).map((f) => f.source),
         exactTitle: state.jobsRequest.exactTitle,
         salaryDefined: state.jobsRequest.salaryDefined,
-        orderBySalary: state.jobsRequest.orderBySalary,
       };
     },
   },
@@ -108,7 +109,7 @@ const store = createStore({
       state.jobsRequest.salaryDefined = value;
     },
     setOrderBySalary(state, value) {
-      state.jobsRequest.orderBySalary = value;
+      state.orderBySalary = value;
     },
     checkFinder(state, payload) {
       const finder = state.finders.find((x) => x.source === payload.source);
