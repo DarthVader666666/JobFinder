@@ -1,67 +1,42 @@
 <script setup>
 import Checkbox from "primevue/checkbox";
-import ToggleSwitch from "primevue/toggleswitch";
+import { computed } from "vue";
+import { useStore } from "vuex";
 
-const props = defineProps({
-  finders: {
-    typeof: Array,
-    default: [],
-  },
-  allFindersChecked: {
-    typeof: Boolean,
-    default: false,
-  },
+const store = useStore();
+const exactTitle = computed({
+  get: () => store.getters.getExactTitle,
+  set: (value) => store.commit("setExactTitle", value),
 });
-
-const emit = defineEmits(["checkFinder", "setAllFinders"]);
+const salaryDefined = computed({
+  get: () => store.getters.getSalaryDefined,
+  set: (value) => store.commit("setSalaryDefined", value),
+});
 </script>
 
 <template>
-  <div
-    style="
-      display: flex;
-      gap: 5px;
-      align-items: center;
-      justify-content: center;
-    "
-  >
-    <ToggleSwitch
-      :modelValue="props.allFindersChecked"
-      @update:modelValue="emit('setAllFinders', $event)"
-    />
-    <span>Все</span>
-  </div>
-  <div class="finders">
-    <div
-      class="finder-option"
-      v-for="(finder, index) in props.finders"
-      :key="index"
-    >
-      <img v-bind:src="finder.img" :alt="finder.source" />
-      <Checkbox
-        @update:modelValue="emit('checkFinder', finder, $event)"
-        :binary="true"
-        :modelValue="finder.active"
-      />
+  <div class="filter">
+    <div>
+      <span>точное совпадение</span>
+      <Checkbox v-model="exactTitle" binary></Checkbox>
+    </div>
+    <div>
+      <span>з/п указана</span>
+      <Checkbox v-model="salaryDefined" binary></Checkbox>
     </div>
   </div>
 </template>
 
 <style scoped>
-.finders {
+.filter {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 15px;
-  padding: 10px;
 
-  img {
-    width: 70px;
-    height: 20px;
+  div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
   }
-}
-
-.finder-option {
-  display: flex;
-  gap: 15px;
 }
 </style>

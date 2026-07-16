@@ -1,17 +1,41 @@
 <script setup>
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button'
+import { useStore } from 'vuex';
+import { computed } from 'vue';
 
-const emit = defineEmits(["changeSpeciality", "changeLocation", "findJobs"])
+const store = useStore()
+const emit = defineEmits(["showError", "showSuccess"])
+
+const speciality = computed(() => store.getters.getSpeciality);
+const location = computed(() => store.getters.getLocation);
+const finders = computed(() => store.getters.getFinders);
+const jobs = computed(() => store.getters.getJobs)
+
+async function findJobs() {
+  const bodyValue = {
+    speciality: speciality.value.trim(),
+    location: location.value?.trim(),
+    sources: finders.value.filter((o) => o.active).map((o) => o.source),
+  };
+
+  const response = await store.dispatch("downloadJobs", bodyValue);
+
+  if (response.status === 500) {
+    emit('showError', "Ошибка сервера", response.data);
+  } else {
+    emit('showSuccess', "OK", `Найдено совпадений: ${jobs.value.length}`);
+  }
+}
 
 </script>
 
 <template>
-  <div class="serch-bar">
-    <InputText @keyup.enter="emit('findJobs')" @input="emit('changeSpeciality', $event.target.value)" type="text" placeholder="Специальность / должность"/>
-    <InputText @keyup.enter="emit('findJobs')" @input="emit('changeLocation', $event.target.value)" type="text" placeholder="Город / локация"/>
-    <Button class="find-btn" @click="emit('findJobs')">Найти</button>
-  </div>
+    <form class="serch-bar" v-on:submit.prevent="findJobs">
+      <InputText v-model="store.state.jobsRequest.speciality" type="text" placeholder="Специальность / должность" required="true"/>
+      <InputText v-model="store.state.jobsRequest.location" type="text" placeholder="Город / локация"/>
+      <Button class="find-btn" type="submit">Найти</button>
+    </form>
 </template>
 
 <style scoped>
@@ -19,14 +43,12 @@ const emit = defineEmits(["changeSpeciality", "changeLocation", "findJobs"])
     display: flex;
     flex-direction: column;
     gap: 10px;
-    justify-items: start;
     margin-bottom: 10px;
   }
 
   .find-btn {
     font-weight: bold;
     width: 50%;
-
   }
 
   .find-btn:hover {

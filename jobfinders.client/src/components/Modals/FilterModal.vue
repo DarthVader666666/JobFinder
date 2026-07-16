@@ -1,24 +1,6 @@
 <script setup>
 import Dialog from "primevue/dialog";
-import FilterComponent from "../FilterComponent.vue";
-
-const props = defineProps({
-  finders: {
-    typeof: Array,
-    default: [],
-  },
-  allFindersChecked: {
-    typeof: Boolean,
-  },
-  checkFinder: {
-    typeof: Function,
-    default: null,
-  },
-  setAllFinders: {
-    typeof: Function,
-    default: null,
-  },
-});
+import SourcesComponent from "../SourcesComponent.vue";
 </script>
 
 <template>
@@ -26,12 +8,7 @@ const props = defineProps({
     <template #header>
       <span style="width: 90%"></span>
     </template>
-    <FilterComponent
-      :finders="props.finders"
-      :allFindersChecked="allFindersChecked"
-      @setAllFinders="setAllFinders"
-      @checkFinder="checkFinder"
-    />
+    <SourcesComponent />
   </Dialog>
 </template>
 

@@ -1,120 +1,26 @@
 <script setup>
+import "@/assets/main.css";
 import SearchBar from "./components/SearchBar.vue";
-import FilterComponent from "./components/FilterComponent.vue";
+import SettingsComponent from "./components/SettingsComponent.vue";
 import Button from "primevue/button";
 import Toast from "primevue/toast";
 import PendingModal from "./components/Modals/PendingModal.vue";
+import SearchBarModal from "./components/Modals/SearchBarModal.vue";
 import { computed, ref } from "vue";
 import { useStore } from "vuex";
 import { useToast } from "primevue/usetoast";
 import FilterModal from "./components/Modals/FilterModal.vue";
-import SearchBarModal from "./components/Modals/SearchBarModal.vue";
 
 const store = useStore();
 const toast = useToast();
 
-const finders = ref([
-  {
-    logo: "rabotaby-logo-small.png",
-    img: "rabotaby-logo-large.png",
-    source: "RabotaBy",
-    active: true,
-  },
-  {
-    logo: "pracaby-logo-small.png",
-    img: "pracaby-logo-large.png",
-    source: "PracaBy",
-    active: true,
-  },
-
-  {
-    logo: "bebee-logo-small.png",
-    img: "bebee-logo-large.png",
-    source: "BeBee",
-    active: true,
-  },
-  {
-    logo: "joblum-logo-small.png",
-    img: "joblum-logo-large.png",
-    source: "Joblum",
-    active: true,
-  },
-  {
-    logo: "belmeta-logo-small.png",
-    img: "belmeta-logo-large.png",
-    source: "Belmeta",
-    active: true,
-  },
-  // {
-  //   logo: "linkedin-logo-small.png",
-  //   img: "linkedin-logo-large.png",
-  //   source: "LinkedIn",
-  //   active: true,
-  // },
-  // {
-  //   logo: "devby-logo-small.png",
-  //   img: "devby-logo-large.png",
-  //   source: "DevBy",
-  //   active: true,
-  // },
-  // {
-  //   logo: "trabajo-logo-small.png",
-  //   img: "trabajo-logo-large.png",
-  //   source: "Trabajo",
-  //   active: true,
-  // },
-]);
-
+const finders = computed(() => store.getters.getFinders);
 const isPending = computed(() => store.getters.getPending);
+const jobs = computed(() => store.getters.getJobs);
 const isJobsEmpty = computed(() => jobs.value.length === 0);
-const allFindersChecked = ref(true);
 
-const speciality = ref("");
-const location = ref(null);
-const showfinders = ref(false);
-const jobs = ref([]);
 const showSearchBar = ref(false);
 const showFilter = ref(false);
-
-async function findJobs() {
-  showfinders.value = false;
-  showSearchBar.value = false;
-  jobs.value = [];
-
-  const bodyValue = {
-    speciality: speciality.value.trim(),
-    location: location.value?.trim(),
-    sources: finders.value.filter((o) => o.active).map((o) => o.source),
-  };
-
-  const response = await store.dispatch("getJobs", bodyValue);
-
-  if (response.status === 500) {
-    showError("Ошибка сервера", response.data);
-  } else {
-    jobs.value = response.data;
-    showSuccess("OK", `Найдено совпадений: ${jobs.value.length}`);
-  }
-}
-
-function changeSpeciality(value) {
-  speciality.value = String(value).trim();
-}
-
-function changeLocation(value) {
-  location.value = String(value).trim();
-}
-
-function checkFinder(finder, checked) {
-  var jobFinder = finders.value.find((x) => x === finder);
-  jobFinder.active = checked;
-}
-
-function setAllFinders(value) {
-  finders.value.forEach((finder) => {
-    finder.active = value;
-  });
-}
 
 function showSuccess(summary, detail) {
   toast.add({
@@ -137,33 +43,19 @@ function showError(summary, detail) {
 
 <template>
   <Toast style="width: 320px" />
-  <div
-    style="
-      padding-left: 30px;
-      color: darkorchid;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-    "
-  >
-    <h1>Find Your Job</h1>
-    <h3>Поиск работы в РБ</h3>
+  <div class="header">
+    <div class="title">
+      <span style="font-size: 2rem">Find Your Job</span>
+      <span>Поиск работы в РБ</span>
+    </div>
   </div>
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
-      <SearchBar
-        :speciality="speciality"
-        @changeSpeciality="changeSpeciality"
-        @changeLocation="changeLocation"
-        @findJobs="findJobs"
-      ></SearchBar>
+      <SearchBar @showError="showError" @showSuccess="showSuccess"></SearchBar>
       <div class="filter">
         <span>Источники</span>
         <hr />
-        <FilterComponent
-          :finders="finders"
-          :allFindersChecked="allFindersChecked"
-          @checkFinder="checkFinder"
-          @setAllFinders="setAllFinders"
-        />
+        <SettingsComponent></SettingsComponent>
       </div>
     </div>
 
@@ -172,7 +64,7 @@ function showError(summary, detail) {
         <div className="job-item">
           <div class="job-left">
             <a className="job-link" :href="job.link" target="_blank">
-              <div class="title">
+              <div class="job-title">
                 <span v-if="job.title.includes('Error:')" style="color: red"
                   ><i class="pi pi-exclamation-circle"></i
                   >{{ ` ${job.title}` }}</span
@@ -221,25 +113,27 @@ function showError(summary, detail) {
       ><i class="pi pi-sliders-h" @click="() => (showFilter = true)"></i
     ></Button>
   </div>
-  <SearchBarModal
-    :changeSpeciality="changeSpeciality"
-    :changeLocation="changeLocation"
-    :findJobs="findJobs"
-    v-model:visible="showSearchBar"
-  >
-  </SearchBarModal>
+  <SearchBarModal v-model:visible="showSearchBar"> </SearchBarModal>
 
-  <FilterModal
-    :finders="finders"
-    :allFindersChecked="allFindersChecked"
-    :checkFinder="checkFinder"
-    :setAllFinders="setAllFinders"
-    v-model:visible="showFilter"
-  ></FilterModal>
+  <FilterModal v-model:visible="showFilter"></FilterModal>
   <PendingModal v-model:visible="isPending"></PendingModal>
 </template>
 
 <style scoped>
+.header {
+  display: flex;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 20px;
+  padding-bottom: 10px;
+  color: rgb(16, 185, 129);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
 .main {
   padding: 20px;
   display: flex;
@@ -336,7 +230,7 @@ function showError(summary, detail) {
   color: black;
 }
 
-.title {
+.job-title {
   max-height: 60px;
   padding-bottom: 15px;
   overflow: hidden;

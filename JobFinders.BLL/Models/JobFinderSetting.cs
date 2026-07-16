@@ -6,7 +6,7 @@
         public string? LinkTemplate { get; set; }
         public string? HrefPrefix { get; set; }
         public string? BaseUrl { get; set; }
-        public string? LocationTransliteration { get; set; }
+        public string? LocationTransliteration { get; set; } = "Cyrillic";
         public bool AddBaseUrlToHrefPrefix { get; set; } = false;
         public bool ZeroBasedPagination { get; set; } = false;
         public bool MandatoryLocation { get; set; } = false;
