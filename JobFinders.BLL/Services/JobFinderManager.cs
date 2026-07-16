@@ -4,6 +4,7 @@ using HtmlAgilityPack;
 
 using JobFinders.Bll.Enums;
 using JobFinders.Bll.Models;
+using JobFinders.BLL.Models;
 
 using NickBuhro.Translit;
 
@@ -27,7 +28,7 @@ namespace JobFinders.Bll.Services
             currencies = usd.Concat(euro).Concat(belRub).Concat(rusRub).ToArray();
         }
 
-        public async Task<IEnumerable<Job>> ProcessAsync(string? speciality, string? location, JobFinderSetting? setting)
+        public async Task<IEnumerable<Job>> ProcessAsync(string? speciality, string? location, JobFinderSetting? setting, JobsFilter? filter)
         {
             var transliteration = Enum.Parse<TransliterationEnum>(setting.LocationTransliteration);
 
@@ -48,9 +49,28 @@ namespace JobFinders.Bll.Services
                 throw new Exception("JobFinderSetting not found");
             }
 
-            var jobs = await GetJobsAsync(speciality, location, url, setting);
+            var jobs = (await GetJobsAsync(speciality, location, url, setting))
+                .Where(job =>
+                {
+                    if (filter?.ExactTitle ?? false)
+                    {
+                        return speciality.Split([' ', '-']).Any(s => job.Title?.Contains(s.Trim(), StringComparison.InvariantCultureIgnoreCase) ?? false);
+                    }
 
-            return jobs;
+                    return true;
+                })
+                .Where(job =>
+                {
+                    if (filter?.SalaryDefined ?? false)
+                    {
+                        var salary = job?.Salary;
+                        return !string.IsNullOrEmpty(salary?.Currency);
+                    }
+
+                    return true;
+                });
+
+            return filter?.OrderBySalary ?? false ? jobs.OrderBy(x => x?.Salary?.Max) : jobs;
         }
 
         private async Task<IEnumerable<Job>> GetJobsAsync(string? speciality, string? location, string? url, JobFinderSetting? setting)

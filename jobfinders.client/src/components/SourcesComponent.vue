@@ -11,30 +11,19 @@ const allFindersChecked = computed(() => store.getters.getAllFindersChecked);
 function checkFinder(finder, checked) {
   store.commit("checkFinder", { source: finder.source, active: checked });
 }
-
-function setAllFinders(toggled) {
-  finders.value.forEach((finder) => {
-    store.commit("checkFinder", { source: finder.source, active: toggled });
-  });
-}
 </script>
 
 <template>
-  <div
-    style="
-      display: flex;
-      gap: 5px;
-      align-items: center;
-      justify-content: center;
-    "
-  >
-    <ToggleSwitch
-      :modelValue="allFindersChecked"
-      @update:modelValue="setAllFinders($event)"
-    />
-    <span>Все</span>
+  <div class="sources">
+    <div class="sources-toggle">
+      <ToggleSwitch
+        :modelValue="allFindersChecked"
+        @update:modelValue="store.commit('setAllFindersChecked', $event)"
+      />
+      <span>Все</span>
+    </div>
   </div>
-  <div class="finders">
+  <div class="finder-options">
     <div class="finder-option" v-for="(finder, index) in finders" :key="index">
       <img v-bind:src="finder.img" :alt="finder.source" />
       <Checkbox
@@ -47,7 +36,21 @@ function setAllFinders(toggled) {
 </template>
 
 <style scoped>
-.finders {
+.sources {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+.sources-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+.finder-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 15px;

@@ -7,18 +7,12 @@ import { computed } from 'vue';
 const store = useStore()
 const emit = defineEmits(["showError", "showSuccess"])
 
-const speciality = computed(() => store.getters.getSpeciality);
-const location = computed(() => store.getters.getLocation);
-const finders = computed(() => store.getters.getFinders);
 const jobs = computed(() => store.getters.getJobs)
 
 async function findJobs() {
-  const bodyValue = {
-    speciality: speciality.value.trim(),
-    location: location.value?.trim(),
-    sources: finders.value.filter((o) => o.active).map((o) => o.source),
-  };
+  store.commit('setShowSearchBarModal', false)
 
+  const bodyValue = store.getters.getJobsRequest;
   const response = await store.dispatch("downloadJobs", bodyValue);
 
   if (response.status === 500) {

@@ -2,6 +2,7 @@
 
 using JobFinders.Bll.Models;
 using JobFinders.Bll.Services;
+using JobFinders.BLL.Models;
 using JobFinders.Server.Models;
 
 using Microsoft.AspNetCore.Cors;
@@ -23,14 +24,21 @@ namespace JobFinders.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetJobs([FromBody] JobsRequest request)
+        public async Task<IActionResult> GetJobs([FromBody] JobsRequest? request)
         {
+            if (request is null)
+            {
+                return BadRequest();
+            }
+
             var responseList = new ConcurrentBag<Job>();
 
-            await Parallel.ForEachAsync(request.Sources, async (source, ct) =>
+            await Parallel.ForEachAsync(request?.Sources ?? [], async (source, ct) =>
             {
                 var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
-                var jobs = await _jobFinderManager.ProcessAsync(request.Speciality, request.Location, setting);
+                var filter = new JobsFilter { ExactTitle = request?.ExactTitle ?? false, SalaryDefined = request?.SalaryDefined ?? false, OrderBySalary = request?.OrderBySalary ?? false};
+
+                var jobs = await _jobFinderManager.ProcessAsync(request?.Speciality ?? "", request?.Location ?? "", setting, filter);
 
                 Parallel.ForEach(jobs, (job) =>
                 {

@@ -1,15 +1,16 @@
 <script setup>
 import "@/assets/main.css";
 import SearchBar from "./components/SearchBar.vue";
-import SettingsComponent from "./components/SettingsComponent.vue";
 import Button from "primevue/button";
 import Toast from "primevue/toast";
 import PendingModal from "./components/Modals/PendingModal.vue";
 import SearchBarModal from "./components/Modals/SearchBarModal.vue";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useStore } from "vuex";
 import { useToast } from "primevue/usetoast";
-import FilterModal from "./components/Modals/FilterModal.vue";
+import SettingsModal from "./components/Modals/SettingsModal.vue";
+import SourcesComponent from "./components/SourcesComponent.vue";
+import FilterComponent from "./components/FilterComponent.vue";
 
 const store = useStore();
 const toast = useToast();
@@ -19,8 +20,15 @@ const isPending = computed(() => store.getters.getPending);
 const jobs = computed(() => store.getters.getJobs);
 const isJobsEmpty = computed(() => jobs.value.length === 0);
 
-const showSearchBar = ref(false);
-const showFilter = ref(false);
+const showSearchBarModal = computed({
+  get: () => store.getters.getShowSearchBarModal,
+  set: (value) => store.commit("setShowSearchBarModal", value),
+});
+
+const showSettingsModal = computed({
+  get: () => store.getters.getShowSettingsModal,
+  set: (value) => store.commit("setShowSettingsModal", value),
+});
 
 function showSuccess(summary, detail) {
   toast.add({
@@ -52,10 +60,12 @@ function showError(summary, detail) {
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
       <SearchBar @showError="showError" @showSuccess="showSuccess"></SearchBar>
-      <div class="filter">
+      <div class="sources-and-filter">
         <span>Источники</span>
         <hr />
-        <SettingsComponent></SettingsComponent>
+        <SourcesComponent></SourcesComponent>
+        <hr />
+        <FilterComponent></FilterComponent>
       </div>
     </div>
 
@@ -106,16 +116,19 @@ function showError(summary, detail) {
     </div>
   </div>
   <div class="buttons" :class="{ mobileVisible: isJobsEmpty }">
-    <Button rounded
-      ><i class="pi pi-search" @click="() => (showSearchBar = true)"></i
+    <Button rounded @click="store.commit('setShowSearchBarModal', true)"
+      ><i class="pi pi-search"></i
     ></Button>
-    <Button rounded
-      ><i class="pi pi-sliders-h" @click="() => (showFilter = true)"></i
+    <Button rounded @click="store.commit('setShowSettingsModal', true)"
+      ><i class="pi pi-sliders-h"></i
     ></Button>
   </div>
-  <SearchBarModal v-model:visible="showSearchBar"> </SearchBarModal>
-
-  <FilterModal v-model:visible="showFilter"></FilterModal>
+  <SearchBarModal v-model:visible="showSearchBarModal"></SearchBarModal>
+  <SettingsModal
+    v-model:visible="showSettingsModal"
+    @showError="showError"
+    @showSuccess="showSuccess"
+  ></SettingsModal>
   <PendingModal v-model:visible="isPending"></PendingModal>
 </template>
 
@@ -263,13 +276,11 @@ function showError(summary, detail) {
   }
 }
 
-.filter {
+.sources-and-filter {
   padding: 15px;
   text-align: center;
-  height: 500px;
   background: white;
   border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 @media (max-width: 500px) {
@@ -287,7 +298,7 @@ function showError(summary, detail) {
 
   .settings.mobileVisible {
     width: 100%;
-    display: block; /* show only when finders is empty */
+    display: block;
   }
 
   .buttons {

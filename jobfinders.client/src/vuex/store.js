@@ -5,6 +5,8 @@ const store = createStore({
   state: {
     serverUrl: import.meta.env.VITE_API_URL,
     pending: false,
+    showSearchBarModal: false,
+    showSettingsModal: false,
     finders: [
       {
         img: "rabotaby-logo-large.png",
@@ -39,6 +41,7 @@ const store = createStore({
       sources: [],
       exactTitle: false,
       salaryDefined: false,
+      orderBySalary: false,
     },
     jobs: [],
     allFindersChecked: true,
@@ -59,6 +62,9 @@ const store = createStore({
     getSalaryDefined(state) {
       return state.jobsRequest.salaryDefined;
     },
+    getOrderBySalary(state) {
+      return state.jobsRequest.orderBySalary;
+    },
     getFinders(state) {
       return state.finders;
     },
@@ -67,6 +73,22 @@ const store = createStore({
     },
     getAllFindersChecked(state) {
       return state.finders.every((x) => x.active);
+    },
+    getShowSearchBarModal(state) {
+      return state.showSearchBarModal;
+    },
+    getShowSettingsModal(state) {
+      return state.showSettingsModal;
+    },
+    getJobsRequest(state) {
+      return {
+        speciality: state.jobsRequest.speciality.trim(),
+        location: state.jobsRequest.location.trim(),
+        sources: state.finders.filter((f) => f.active).map((f) => f.source),
+        exactTitle: state.jobsRequest.exactTitle,
+        salaryDefined: state.jobsRequest.salaryDefined,
+        orderBySalary: state.jobsRequest.orderBySalary,
+      };
     },
   },
   mutations: {
@@ -85,6 +107,9 @@ const store = createStore({
     setSalaryDefined(state, value) {
       state.jobsRequest.salaryDefined = value;
     },
+    setOrderBySalary(state, value) {
+      state.jobsRequest.orderBySalary = value;
+    },
     checkFinder(state, payload) {
       const finder = state.finders.find((x) => x.source === payload.source);
       finder.active = payload.active;
@@ -98,6 +123,12 @@ const store = createStore({
       state.finders.forEach((x) => {
         x.active = value;
       });
+    },
+    setShowSearchBarModal(state, value) {
+      state.showSearchBarModal = value;
+    },
+    setShowSettingsModal(state, value) {
+      state.showSettingsModal = value;
     },
   },
   actions: {
