@@ -5,10 +5,10 @@ import FilterComponent from "../FilterComponent.vue";
 import Button from "primevue/button";
 import { useStore } from "vuex";
 import { computed } from "vue";
+import { useToast } from "primevue/usetoast";
 
 const store = useStore();
-const emit = defineEmits(["showError", "showSuccess"]);
-
+const toast = useToast();
 const jobs = computed(() => store.getters.getJobs);
 
 async function implementFilter() {
@@ -18,9 +18,17 @@ async function implementFilter() {
   const response = await store.dispatch("downloadJobs", bodyValue);
 
   if (response.status === 500) {
-    emit("showError", "Ошибка сервера", response.data);
-  } else {
-    emit("showSuccess", "OK", `Найдено совпадений: ${jobs.value.length}`);
+    store.dispatch("showError", {
+      toast: toast,
+      summary: "showError",
+      detail: `Ошибка сервера: ${response.data.errorText}`,
+    });
+  } else if (response.status === 200) {
+    store.dispatch("showSuccess", {
+      toast: toast,
+      summary: "OK",
+      detail: `Найдено совпадений: ${jobs.value.length}`,
+    });
   }
 }
 </script>

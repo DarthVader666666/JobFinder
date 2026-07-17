@@ -155,6 +155,22 @@ const store = createStore({
           commit("setPending", false);
         });
     },
+    showSuccess(_, { toast, summary, detail }) {
+      toast.add({
+        severity: "success",
+        summary: summary,
+        detail: detail,
+        life: 2000,
+      });
+    },
+    showError(_, { toast, summary, detail }) {
+      toast.add({
+        severity: "error",
+        summary: summary,
+        detail: detail,
+        life: 2000,
+      });
+    },
   },
 });
 
