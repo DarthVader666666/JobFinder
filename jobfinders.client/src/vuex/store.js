@@ -46,7 +46,7 @@ const store = createStore({
     orderBySalary: false,
     jobs: [],
     allFindersChecked: true,
-    currencies: ["$", "BYD", "€", "₽", "Все"],
+    currencies: ["$", "BYN", "€", "₽", "Все"],
     oldCurrency: "Все",
     selectedCurrency: "Все",
     currencyData: {
