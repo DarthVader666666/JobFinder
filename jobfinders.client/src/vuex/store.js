@@ -4,6 +4,7 @@ import axios from "axios";
 const store = createStore({
   state: {
     serverUrl: import.meta.env.VITE_API_URL,
+    nbrbCurrRateUrl: "https://api.nbrb.by/exrates/rates?periodicity=0",
     pending: false,
     showSearchBarModal: false,
     showSettingsModal: false,
@@ -45,6 +46,13 @@ const store = createStore({
     orderBySalary: false,
     jobs: [],
     allFindersChecked: true,
+    currencies: ["$", "BYD", "€", "₽", "Все"],
+    oldCurrency: "Все",
+    selectedCurrency: "Все",
+    currencyData: {
+      date: null,
+      rates: null,
+    },
   },
   getters: {
     getPending(state) {
@@ -91,6 +99,12 @@ const store = createStore({
         salaryDefined: state.jobsRequest.salaryDefined,
       };
     },
+    getSelectedCurrency(state) {
+      return state.selectedCurrency;
+    },
+    getCurrencyData(state) {
+      return state.currencyData;
+    },
   },
   mutations: {
     setPending(state, value) {
@@ -131,8 +145,45 @@ const store = createStore({
     setShowSettingsModal(state, value) {
       state.showSettingsModal = value;
     },
+    setSelectedCurrency(state, value) {
+      state.selectedCurrency = value;
+    },
+    setCurrencyData(state, value) {
+      const now = new Date();
+      const currentDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      );
+      state.currencyData.date = currentDate;
+      state.currencyData.rates = value;
+    },
   },
   actions: {
+    async getFetch({ commit }, { url, usePending, func }) {
+      if (usePending) {
+        commit("setPending", true);
+      }
+      return await axios
+        .get(url, {
+          headers: { "Content-Type": "application/json" },
+        })
+        .then(async (response) => {
+          if (response.status === 200) {
+            func(response.data);
+          }
+        })
+        .catch((error) => {
+          if (error.response) {
+            return { status: error.response.status };
+          }
+        })
+        .finally(() => {
+          if (usePending) {
+            commit("setPending", false);
+          }
+        });
+    },
     async downloadJobs({ state, commit }, request) {
       commit("setPending", true);
       return await axios
@@ -170,6 +221,26 @@ const store = createStore({
         detail: detail,
         life: 2000,
       });
+    },
+    async downloadCurrencyRates({ state, commit, dispatch }, toast) {
+      await axios
+        .get(`${state.nbrbCurrRateUrl}`, {
+          headers: { "Content-Type": "application/json" },
+        })
+        .then(async (response) => {
+          if (response.status === 200) {
+            commit("setCurrencyData", response.data);
+          }
+        })
+        .catch((error) => {
+          if (error.response) {
+            dispatch("showError", {
+              toast: toast,
+              summary: "Error",
+              detail: "Не обновились курсы валют",
+            });
+          }
+        });
     },
   },
 });

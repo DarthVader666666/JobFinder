@@ -112,17 +112,29 @@ namespace JobFinders.Bll.Services
                 {
                     var descendants = node.Descendants();
 
-                    yield return new Job
+                    var job = new Job
                     {
                         Link = setting.AddBaseUrlToHrefPrefix ? setting.BaseUrl + href : href,
                         Title = GetTitle(anchor.InnerText),
-                        Salary = GetSalary(descendants, setting),
+                        OriginalSalary = GetSalary(descendants, setting),
                         Company = GetInnerText(descendants, setting.Company),
                         Experience = GetInnerText(descendants, setting.Experience),
                         Location = GetInnerText(descendants, setting.Location),
                         TimePosted = GetInnerText(descendants, setting.TimePosted),
                         Logo = new Logo { Source = setting.Source, Url = url }
                     };
+
+                    if (job.OriginalSalary is not null) 
+                    {
+                        job.Salary = new Salary
+                        {
+                            Min = job.OriginalSalary.Min,
+                            Max = job.OriginalSalary.Max,
+                            Currency = job.OriginalSalary.Currency
+                        };
+                    }
+
+                    yield return job;
                 }
             }
         }
