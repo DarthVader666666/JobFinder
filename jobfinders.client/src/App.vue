@@ -9,13 +9,24 @@ import SettingsModal from "./components/Modals/SettingsModal.vue";
 import SourcesComponent from "./components/SourcesComponent.vue";
 import FilterComponent from "./components/FilterComponent.vue";
 import JobItem from "./components/JobItem.vue";
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useStore } from "vuex";
+import { helper } from "./helper.js";
 
 const store = useStore();
 const isPending = computed(() => store.getters.getPending);
 const jobs = computed(() => store.getters.getJobs);
 const isJobsEmpty = computed(() => jobs.value.length === 0);
+const usdRate = ref(null);
+const eurRate = ref(null);
+const rubRate = ref(null);
+
+onMounted(async () => {
+  await helper.updateCurrencyRates();
+  usdRate.value = store.getters.getUsdRate;
+  eurRate.value = store.getters.getEurRate;
+  rubRate.value = store.getters.getRubRate;
+});
 
 const showSearchBarModal = computed({
   get: () => store.getters.getShowSearchBarModal,
@@ -34,6 +45,11 @@ const showSettingsModal = computed({
     <div class="title">
       <span style="font-size: 2rem">Find Your Job</span>
       <span>Поиск работы в РБ</span>
+    </div>
+    <div class="rates">
+      <span>USD: {{ usdRate }}</span>
+      <span>EUR: {{ eurRate }}</span>
+      <span>RUB: {{ Math.round(rubRate * 100) / 10000 }}</span>
     </div>
   </div>
   <div class="main">
@@ -69,6 +85,7 @@ const showSettingsModal = computed({
 <style scoped>
 .header {
   display: flex;
+  justify-content: space-between;
 }
 
 .title {
@@ -79,6 +96,13 @@ const showSettingsModal = computed({
   padding-bottom: 10px;
   color: rgb(16, 185, 129);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.rates {
+  display: flex;
+  flex-direction: column;
+  padding-left: 20px;
+  color: rgb(230, 230, 230);
 }
 
 .main {

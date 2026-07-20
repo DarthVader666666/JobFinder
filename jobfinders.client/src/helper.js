@@ -75,4 +75,22 @@ export const helper = {
 
     return convertCurrency;
   },
+  async updateCurrencyRates() {
+    const now = new Date();
+    const currentDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+
+    const currencyData = store.getters.getCurrencyData;
+
+    if (
+      currencyData.rates === null ||
+      currencyData.date === null ||
+      currencyData.date < currentDate
+    ) {
+      await store.dispatch("downloadCurrencyRates");
+    }
+  },
 };

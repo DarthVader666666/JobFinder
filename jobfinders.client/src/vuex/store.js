@@ -105,6 +105,18 @@ const store = createStore({
     getCurrencyData(state) {
       return state.currencyData;
     },
+    getUsdRate(state) {
+      return state.currencyData.rates.find((x) => x.Cur_Abbreviation === "USD")
+        .Cur_OfficialRate;
+    },
+    getEurRate(state) {
+      return state.currencyData.rates.find((x) => x.Cur_Abbreviation === "EUR")
+        .Cur_OfficialRate;
+    },
+    getRubRate(state) {
+      return state.currencyData.rates.find((x) => x.Cur_Abbreviation === "RUB")
+        .Cur_OfficialRate;
+    },
   },
   mutations: {
     setPending(state, value) {
