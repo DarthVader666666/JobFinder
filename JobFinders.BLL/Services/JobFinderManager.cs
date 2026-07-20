@@ -215,9 +215,13 @@ namespace JobFinders.Bll.Services
                 salary.Min = ParseSalary(min);
                 salary.Max = ParseSalary(max);
             }
-            else
+            else if (!string.IsNullOrEmpty(innerText))
             {
                 salary.Min = salary.Max = ParseSalary(innerText);
+            }
+            else 
+            {
+                salary = null;
             }
 
             return salary;

@@ -11,6 +11,12 @@ const props = defineProps({
     default: null,
   },
 });
+
+function getSalary(salary) {
+  if (salary) {
+    return `${props.job.salary.min === props.job.salary.max ? props.job.salary.min : props.job.salary.min + " - " + props.job.salary.max} ${props.job.salary.currency}`;
+  }
+}
 </script>
 
 <template>
@@ -41,10 +47,7 @@ const props = defineProps({
       </a>
     </div>
     <div class="job-right">
-      <span class="salary">{{
-        props.job.salary &&
-        `${props.job.salary.min === props.job.salary.max ? props.job.salary.min : props.job.salary.min + " - " + props.job.salary.max} ${props.job.salary.currency}`
-      }}</span>
+      <span class="salary">{{ getSalary(props.job.salary) }}</span>
       <a class="job-logo" :href="props.job.logo?.url ?? ''" target="_blank">
         <img
           v-if="props.job.logo?.source"
