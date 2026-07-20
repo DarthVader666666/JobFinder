@@ -202,6 +202,7 @@ namespace JobFinders.Bll.Services
                 _ => null
             };
 
+            innerText = Regex.Replace(innerText, @"(?<=\d)\s*до\s*(?=\d)", "-");            
             innerText = Regex.Replace(innerText, @"[^\d\s\-–—]", "");
             innerText = Regex.Replace(innerText, @"\s+", "");
 
