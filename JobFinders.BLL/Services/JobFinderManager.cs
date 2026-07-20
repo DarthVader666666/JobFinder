@@ -18,7 +18,7 @@ namespace JobFinders.Bll.Services
 
         private readonly string[] usd = { "$", "USD" };
         private readonly string[] euro = { "€", "EUR" };
-        private readonly string[] belRub = { "Br", "BYN", "руб" };
+        private readonly string[] belRub = { "Br", "BYN", "руб", "" };
         private readonly string[] rusRub = { "₽" };
 
         private readonly string[] currencies;

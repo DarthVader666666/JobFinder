@@ -35,6 +35,11 @@ const store = createStore({
         source: "Belmeta",
         active: true,
       },
+      {
+        img: "rework-logo-large.png",
+        source: "Rework",
+        active: true,
+      },
     ],
     jobsRequest: {
       speciality: "",
