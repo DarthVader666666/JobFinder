@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Net;
+using System.Text.RegularExpressions;
 
 using HtmlAgilityPack;
 
@@ -235,17 +236,12 @@ namespace JobFinders.Bll.Services
 
         private static string? ConvertSpecialSymbols(string? innerText)
         {
-            return innerText?
-                .Replace("&nbsp;", " ")?
-                .Replace("&quot;", "\"")?
-                .Replace("&amp;", "&")?
-                .Replace("&mdash;", "-")?
+            return WebUtility.HtmlDecode(innerText?
                 .Replace("<!--", "")?
                 .Replace("-->", "")
                 .Replace("\n", "")
                 .Replace("\t", "")
-                .Replace("&#xA0;", "")
-                .Trim();
+                .Trim());
         }
 
         private int ParseSalary(string salary)
