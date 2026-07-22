@@ -117,14 +117,18 @@ function getSalary(salary) {
 }
 
 .job-logo {
+  display: flex;
+  align-items: center;
+  width: 80px;
+  align-items: center;
+  border-radius: 20px;
   &:hover {
-    opacity: 0.7;
+    background-color: white;
+    box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.3);
   }
-  background: white;
-  box-shadow: 0 2px 1px rgba(0, 0, 0, 0.4);
-  max-width: 80px;
   img {
     width: 100%;
+    padding: 3px;
   }
 }
 
