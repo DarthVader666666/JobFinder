@@ -76,7 +76,7 @@ function getSalary(salary) {
 .job-left {
   display: flex;
   flex-direction: column;
-  max-width: 70%;
+  width: 100%;
 }
 
 .job-details {
@@ -106,6 +106,7 @@ function getSalary(salary) {
   flex-direction: column;
   justify-content: space-between;
   align-items: end;
+  min-width: 15%;
 }
 
 .salary {
