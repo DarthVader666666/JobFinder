@@ -36,7 +36,11 @@ namespace JobFinders.Server.Controllers
             await Parallel.ForEachAsync(request?.Sources ?? [], async (source, ct) =>
             {
                 var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
-                var filter = new JobsFilter { ExactTitle = request?.ExactTitle ?? false, SalaryDefined = request?.SalaryDefined ?? false };
+                var filter = new JobsFilter 
+                { 
+                    ExactTitle = request?.ExactTitle ?? false,
+                    SalaryDefined = request?.SalaryDefined ?? false
+                };
 
                 var jobs = await _jobFinderManager.ProcessAsync(request?.Speciality ?? "", request?.Location ?? "", setting, filter);
 
@@ -46,7 +50,7 @@ namespace JobFinders.Server.Controllers
                 });
             });
 
-            return responseList != null ? Ok(responseList) : BadRequest();
+            return responseList != null ? Ok(responseList) : StatusCode(500, new { errorText = "Server error" });
         }
     }
 }

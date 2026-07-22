@@ -34,7 +34,7 @@ const orderBySalary = computed({
   set: (value) => store.commit("setOrderBySalary", value),
 });
 
-async function setCurrencyValues() {
+async function setCurrencyValues(selectedSalary) {
   const now = new Date();
   const currentDate = new Date(
     now.getFullYear(),
@@ -50,7 +50,8 @@ async function setCurrencyValues() {
     await store.dispatch("downloadCurrencyRates", toast);
   }
 
-  helper.convertSalaries();
+  helper.convertSalaries(selectedSalary);
+  store.commit("setShowSettingsModal", false);
 }
 </script>
 
@@ -69,11 +70,11 @@ async function setCurrencyValues() {
       <Checkbox v-model="orderBySalary" binary></Checkbox>
     </div>
     <div class="currency">
-      <span>Валюта</span>
+      <span>Конвертировать</span>
       <Select
         v-model="currency"
         :options="store.state.currencies"
-        @update:modelValue="setCurrencyValues"
+        @update:modelValue="setCurrencyValues($event)"
       />
     </div>
   </div>

@@ -51,9 +51,9 @@ const store = createStore({
     orderBySalary: false,
     jobs: [],
     allFindersChecked: true,
-    currencies: ["$", "BYN", "€", "₽", "Все"],
-    oldCurrency: "Все",
-    selectedCurrency: "Все",
+    currencies: ["$", "BYN", "€", "₽", "Нет"],
+    oldCurrency: "Нет",
+    selectedCurrency: "Нет",
     currencyData: {
       date: null,
       rates: null,
@@ -220,6 +220,7 @@ const store = createStore({
           }
         })
         .finally(() => {
+          commit("setSelectedCurrency", "Нет");
           commit("setPending", false);
         });
     },
