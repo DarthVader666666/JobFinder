@@ -50,7 +50,9 @@ namespace JobFinders.Server.Controllers
                 });
             });
 
-            return responseList != null ? Ok(responseList) : StatusCode(500, new { errorText = "Server error" });
+            return Ok(request.Filter.OrderBySalary
+                ? responseList.OrderByDescending(x => x.Salary?.Max)
+                : responseList);
         }
     }
 }

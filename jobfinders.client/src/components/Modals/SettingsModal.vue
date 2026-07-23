@@ -14,8 +14,7 @@ const jobs = computed(() => store.getters.getFilteredJobs);
 async function implementFilter() {
   store.commit("setShowSettingsModal", false);
 
-  const bodyValue = store.getters.getJobsRequest;
-  const response = await store.dispatch("downloadJobs", bodyValue);
+  const response = await store.dispatch("downloadJobs");
 
   if (response.status === 500) {
     store.dispatch("showError", {

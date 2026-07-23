@@ -5,8 +5,7 @@
         public string? Speciality { get; set; }
         public string? Location { get; set; }
         public string[]? Sources { get; set; }
-        public Filter? Filter { get; set; }
-    
+        public Filter? Filter { get; set; }    
     }
 
     public class Filter {

@@ -54,9 +54,14 @@ async function setCurrencyValues(selectedSalary) {
   store.commit("setShowSettingsModal", false);
 }
 
-function updateFilteredJobs(filter) {
+function updateFilteredJobs(value) {
   if (store.getters.getFilteredJobs?.length) {
-    store.dispatch("updateFilteredJobs", filter);
+    if (!value) {
+      store.commit("setFilteredJobs", store.getters.getBufferedJobs);
+    }
+
+    store.dispatch("updateFilteredJobs");
+    store.commit("setShowSettingsModal", false);
   }
 }
 </script>
@@ -67,7 +72,7 @@ function updateFilteredJobs(filter) {
       <span>точное совпадение</span>
       <Checkbox
         v-model="exactTitle"
-        @change="updateFilteredJobs({ exactTitle: exactTitle })"
+        @change="updateFilteredJobs(exactTitle)"
         binary
       ></Checkbox>
     </div>
@@ -75,7 +80,7 @@ function updateFilteredJobs(filter) {
       <span>з/п указана</span>
       <Checkbox
         v-model="salaryDefined"
-        @change="updateFilteredJobs({ salaryDefined: salaryDefined })"
+        @change="updateFilteredJobs(salaryDefined)"
         binary
       ></Checkbox>
     </div>
@@ -83,7 +88,7 @@ function updateFilteredJobs(filter) {
       <span>сначала высокая з/п</span>
       <Checkbox
         v-model="orderBySalary"
-        @change="updateFilteredJobs({ orderBySalary: orderBySalary })"
+        @change="updateFilteredJobs(orderBySalary)"
         binary
       ></Checkbox>
     </div>

@@ -12,8 +12,7 @@ const jobs = computed(() => store.getters.getFilteredJobs)
 async function findJobs() {
   store.commit('setShowSearchBarModal', false)
 
-  const bodyValue = store.getters.getJobsRequest;
-  const response = await store.dispatch("downloadJobs", bodyValue);
+  const response = await store.dispatch("downloadJobs");
 
   if (response.status === 500) {
     store.dispatch('showError', { toast: toast, summary: 'showError', detail: `Ошибка сервера: ${response.data.errorText}` });

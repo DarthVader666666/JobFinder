@@ -107,6 +107,7 @@ const store = createStore({
         filter: {
           exactTitle: state.jobsRequest.filter.exactTitle,
           salaryDefined: state.jobsRequest.filter.salaryDefined,
+          orderBySalary: state.jobsRequest.filter.orderBySalary,
         },
       };
     },
@@ -153,10 +154,12 @@ const store = createStore({
       finder.active = payload.active;
     },
     setBufferedJobs(state, value) {
-      state.bufferedJobs = value;
+      state.bufferedJobs = [];
+      value.forEach((x) => state.bufferedJobs.push(x));
     },
     setFilteredJobs(state, value) {
-      state.filteredJobs = value;
+      state.filteredJobs = [];
+      value.forEach((x) => state.filteredJobs.push(x));
     },
     setAllFindersChecked(state, value) {
       state.allFindersChecked = value;
@@ -210,16 +213,16 @@ const store = createStore({
           }
         });
     },
-    async downloadJobs({ state, commit }, request) {
+    async downloadJobs({ state, commit }) {
       commit("setPending", true);
       return await axios
-        .post(`${state.serverUrl}/jobs/getjobs`, request, {
+        .post(`${state.serverUrl}/jobs/getjobs`, this.getters.getJobsRequest, {
           headers: { "Content-Type": "application/json" },
         })
         .then(async (response) => {
           if (response.status === 200) {
-            commit("setBufferedJobs", response.data);
             commit("setFilteredJobs", response.data);
+            commit("setBufferedJobs", response.data);
             return { status: response.status };
           }
         })
@@ -270,32 +273,34 @@ const store = createStore({
           }
         });
     },
-    updateFilteredJobs({ state, commit }, filter) {
+    updateFilteredJobs({ state, commit }) {
       var jobs = [];
-      const key = Object.keys(filter)[0];
+      state.filteredJobs.forEach((x) => jobs.push(x));
 
-      if (key === "exactTitle" && filter[key]) {
-        jobs = state.filteredJobs.filter((fj) =>
-          fj.title.includes(state.jobsRequest.speciality),
-        );
-      }
+      const keys = Object.keys(state.jobsRequest.filter);
 
-      if (key === "salaryDefined" && filter[key]) {
-        jobs = state.filteredJobs.filter((fj) => fj.salary?.currency);
-      }
+      keys.forEach((key) => {
+        if (state.jobsRequest.filter[key]) {
+          if (key === "exactTitle") {
+            jobs = jobs.filter((fj) =>
+              fj.title
+                .toLowerCase()
+                .includes(state.jobsRequest.speciality.toLowerCase()),
+            );
+          }
 
-      if (key === "orderBySalary" && filter[key]) {
-        jobs = state.filteredJobs.sort(
-          (x, y) => (y.salary?.max ?? 0) - (x.salary?.max ?? 0),
-        );
-      }
+          if (key === "salaryDefined") {
+            jobs = jobs.filter((fj) => fj.salary?.currency);
+          }
 
-      if (filter[key]) {
-        commit("setBufferedJobs", state.filteredJobs);
-        commit("setFilteredJobs", jobs);
-      } else {
-        commit("setFilteredJobs", state.bufferedJobs);
-      }
+          if (key === "orderBySalary") {
+            jobs = jobs.sort(
+              (x, y) => (y.salary?.max ?? 0) - (x.salary?.max ?? 0),
+            );
+          }
+          commit("setFilteredJobs", jobs);
+        }
+      });
     },
   },
 });

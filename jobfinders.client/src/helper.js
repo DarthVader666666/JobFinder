@@ -5,7 +5,7 @@ export const helper = {
     var convertCurrency = this.getNbrbApiCurrency(selectedCurrency);
 
     if (convertCurrency === "Нет") {
-      store.state.jobs.forEach((job) => {
+      store.state.filteredJobs.forEach((job) => {
         if (job.salary) {
           job.salary.max = job.originalSalary.max;
           job.salary.min = job.originalSalary.min;
@@ -13,7 +13,7 @@ export const helper = {
         }
       });
     } else {
-      store.state.jobs.forEach((job) => {
+      store.state.filteredJobs.forEach((job) => {
         if (
           job.salary &&
           job.salary.currency &&
