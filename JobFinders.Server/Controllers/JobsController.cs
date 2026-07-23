@@ -38,8 +38,8 @@ namespace JobFinders.Server.Controllers
                 var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
                 var filter = new JobsFilter 
                 { 
-                    ExactTitle = request?.ExactTitle ?? false,
-                    SalaryDefined = request?.SalaryDefined ?? false
+                    ExactTitle = request?.Filter?.ExactTitle ?? false,
+                    SalaryDefined = request?.Filter?.SalaryDefined ?? false
                 };
 
                 var jobs = await _jobFinderManager.ProcessAsync(request?.Speciality ?? "", request?.Location ?? "", setting, filter);

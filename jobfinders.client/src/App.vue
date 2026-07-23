@@ -15,7 +15,7 @@ import { helper } from "./helper.js";
 
 const store = useStore();
 const isPending = computed(() => store.getters.getPending);
-const jobs = computed(() => store.getters.getJobs);
+const jobs = computed(() => store.getters.getFilteredJobs);
 const isJobsEmpty = computed(() => jobs.value.length === 0);
 const usdRate = ref(null);
 const eurRate = ref(null);

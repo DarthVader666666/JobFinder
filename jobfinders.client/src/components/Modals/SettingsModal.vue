@@ -9,7 +9,7 @@ import { useToast } from "primevue/usetoast";
 
 const store = useStore();
 const toast = useToast();
-const jobs = computed(() => store.getters.getJobs);
+const jobs = computed(() => store.getters.getFilteredJobs);
 
 async function implementFilter() {
   store.commit("setShowSettingsModal", false);

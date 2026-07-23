@@ -45,11 +45,14 @@ const store = createStore({
       speciality: "",
       location: "",
       sources: [],
-      exactTitle: false,
-      salaryDefined: false,
+      filter: {
+        exactTitle: false,
+        salaryDefined: false,
+        orderBySalary: false,
+      },
     },
-    orderBySalary: false,
-    jobs: [],
+    bufferedJobs: [],
+    filteredJobs: [],
     allFindersChecked: true,
     currencies: ["$", "BYN", "€", "₽", "Нет"],
     oldCurrency: "Нет",
@@ -70,21 +73,22 @@ const store = createStore({
       return state.jobsRequest.location;
     },
     getExactTitle(state) {
-      return state.jobsRequest.exactTitle;
+      return state.jobsRequest.filter.exactTitle;
     },
     getSalaryDefined(state) {
-      return state.jobsRequest.salaryDefined;
+      return state.jobsRequest.filter.salaryDefined;
     },
     getOrderBySalary(state) {
-      return state.orderBySalary;
+      return state.jobsRequest.filter.orderBySalary;
     },
     getFinders(state) {
       return state.finders;
     },
-    getJobs(state) {
-      return state.orderBySalary
-        ? state.jobs.sort((x, y) => (y.salary?.max ?? 0) - (x.salary?.max ?? 0))
-        : state.jobs;
+    getBufferedJobs(state) {
+      return state.bufferedJobs;
+    },
+    getFilteredJobs(state) {
+      return state.filteredJobs;
     },
     getAllFindersChecked(state) {
       return state.finders.every((x) => x.active);
@@ -100,8 +104,10 @@ const store = createStore({
         speciality: state.jobsRequest.speciality.trim(),
         location: state.jobsRequest.location.trim(),
         sources: state.finders.filter((f) => f.active).map((f) => f.source),
-        exactTitle: state.jobsRequest.exactTitle,
-        salaryDefined: state.jobsRequest.salaryDefined,
+        filter: {
+          exactTitle: state.jobsRequest.filter.exactTitle,
+          salaryDefined: state.jobsRequest.filter.salaryDefined,
+        },
       };
     },
     getSelectedCurrency(state) {
@@ -134,20 +140,23 @@ const store = createStore({
       state.jobsRequest.location = value;
     },
     setExactTitle(state, value) {
-      state.jobsRequest.exactTitle = value;
+      state.jobsRequest.filter.exactTitle = value;
     },
     setSalaryDefined(state, value) {
-      state.jobsRequest.salaryDefined = value;
+      state.jobsRequest.filter.salaryDefined = value;
     },
     setOrderBySalary(state, value) {
-      state.orderBySalary = value;
+      state.jobsRequest.filter.orderBySalary = value;
     },
     checkFinder(state, payload) {
       const finder = state.finders.find((x) => x.source === payload.source);
       finder.active = payload.active;
     },
-    setJobs(state, value) {
-      state.jobs = value;
+    setBufferedJobs(state, value) {
+      state.bufferedJobs = value;
+    },
+    setFilteredJobs(state, value) {
+      state.filteredJobs = value;
     },
     setAllFindersChecked(state, value) {
       state.allFindersChecked = value;
@@ -209,13 +218,14 @@ const store = createStore({
         })
         .then(async (response) => {
           if (response.status === 200) {
-            commit("setJobs", response.data);
+            commit("setBufferedJobs", response.data);
+            commit("setFilteredJobs", response.data);
             return { status: response.status };
           }
         })
         .catch((error) => {
           if (error.response) {
-            commit("setJobs", [error.response.data.errorText]);
+            commit("setFilteredJobs", [error.response.data.errorText]);
             return { status: error.response.status };
           }
         })
@@ -259,6 +269,33 @@ const store = createStore({
             });
           }
         });
+    },
+    updateFilteredJobs({ state, commit }, filter) {
+      var jobs = [];
+      const key = Object.keys(filter)[0];
+
+      if (key === "exactTitle" && filter[key]) {
+        jobs = state.filteredJobs.filter((fj) =>
+          fj.title.includes(state.jobsRequest.speciality),
+        );
+      }
+
+      if (key === "salaryDefined" && filter[key]) {
+        jobs = state.filteredJobs.filter((fj) => fj.salary?.currency);
+      }
+
+      if (key === "orderBySalary" && filter[key]) {
+        jobs = state.filteredJobs.sort(
+          (x, y) => (y.salary?.max ?? 0) - (x.salary?.max ?? 0),
+        );
+      }
+
+      if (filter[key]) {
+        commit("setBufferedJobs", state.filteredJobs);
+        commit("setFilteredJobs", jobs);
+      } else {
+        commit("setFilteredJobs", state.bufferedJobs);
+      }
     },
   },
 });

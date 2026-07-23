@@ -53,21 +53,39 @@ async function setCurrencyValues(selectedSalary) {
   helper.convertSalaries(selectedSalary);
   store.commit("setShowSettingsModal", false);
 }
+
+function updateFilteredJobs(filter) {
+  if (store.getters.getFilteredJobs?.length) {
+    store.dispatch("updateFilteredJobs", filter);
+  }
+}
 </script>
 
 <template>
   <div class="filter">
     <div>
       <span>точное совпадение</span>
-      <Checkbox v-model="exactTitle" binary></Checkbox>
+      <Checkbox
+        v-model="exactTitle"
+        @change="updateFilteredJobs({ exactTitle: exactTitle })"
+        binary
+      ></Checkbox>
     </div>
     <div>
       <span>з/п указана</span>
-      <Checkbox v-model="salaryDefined" binary></Checkbox>
+      <Checkbox
+        v-model="salaryDefined"
+        @change="updateFilteredJobs({ salaryDefined: salaryDefined })"
+        binary
+      ></Checkbox>
     </div>
     <div>
       <span>сначала высокая з/п</span>
-      <Checkbox v-model="orderBySalary" binary></Checkbox>
+      <Checkbox
+        v-model="orderBySalary"
+        @change="updateFilteredJobs({ orderBySalary: orderBySalary })"
+        binary
+      ></Checkbox>
     </div>
     <div class="currency">
       <span>Конвертировать</span>

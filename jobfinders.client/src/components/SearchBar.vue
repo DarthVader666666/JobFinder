@@ -7,7 +7,7 @@ import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
 const store = useStore()
-const jobs = computed(() => store.getters.getJobs)
+const jobs = computed(() => store.getters.getFilteredJobs)
 
 async function findJobs() {
   store.commit('setShowSearchBarModal', false)
