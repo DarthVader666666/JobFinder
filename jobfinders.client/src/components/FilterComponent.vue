@@ -2,7 +2,8 @@
 import { useToast } from "primevue/usetoast";
 import Checkbox from "primevue/checkbox";
 import Select from "primevue/select";
-import { computed } from "vue";
+import Slider from "primevue/slider";
+import { computed, ref } from "vue";
 import { useStore } from "vuex";
 import { helper } from "@/helper";
 
@@ -34,6 +35,10 @@ const orderBySalary = computed({
   set: (value) => store.commit("setOrderBySalary", value),
 });
 
+const selectedCurrency = computed(() => store.getters.getSelectedCurrency);
+
+const range = ref([1, 100]);
+
 async function setCurrencyValues(selectedSalary) {
   const now = new Date();
   const currentDate = new Date(
@@ -51,6 +56,7 @@ async function setCurrencyValues(selectedSalary) {
   }
 
   helper.convertSalaries(selectedSalary);
+  store.commit("setOrderBySalary", false);
   store.commit("setShowSettingsModal", false);
 }
 
@@ -78,14 +84,7 @@ function updateFilteredJobs(value) {
         binary
       ></Checkbox>
     </div>
-    <div>
-      <span>з/п указана</span>
-      <Checkbox
-        v-model="salaryDefined"
-        @change="updateFilteredJobs(salaryDefined)"
-        binary
-      ></Checkbox>
-    </div>
+
     <div>
       <span>сначала высокая з/п</span>
       <Checkbox
@@ -102,6 +101,24 @@ function updateFilteredJobs(value) {
         @update:modelValue="setCurrencyValues($event)"
       />
     </div>
+    <div>
+      <span>з/п указана</span>
+      <Checkbox
+        v-model="salaryDefined"
+        @change="updateFilteredJobs(salaryDefined)"
+        binary
+      ></Checkbox>
+    </div>
+  </div>
+  <hr />
+  <div class="range">
+    <div class="min-max">
+      <span>{{ range[0] * 100 }}</span>
+      <span>{{ selectedCurrency === "Нет" ? "" : selectedCurrency }}</span>
+      <span>{{ range[1] * 100 }}</span>
+    </div>
+
+    <Slider v-model="range" range :disabled="!salaryDefined"></Slider>
   </div>
 </template>
 
@@ -110,6 +127,7 @@ function updateFilteredJobs(value) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 25px;
+  padding: 5px 0 5px 0;
 
   div {
     display: flex;
@@ -124,6 +142,25 @@ function updateFilteredJobs(value) {
   flex-direction: column;
   .p-select {
     width: 110px;
+  }
+}
+
+.range {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 10px;
+
+  .p-slider {
+    width: 90%;
+    height: 6px;
+  }
+
+  .min-max {
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
   }
 }
 </style>
