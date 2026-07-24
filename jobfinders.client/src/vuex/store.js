@@ -277,7 +277,7 @@ const store = createStore({
       var jobs = [];
       state.filteredJobs.forEach((x) => jobs.push(x));
 
-      const keys = Object.keys(state.jobsRequest.filter);
+      const keys = Object.keys(state.jobsRequest.filter) ?? [];
 
       keys.forEach((key) => {
         if (state.jobsRequest.filter[key]) {

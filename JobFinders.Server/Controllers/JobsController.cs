@@ -50,7 +50,7 @@ namespace JobFinders.Server.Controllers
                 });
             });
 
-            return Ok(request.Filter.OrderBySalary
+            return Ok(request.Filter?.OrderBySalary ?? false
                 ? responseList.OrderByDescending(x => x.Salary?.Max)
                 : responseList);
         }

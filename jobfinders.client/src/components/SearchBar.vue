@@ -18,6 +18,7 @@ async function findJobs() {
     store.dispatch('showError', { toast: toast, summary: 'showError', detail: `Ошибка сервера: ${response.data.errorText}` });
   } else if (response.status === 200){
     store.dispatch('showSuccess', { toast: toast, summary: "OK", detail: `Найдено совпадений: ${jobs.value.length}` });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
 

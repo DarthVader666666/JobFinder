@@ -26,6 +26,7 @@ onMounted(async () => {
   usdRate.value = store.getters.getUsdRate;
   eurRate.value = store.getters.getEurRate;
   rubRate.value = store.getters.getRubRate;
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 const showSearchBarModal = computed({

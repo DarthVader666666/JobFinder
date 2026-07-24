@@ -2,9 +2,9 @@ import store from "./vuex/store";
 
 export const helper = {
   convertSalaries(selectedCurrency) {
-    var convertCurrency = this.getNbrbApiCurrency(selectedCurrency);
+    var apiCurrency = this.getNbrbApiCurrency(selectedCurrency);
 
-    if (convertCurrency === "Нет") {
+    if (apiCurrency === "Нет") {
       store.state.filteredJobs.forEach((job) => {
         if (job.salary) {
           job.salary.max = job.originalSalary.max;
@@ -20,12 +20,20 @@ export const helper = {
           job.salary.currency != selectedCurrency
         ) {
           const jobCurrency = this.getNbrbApiCurrency(job.salary.currency);
-          this.convert(job, jobCurrency, selectedCurrency, convertCurrency);
+          this.convert(job, jobCurrency, selectedCurrency, apiCurrency);
         }
       });
     }
   },
-  convert(job, jobCurrency, selectedCurrency, convertCurrency) {
+  convert(job, jobCurrency, selectedCurrency, apiCurrency) {
+    if (job.originalSalary?.currency === selectedCurrency) {
+      job.salary.min = job.originalSalary.min;
+      job.salary.max = job.originalSalary.max;
+      job.salary.currency = job.originalSalary.currency;
+
+      return;
+    }
+
     const bynData = { Cur_OfficialRate: 1, Cur_Scale: 1 };
 
     const jobCurrencyData =
@@ -35,17 +43,17 @@ export const helper = {
             (x) => x.Cur_Abbreviation === jobCurrency,
           );
 
-    const convertCurrencyData =
-      convertCurrency === "BYN"
+    const apiCurrencyData =
+      apiCurrency === "BYN"
         ? bynData
         : store.getters.getCurrencyData.rates.find(
-            (x) => x.Cur_Abbreviation === convertCurrency,
+            (x) => x.Cur_Abbreviation === apiCurrency,
           );
 
     const jobRate =
       jobCurrencyData.Cur_OfficialRate / jobCurrencyData.Cur_Scale;
     const convertRate =
-      convertCurrencyData.Cur_OfficialRate / convertCurrencyData.Cur_Scale;
+      apiCurrencyData.Cur_OfficialRate / apiCurrencyData.Cur_Scale;
 
     const rate = jobRate / convertRate;
 
@@ -54,26 +62,26 @@ export const helper = {
     job.salary.currency = selectedCurrency;
   },
   getNbrbApiCurrency(currency) {
-    var convertCurrency = "Нет";
+    var apiCurrency = "Нет";
 
     switch (currency) {
       case "$":
-        convertCurrency = "USD";
+        apiCurrency = "USD";
         break;
       case "€":
-        convertCurrency = "EUR";
+        apiCurrency = "EUR";
         break;
       case "₽":
-        convertCurrency = "RUB";
+        apiCurrency = "RUB";
         break;
       case "BYN":
-        convertCurrency = "BYN";
+        apiCurrency = "BYN";
         break;
       default:
-        convertCurrency = "Нет";
+        apiCurrency = "Нет";
     }
 
-    return convertCurrency;
+    return apiCurrency;
   },
   async updateCurrencyRates() {
     const now = new Date();

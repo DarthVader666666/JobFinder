@@ -44,7 +44,7 @@ namespace JobFinders.Bll.Services
                 TransliterationEnum.Cyrillic => Transliteration.LatinToCyrillic(location),
             };
 
-            speciality ??= string.Empty;
+            speciality = speciality is null ? string.Empty : WebUtility.UrlEncode(speciality);
 
             var url = setting.LinkTemplate?.Replace(locationPlaceholder, location).Replace(specialityPlaceholder, speciality);
 
@@ -53,7 +53,7 @@ namespace JobFinders.Bll.Services
                 throw new Exception("JobFinderSetting not found");
             }
 
-            var jobs = (await GetJobsAsync(speciality, location, url, setting))
+            var jobs = (await GetJobsAsync(url, setting))
                 .Where(job => !(job.Experience is null && job.Location is null && job.Company is null && job.TimePosted is null))
                 .Where(job =>
                 {
@@ -78,7 +78,7 @@ namespace JobFinders.Bll.Services
             return jobs;
         }
 
-        private async Task<IEnumerable<Job>> GetJobsAsync(string? speciality, string? location, string? url, JobFinderSetting? setting)
+        private async Task<IEnumerable<Job>> GetJobsAsync(string? url, JobFinderSetting? setting)
         {
             var nodes = Enumerable.Empty<HtmlNode>();
             IEnumerable<Job> jobs;

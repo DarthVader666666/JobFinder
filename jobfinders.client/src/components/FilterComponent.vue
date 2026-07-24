@@ -55,13 +55,15 @@ async function setCurrencyValues(selectedSalary) {
 }
 
 function updateFilteredJobs(value) {
-  if (store.getters.getFilteredJobs?.length) {
+  if (store.getters.getBufferedJobs?.length) {
     if (!value) {
       store.commit("setFilteredJobs", store.getters.getBufferedJobs);
     }
 
     store.dispatch("updateFilteredJobs");
     store.commit("setShowSettingsModal", false);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
 </script>
