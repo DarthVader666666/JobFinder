@@ -61,6 +61,8 @@ const store = createStore({
       date: null,
       rates: null,
     },
+    range: [0.02, 100],
+    rangeMultiplier: 50,
   },
   getters: {
     getPending(state) {
@@ -129,6 +131,18 @@ const store = createStore({
       return state.currencyData.rates.find((x) => x.Cur_Abbreviation === "RUB")
         .Cur_OfficialRate;
     },
+    getRange(state) {
+      return state.range;
+    },
+    getRangeMultiplier(state) {
+      if (state.selectedCurrency === "Нет" || state.selectedCurrency === "₽") {
+        return state.rangeMultiplier * 100;
+      } else if (state.selectedCurrency === "BYN") {
+        return state.rangeMultiplier * 2;
+      } else {
+        return state.rangeMultiplier;
+      }
+    },
   },
   mutations: {
     setPending(state, value) {
@@ -186,6 +200,9 @@ const store = createStore({
       );
       state.currencyData.date = currentDate;
       state.currencyData.rates = value;
+    },
+    setRange(state, value) {
+      state.range = value;
     },
   },
   actions: {
@@ -275,7 +292,7 @@ const store = createStore({
     },
     updateFilteredJobs({ state, commit }) {
       var jobs = [];
-      state.filteredJobs.forEach((x) => jobs.push(x));
+      state.bufferedJobs.forEach((x) => jobs.push(x));
 
       const keys = Object.keys(state.jobsRequest.filter) ?? [];
 
@@ -289,15 +306,23 @@ const store = createStore({
             );
           }
 
-          if (key === "salaryDefined") {
-            jobs = jobs.filter((fj) => fj.salary?.currency);
-          }
-
           if (key === "orderBySalary") {
             jobs = jobs.sort(
               (x, y) => (y.salary?.max ?? 0) - (x.salary?.max ?? 0),
             );
           }
+
+          if (key === "salaryDefined") {
+            jobs = jobs.filter(
+              (fj) =>
+                fj.salary?.currency &&
+                fj.salary.min >=
+                  state.range[0] * this.getters.getRangeMultiplier &&
+                fj.salary.max <=
+                  state.range[1] * this.getters.getRangeMultiplier,
+            );
+          }
+
           commit("setFilteredJobs", jobs);
         }
       });

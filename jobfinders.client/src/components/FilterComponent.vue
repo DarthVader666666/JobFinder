@@ -3,7 +3,7 @@ import { useToast } from "primevue/usetoast";
 import Checkbox from "primevue/checkbox";
 import Select from "primevue/select";
 import Slider from "primevue/slider";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useStore } from "vuex";
 import { helper } from "@/helper";
 
@@ -35,9 +35,14 @@ const orderBySalary = computed({
   set: (value) => store.commit("setOrderBySalary", value),
 });
 
-const selectedCurrency = computed(() => store.getters.getSelectedCurrency);
+const range = computed({
+  get: () => store.getters.getRange,
+  set: (value) => store.commit("setRange", value),
+});
 
-const range = ref([1, 100]);
+const rangeMultiplier = computed(() => store.getters.getRangeMultiplier);
+
+const selectedCurrency = computed(() => store.getters.getSelectedCurrency);
 
 async function setCurrencyValues(selectedSalary) {
   const now = new Date();
@@ -56,7 +61,7 @@ async function setCurrencyValues(selectedSalary) {
   }
 
   helper.convertSalaries(selectedSalary);
-  store.commit("setOrderBySalary", false);
+  updateFilteredJobs(orderBySalary.value);
   store.commit("setShowSettingsModal", false);
 }
 
@@ -113,12 +118,26 @@ function updateFilteredJobs(value) {
   <hr />
   <div class="range">
     <div class="min-max">
-      <span>{{ range[0] * 100 }}</span>
-      <span>{{ selectedCurrency === "Нет" ? "" : selectedCurrency }}</span>
-      <span>{{ range[1] * 100 }}</span>
+      <span :style="{ opacity: !salaryDefined ? 0.4 : 1 }"
+        >{{ range[0] * rangeMultiplier
+        }}<span>{{
+          selectedCurrency === "Нет" ? "" : " " + selectedCurrency
+        }}</span></span
+      >
+      <span :style="{ opacity: !salaryDefined ? 0.4 : 1 }"
+        >{{ range[1] * rangeMultiplier
+        }}<span>{{
+          selectedCurrency === "Нет" ? "" : " " + selectedCurrency
+        }}</span></span
+      >
     </div>
 
-    <Slider v-model="range" range :disabled="!salaryDefined"></Slider>
+    <Slider
+      v-model="range"
+      range
+      :disabled="!salaryDefined"
+      @slideend="() => updateFilteredJobs(salaryDefined)"
+    ></Slider>
   </div>
 </template>
 
@@ -127,12 +146,13 @@ function updateFilteredJobs(value) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 25px;
-  padding: 5px 0 5px 0;
+  padding: 5px;
 
   div {
     display: flex;
-    flex-wrap: nowrap;
     align-items: center;
+    justify-content: space-between;
+    max-width: 120px;
     gap: 5px;
   }
 }
