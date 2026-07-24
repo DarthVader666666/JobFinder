@@ -110,7 +110,10 @@ function updateFilteredJobs(value, showModal = false) {
       <Checkbox
         v-model="salaryDefined"
         @change="
-          updateFilteredJobs(salaryDefined, store.getters.getShowSettingsModal)
+          updateFilteredJobs(
+            salaryDefined,
+            store.getters.getShowSettingsModal && salaryDefined,
+          )
         "
         binary
       ></Checkbox>
