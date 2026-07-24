@@ -65,15 +65,14 @@ async function setCurrencyValues(selectedSalary) {
   store.commit("setShowSettingsModal", false);
 }
 
-function updateFilteredJobs(value) {
+function updateFilteredJobs(value, showModal = false) {
   if (store.getters.getBufferedJobs?.length) {
     if (!value) {
       store.commit("setFilteredJobs", store.getters.getBufferedJobs);
     }
 
     store.dispatch("updateFilteredJobs");
-    store.commit("setShowSettingsModal", false);
-
+    store.commit("setShowSettingsModal", showModal);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
@@ -110,7 +109,9 @@ function updateFilteredJobs(value) {
       <span>з/п указана</span>
       <Checkbox
         v-model="salaryDefined"
-        @change="updateFilteredJobs(salaryDefined)"
+        @change="
+          updateFilteredJobs(salaryDefined, store.getters.getShowSettingsModal)
+        "
         binary
       ></Checkbox>
     </div>

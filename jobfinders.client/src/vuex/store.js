@@ -135,9 +135,12 @@ const store = createStore({
       return state.range;
     },
     getRangeMultiplier(state) {
-      if (state.selectedCurrency === "Нет" || state.selectedCurrency === "₽") {
+      if (state.selectedCurrency === "₽") {
         return state.rangeMultiplier * 100;
-      } else if (state.selectedCurrency === "BYN") {
+      } else if (
+        state.selectedCurrency === "Нет" ||
+        state.selectedCurrency === "BYN"
+      ) {
         return state.rangeMultiplier * 2;
       } else {
         return state.rangeMultiplier;
