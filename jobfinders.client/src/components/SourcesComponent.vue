@@ -10,6 +10,14 @@ const allFindersChecked = computed(() => store.getters.getAllFindersChecked);
 
 function checkFinder(finder, checked) {
   store.commit("checkFinder", { source: finder.source, active: checked });
+  store.dispatch("updateFilteredJobs");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function toggleAllSources(value) {
+  store.commit("setAllFindersChecked", value);
+  store.dispatch("updateFilteredJobs");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 </script>
 
@@ -18,7 +26,7 @@ function checkFinder(finder, checked) {
     <div class="sources-toggle">
       <ToggleSwitch
         :modelValue="allFindersChecked"
-        @update:modelValue="store.commit('setAllFindersChecked', $event)"
+        @update:modelValue="toggleAllSources($event)"
       />
       <span>Все</span>
     </div>

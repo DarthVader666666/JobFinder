@@ -44,9 +44,9 @@ namespace JobFinders.Bll.Services
                 TransliterationEnum.Cyrillic => Transliteration.LatinToCyrillic(location),
             };
 
-            speciality = speciality is null ? string.Empty : WebUtility.UrlEncode(speciality);
+            var urlCompatible = speciality is null ? string.Empty : WebUtility.UrlEncode(speciality);
 
-            var url = setting.LinkTemplate?.Replace(locationPlaceholder, location).Replace(specialityPlaceholder, speciality);
+            var url = setting.LinkTemplate?.Replace(locationPlaceholder, location).Replace(specialityPlaceholder, urlCompatible);
 
             if (setting == null)
             {
@@ -115,6 +115,7 @@ namespace JobFinders.Bll.Services
 
                     var job = new Job
                     {
+                        Source = setting?.Source,
                         Link = setting.AddBaseUrlToHrefPrefix ? setting.BaseUrl + href : href,
                         Title = GetTitle(anchor.InnerText),
                         OriginalSalary = GetSalary(descendants, setting),

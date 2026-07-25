@@ -319,7 +319,14 @@ const store = createStore({
     },
     updateFilteredJobs({ state, commit }) {
       var jobs = [];
-      state.bufferedJobs.forEach((x) => jobs.push(x));
+      state.bufferedJobs
+        .filter((j) =>
+          state.finders
+            .filter((f) => f.active)
+            .map((f) => f.source)
+            .includes(j.source),
+        )
+        .forEach((j) => jobs.push(j));
 
       const keys = Object.keys(state.jobsRequest.filter) ?? [];
 

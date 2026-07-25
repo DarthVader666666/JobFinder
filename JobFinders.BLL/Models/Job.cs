@@ -8,6 +8,7 @@
         public string? Company { get; set; }
         public string? Experience { get; set; }
         public string? TimePosted { get; set; }
+        public string? Source { get; set; }
         public Salary? Salary { get; set; }
         public Salary? OriginalSalary { get; set; }
         public Logo? Logo { get; set;  }
