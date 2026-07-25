@@ -28,7 +28,9 @@ async function findJobs() {
     <form class="serch-bar" v-on:submit.prevent="findJobs">
       <InputText v-model="store.state.jobsRequest.speciality" type="text" placeholder="Специальность / должность / компания" required="true"/>
       <InputText v-model="store.state.jobsRequest.location" type="text" placeholder="Город / локация"/>
-      <Button class="find-btn" type="submit">Найти</button>
+      <div style="text-align: end;">
+        <Button class="find-btn" type="submit">Найти</button>
+      </div>
     </form>
 </template>
 

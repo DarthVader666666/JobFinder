@@ -4,45 +4,49 @@ import SourcesComponent from "../SourcesComponent.vue";
 import FilterComponent from "../FilterComponent.vue";
 import Button from "primevue/button";
 import { useStore } from "vuex";
-import { computed } from "vue";
-import { useToast } from "primevue/usetoast";
 
 const store = useStore();
-const toast = useToast();
-const jobs = computed(() => store.getters.getFilteredJobs);
 
-async function implementFilter() {
+async function closeFilter() {
   store.commit("setShowSettingsModal", false);
-
-  const response = await store.dispatch("downloadJobs");
-
-  if (response.status === 500) {
-    store.dispatch("showError", {
-      toast: toast,
-      summary: "showError",
-      detail: `Ошибка сервера: ${response.data.errorText}`,
-    });
-  } else if (response.status === 200) {
-    store.dispatch("showSuccess", {
-      toast: toast,
-      summary: "OK",
-      detail: `Найдено совпадений: ${jobs.value.length}`,
-    });
-  }
 }
 </script>
 
 <template>
-  <Dialog style="width: 90%" :draggable="false" modal>
-    <template #header>
-      <span style="width: 90%"></span>
-    </template>
-    <SourcesComponent></SourcesComponent>
-    <hr />
-    <FilterComponent></FilterComponent>
-    <hr />
-    <Button @click="implementFilter">Применить</Button>
+  <Dialog
+    style="width: 90%; padding: 20px 0 20px 0"
+    :draggable="false"
+    modal
+    :showHeader="false"
+    class="filter-dialog"
+  >
+    <div class="settings">
+      <SourcesComponent />
+      <hr />
+      <FilterComponent />
+    </div>
+
+    <Button
+      @click="closeFilter"
+      class="ok-button"
+      style="height: 65px; width: 65px"
+      rounded
+    >
+      OK
+    </Button>
   </Dialog>
 </template>
 
-<style></style>
+<style scoped>
+.filter-dialog {
+  position: relative;
+}
+
+.filter-dialog .ok-button {
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.3);
+}
+</style>

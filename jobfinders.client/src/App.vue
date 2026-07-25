@@ -9,7 +9,7 @@ import SettingsModal from "./components/Modals/SettingsModal.vue";
 import SourcesComponent from "./components/SourcesComponent.vue";
 import FilterComponent from "./components/FilterComponent.vue";
 import JobItem from "./components/JobItem.vue";
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useStore } from "vuex";
 import { helper } from "./helper.js";
 
@@ -21,14 +21,6 @@ const usdRate = ref(null);
 const eurRate = ref(null);
 const rubRate = ref(null);
 
-onMounted(async () => {
-  await helper.updateCurrencyRates();
-  usdRate.value = store.getters.getUsdRate;
-  eurRate.value = store.getters.getEurRate;
-  rubRate.value = store.getters.getRubRate;
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
 const showSearchBarModal = computed({
   get: () => store.getters.getShowSearchBarModal,
   set: (value) => store.commit("setShowSearchBarModal", value),
@@ -38,6 +30,33 @@ const showSettingsModal = computed({
   get: () => store.getters.getShowSettingsModal,
   set: (value) => store.commit("setShowSettingsModal", value),
 });
+
+onMounted(async () => {
+  window.addEventListener("resize", updateIsMobile);
+
+  await helper.updateCurrencyRates();
+
+  usdRate.value = store.getters.getUsdRate;
+  eurRate.value = store.getters.getEurRate;
+  rubRate.value = store.getters.getRubRate;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateIsMobile);
+});
+
+function updateIsMobile() {
+  if (window.innerWidth > 500) {
+    if (showSearchBarModal.value) {
+      store.commit("setShowSearchBarModal", false);
+    }
+
+    if (showSettingsModal.value) {
+      store.commit("setShowSettingsModal", false);
+    }
+  }
+}
 </script>
 
 <template>

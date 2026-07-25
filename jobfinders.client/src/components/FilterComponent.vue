@@ -62,17 +62,15 @@ async function setCurrencyValues(selectedSalary) {
 
   helper.convertSalaries(selectedSalary);
   updateFilteredJobs(orderBySalary.value);
-  store.commit("setShowSettingsModal", false);
 }
 
-function updateFilteredJobs(value, showModal = false) {
+function updateFilteredJobs(value) {
   if (store.getters.getBufferedJobs?.length) {
     if (!value) {
       store.commit("setFilteredJobs", store.getters.getBufferedJobs);
     }
 
     store.dispatch("updateFilteredJobs");
-    store.commit("setShowSettingsModal", showModal);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
@@ -105,7 +103,10 @@ function updateFilteredJobs(value, showModal = false) {
         @update:modelValue="setCurrencyValues($event)"
       />
     </div>
-    <div>
+  </div>
+  <hr />
+  <div class="range">
+    <div style="display: flex; gap: 10px">
       <span>з/п указана</span>
       <Checkbox
         v-model="salaryDefined"
@@ -118,9 +119,6 @@ function updateFilteredJobs(value, showModal = false) {
         binary
       ></Checkbox>
     </div>
-  </div>
-  <hr />
-  <div class="range">
     <div class="min-max">
       <span :style="{ opacity: !salaryDefined ? 0.4 : 1 }"
         >{{ range[0] * rangeMultiplier
