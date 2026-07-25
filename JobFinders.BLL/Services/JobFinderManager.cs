@@ -50,7 +50,7 @@ namespace JobFinders.Bll.Services
 
             if (setting == null)
             {
-                throw new Exception("JobFinderSetting not found");
+                throw new Exception($"{nameof(JobFinderSetting)} not found");
             }
 
             var jobs = (await GetJobsAsync(url, setting))

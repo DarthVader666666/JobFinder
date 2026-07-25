@@ -49,12 +49,19 @@ const store = createStore({
         exactTitle: false,
         salaryDefined: false,
         orderBySalary: false,
+        salary: {
+          min: null,
+          max: null,
+          currency: null,
+          rates: [],
+        },
       },
     },
     bufferedJobs: [],
     filteredJobs: [],
     allFindersChecked: true,
     currencies: ["$", "BYN", "€", "₽", "Нет"],
+    apiCurrencies: ["USD", "EUR", "RUB"],
     oldCurrency: "Нет",
     selectedCurrency: "Нет",
     currencyData: {
@@ -101,7 +108,7 @@ const store = createStore({
     getShowSettingsModal(state) {
       return state.showSettingsModal;
     },
-    getJobsRequest(state) {
+    getJobsRequest(state, getters) {
       return {
         speciality: state.jobsRequest.speciality.trim(),
         location: state.jobsRequest.location.trim(),
@@ -110,6 +117,17 @@ const store = createStore({
           exactTitle: state.jobsRequest.filter.exactTitle,
           salaryDefined: state.jobsRequest.filter.salaryDefined,
           orderBySalary: state.jobsRequest.filter.orderBySalary,
+          salary: {
+            min: state.range[0] * getters.getRangeMultiplier,
+            max: state.range[1] * getters.getRangeMultiplier,
+            currency: state.selectedCurrency,
+          },
+          currencyRates:
+            getters.getCurrencyData.rates?.map((x) => ({
+              Abbreviation: x.Cur_Abbreviation,
+              Rate: x.Cur_OfficialRate,
+              Scale: x.Cur_Scale,
+            })) ?? [],
         },
       };
     },
@@ -202,7 +220,14 @@ const store = createStore({
         now.getDate(),
       );
       state.currencyData.date = currentDate;
-      state.currencyData.rates = value;
+      state.currencyData.rates = value.filter((x) =>
+        state.apiCurrencies.includes(x.Cur_Abbreviation),
+      );
+      state.currencyData.rates.push({
+        Cur_Abbreviation: "BYN",
+        Cur_OfficialRate: 1,
+        Cur_Scale: 1,
+      });
     },
     setRange(state, value) {
       state.range = value;
@@ -233,10 +258,10 @@ const store = createStore({
           }
         });
     },
-    async downloadJobs({ state, commit }) {
+    async downloadJobs({ state, commit, getters }) {
       commit("setPending", true);
       return await axios
-        .post(`${state.serverUrl}/jobs/getjobs`, this.getters.getJobsRequest, {
+        .post(`${state.serverUrl}/jobs/getjobs`, getters.getJobsRequest, {
           headers: { "Content-Type": "application/json" },
         })
         .then(async (response) => {
@@ -253,7 +278,6 @@ const store = createStore({
           }
         })
         .finally(() => {
-          commit("setSelectedCurrency", "Нет");
           commit("setPending", false);
         });
     },
