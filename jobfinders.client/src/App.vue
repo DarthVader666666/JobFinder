@@ -115,7 +115,7 @@ function scrollUp() {
 .header {
   display: flex;
   justify-content: space-between;
-  padding: 3px 3px 0 3px;
+  padding: 3px;
 }
 
 .title {
@@ -125,6 +125,7 @@ function scrollUp() {
   color: rgb(16, 185, 129);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
   width: 35%;
+  min-width: 160px;
 }
 
 .rates {
