@@ -1,4 +1,4 @@
-﻿using JobFinders.Bll.Models;
+﻿using JobFinders.BLL.Models;
 
 namespace JobFinders.Server.Models
 {
@@ -16,12 +16,5 @@ namespace JobFinders.Server.Models
         public bool OrderBySalary { get; set; } = false;
         public Salary? Salary { get; set; }
         public ICollection<CurrencyData>? CurrencyRates { get; set; } = [];
-    }
-
-    public class CurrencyData
-    {
-        public string? Abbreviation { get; set; }
-        public float? Rate { get; set; }
-        public int? Scale { get; set; }
     }
 }

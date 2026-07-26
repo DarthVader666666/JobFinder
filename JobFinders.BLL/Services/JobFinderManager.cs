@@ -3,13 +3,12 @@ using System.Text.RegularExpressions;
 
 using HtmlAgilityPack;
 
-using JobFinders.Bll.Enums;
-using JobFinders.Bll.Models;
+using JobFinders.BLL.Enums;
 using JobFinders.BLL.Models;
 
 using NickBuhro.Translit;
 
-namespace JobFinders.Bll.Services
+namespace JobFinders.BLL.Services
 {
     public class JobFinderManager
     {
@@ -22,6 +21,8 @@ namespace JobFinders.Bll.Services
         private readonly string[] belRub = { "Br", "BYN", "руб", "" };
         private readonly string[] rusRub = { "₽" };
 
+        private readonly Dictionary<string, string> currenciesApi = new() { ["$"] = "USD", ["€"] = "EUR", ["₽"] = "RUB", ["BYN"] = "BYN" };
+
         private readonly string[] currencies;
 
         public JobFinderManager()
@@ -29,24 +30,19 @@ namespace JobFinders.Bll.Services
             currencies = usd.Concat(euro).Concat(belRub).Concat(rusRub).ToArray();
         }
 
-        public async Task<IEnumerable<Job>> ProcessAsync(string? speciality, string? location, JobFinderSetting? setting, JobsFilter? filter)
+        public async Task<IEnumerable<Job?>> ProcessAsync(JobFinderSetting? setting, JobsFilter? filter)
         {
             var transliteration = Enum.Parse<TransliterationEnum>(setting.LocationTransliteration);
 
-            if (string.IsNullOrEmpty(location) && setting.MandatoryLocation)
-            { 
-                location = "minsk";
-            }
-
-            location = transliteration switch
+            filter?.Location = transliteration switch
             {
-                TransliterationEnum.Latin => Transliteration.CyrillicToLatin(location),
-                TransliterationEnum.Cyrillic => Transliteration.LatinToCyrillic(location),
+                TransliterationEnum.Latin => Transliteration.CyrillicToLatin(filter?.Location),
+                TransliterationEnum.Cyrillic => Transliteration.LatinToCyrillic(filter?.Location),
             };
 
-            var urlCompatible = speciality is null ? string.Empty : WebUtility.UrlEncode(speciality);
+            var specialityUrlCompatible = filter?.Speciality is null ? string.Empty : WebUtility.UrlEncode(filter?.Speciality);
 
-            var url = setting.LinkTemplate?.Replace(locationPlaceholder, location).Replace(specialityPlaceholder, urlCompatible);
+            var url = setting.LinkTemplate?.Replace(locationPlaceholder, filter?.Location).Replace(specialityPlaceholder, specialityUrlCompatible);
 
             if (setting == null)
             {
@@ -59,7 +55,8 @@ namespace JobFinders.Bll.Services
                 {
                     if (filter?.ExactTitle ?? false)
                     {
-                        return speciality.Split([' ', '-']).Any(s => job.Title?.Contains(s.Trim(), StringComparison.InvariantCultureIgnoreCase) ?? false);
+                        var specialityParts = filter?.Speciality?.Split([' ', '-']) ?? [];
+                        return specialityParts.Any(s => job.Title?.Contains(s.Trim(), StringComparison.InvariantCultureIgnoreCase) ?? false);
                     }
 
                     return true;
@@ -68,14 +65,16 @@ namespace JobFinders.Bll.Services
                 {
                     if (filter?.SalaryDefined ?? false)
                     {
-                        var salary = job?.Salary;
-                        return !string.IsNullOrEmpty(salary?.Currency);
+                        return !string.IsNullOrEmpty(job?.Salary?.Currency)
+                            && job?.Salary.Min >= filter?.Salary?.Min
+                            && job?.Salary.Max <= filter.Salary.Max;
                     }
 
                     return true;
-                });
+                })
+                .Select(job => filter?.Salary?.Currency != "Нет" ? Convert(job, filter) : job);
 
-            return jobs;
+            return jobs ?? [];
         }
 
         private async Task<IEnumerable<Job>> GetJobsAsync(string? url, JobFinderSetting? setting)
@@ -264,6 +263,28 @@ namespace JobFinders.Bll.Services
                 .Contains(cssAttribute?.Value ?? ""))?.InnerText;
 
             return ConvertSpecialSymbols(innerText);
+        }
+
+        private Job? Convert(Job? job, JobsFilter? filter)
+        {
+            if (job?.Salary is null || job.Salary?.Currency == filter?.Salary?.Currency)
+            {
+                return job;
+            }
+
+            var jobCurrencyData = filter?.CurrencyRates?.FirstOrDefault(rate => rate.Abbreviation == currenciesApi[job?.Salary?.Currency]);
+            var apiCurrencyData = filter?.CurrencyRates?.FirstOrDefault(rate => rate.Abbreviation == currenciesApi[filter?.Salary?.Currency]);
+
+            var jobRate = jobCurrencyData?.Rate / jobCurrencyData?.Scale;
+            var convertRate = apiCurrencyData?.Rate / apiCurrencyData?.Scale;
+
+            var rate = jobRate / convertRate;
+
+            job?.Salary?.Min = (int?)Math.Round((float)(job.Salary!.Min * rate));
+            job?.Salary?.Max = (int?)Math.Round((float)(job.Salary!.Max * rate));
+            job?.Salary?.Currency = filter?.Salary?.Currency;
+
+            return job;
         }
     }
 }

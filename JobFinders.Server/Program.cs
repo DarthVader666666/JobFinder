@@ -1,5 +1,5 @@
-using JobFinders.Bll.Models;
-using JobFinders.Bll.Services;
+using JobFinders.BLL.Models;
+using JobFinders.BLL.Services;
 using JobFinders.Server.Middleware;
 
 using Microsoft.AspNetCore.Cors.Infrastructure;

@@ -9,6 +9,7 @@ import SettingsModal from "./components/Modals/SettingsModal.vue";
 import SourcesComponent from "./components/SourcesComponent.vue";
 import FilterComponent from "./components/FilterComponent.vue";
 import JobItem from "./components/JobItem.vue";
+import InputText from "primevue/inputtext";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useStore } from "vuex";
 import { helper } from "./helper.js";
@@ -57,20 +58,27 @@ function updateIsMobile() {
     }
   }
 }
+
+function scrollUp() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 </script>
 
 <template>
   <Toast style="width: 320px" />
   <div class="header">
     <div class="title">
-      <span style="font-size: 2rem">Find Your Job</span>
-      <span>Поиск работы в РБ</span>
+      <span style="font-size: 1.6rem">Find Your Job</span>
+      <span style="font-size: 0.9rem">Поиск работы в РБ</span>
     </div>
     <div class="rates">
       <span>USD: {{ usdRate }}</span>
       <span>EUR: {{ eurRate }}</span>
       <span>RUB: {{ Math.round(rubRate * 100) / 10000 }}</span>
     </div>
+  </div>
+  <div v-if="false" class="search-job">
+    <InputText placeholder="Поиск по списку"></InputText>
   </div>
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
@@ -90,6 +98,7 @@ function updateIsMobile() {
     </div>
   </div>
   <div class="buttons" :class="{ mobileVisible: isJobsEmpty }">
+    <Button rounded @click="scrollUp"><i class="pi pi-arrow-up"></i></Button>
     <Button rounded @click="store.commit('setShowSearchBarModal', true)"
       ><i class="pi pi-search"></i
     ></Button>
@@ -106,16 +115,16 @@ function updateIsMobile() {
 .header {
   display: flex;
   justify-content: space-between;
+  padding: 3px 3px 0 3px;
 }
 
 .title {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  padding-left: 20px;
-  padding-bottom: 10px;
   color: rgb(16, 185, 129);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  width: 35%;
 }
 
 .rates {
@@ -125,11 +134,25 @@ function updateIsMobile() {
   color: rgb(230, 230, 230);
 }
 
+.search-job {
+  position: sticky;
+  top: 10px;
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  justify-content: center;
+
+  input {
+    width: 300px;
+    box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.3);
+  }
+}
+
 .main {
-  padding: 20px;
+  padding: 10px 20px 20px 20px;
   display: flex;
   flex-direction: row;
-  gap: 20px;
+  gap: 40px;
 }
 
 .settings {
@@ -138,6 +161,7 @@ function updateIsMobile() {
   align-self: flex-start;
   min-width: 180px;
   width: 25%;
+  min-width: 290px;
 }
 
 .job-list {
@@ -172,7 +196,7 @@ function updateIsMobile() {
   border-radius: 10px;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 600px) {
   .main {
     padding: 0px;
   }

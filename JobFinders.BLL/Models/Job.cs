@@ -1,4 +1,4 @@
-﻿namespace JobFinders.Bll.Models
+﻿namespace JobFinders.BLL.Models
 {
     public class Job
     {

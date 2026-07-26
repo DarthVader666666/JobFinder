@@ -1,4 +1,4 @@
-﻿using JobFinders.Bll.Models;
+﻿using JobFinders.BLL.Models;
 
 namespace JobFinders.Server.Models
 {

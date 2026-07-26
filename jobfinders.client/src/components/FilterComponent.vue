@@ -96,7 +96,7 @@ function updateFilteredJobs(value) {
       ></Checkbox>
     </div>
     <div class="currency">
-      <span>Конвертировать</span>
+      <span>Конверсия</span>
       <Select
         v-model="currency"
         :options="store.state.currencies"
@@ -107,7 +107,7 @@ function updateFilteredJobs(value) {
   <hr />
   <div class="range">
     <div style="display: flex; gap: 10px">
-      <span>з/п указана</span>
+      <span>уровень з/п</span>
       <Checkbox
         v-model="salaryDefined"
         @change="
@@ -147,13 +147,15 @@ function updateFilteredJobs(value) {
 .filter {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 25px;
+  gap: 15px;
   padding: 5px;
+  font-size: 0.9rem;
 
   div {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
     max-width: 120px;
     gap: 5px;
   }
@@ -162,8 +164,14 @@ function updateFilteredJobs(value) {
 .currency {
   display: flex;
   flex-direction: column;
+
   .p-select {
-    width: 110px;
+    width: 90px;
+  }
+
+  .p-select :deep(span) {
+    padding: 5px 0 5px 5px;
+    font-size: 0.9rem;
   }
 }
 
@@ -172,7 +180,6 @@ function updateFilteredJobs(value) {
   flex-direction: column;
   align-items: center;
   gap: 15px;
-  padding: 10px;
 
   .p-slider {
     width: 90%;
@@ -182,6 +189,7 @@ function updateFilteredJobs(value) {
   .min-max {
     display: flex;
     justify-content: space-between;
+    font-size: 0.9rem;
     width: 90%;
   }
 }

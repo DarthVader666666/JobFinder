@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-using JobFinders.Bll.Models;
-using JobFinders.Bll.Services;
+using JobFinders.BLL.Services;
 using JobFinders.BLL.Models;
 using JobFinders.Server.Models;
 
@@ -16,7 +15,6 @@ namespace JobFinders.Server.Controllers
     {
         private readonly JobFinderManager _jobFinderManager;
         private readonly List<JobFinderSetting> _jobFinderSettings;
-        private readonly Dictionary<string, string> currencies = new() { ["$"] = "USD", ["€"] = "EUR", ["₽"] = "RUB", ["BYN"] = "BYN" };
 
         public JobsController(JobFinderManager jobFinderManager, IOptions<List<JobFinderSetting>> jobFinderSettings)
         {
@@ -39,11 +37,20 @@ namespace JobFinders.Server.Controllers
                 var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
                 var filter = new JobsFilter 
                 { 
+                    Speciality = request?.Speciality,
+                    Location = request?.Location,
                     ExactTitle = request?.Filter?.ExactTitle ?? false,
                     SalaryDefined = request?.Filter?.SalaryDefined ?? false,
+                    Salary = new() 
+                    {
+                        Currency = request?.Filter?.Salary?.Currency,
+                        Min = request?.Filter?.Salary?.Min,
+                        Max = request?.Filter?.Salary?.Max
+                    },
+                    CurrencyRates = request?.Filter?.CurrencyRates
                 };
 
-                var jobs = await _jobFinderManager.ProcessAsync(request?.Speciality ?? "", request?.Location ?? "", setting, filter);
+                var jobs = await _jobFinderManager.ProcessAsync(setting, filter);
 
                 Parallel.ForEach(jobs, (job) =>
                 {
@@ -55,31 +62,7 @@ namespace JobFinders.Server.Controllers
                 ? responseList.OrderByDescending(x => x.Salary?.Max).AsEnumerable()
                 : responseList;
 
-            response = request?.Filter?.Salary?.Currency != "Нет"
-                ? response.Select(job => Convert(job, request?.Filter)) : response;
-
             return Ok(response);
-        }
-
-        private Job? Convert(Job? job, Filter? filter)
-        {
-            if (job?.Salary is null || job.Salary?.Currency == filter?.Salary?.Currency) {
-                return job;
-            }
-
-            var jobCurrencyData = filter?.CurrencyRates?.FirstOrDefault(rate => rate.Abbreviation == currencies[job?.Salary?.Currency]);
-            var apiCurrencyData = filter?.CurrencyRates?.FirstOrDefault(rate => rate.Abbreviation == currencies[filter?.Salary?.Currency]);
-
-            var jobRate = jobCurrencyData?.Rate / jobCurrencyData?.Scale;
-            var convertRate = apiCurrencyData?.Rate / apiCurrencyData?.Scale;
-
-            var rate = jobRate / convertRate;
-
-            job?.Salary?.Min = (int?)(job.Salary.Min * rate);
-            job?.Salary?.Max = (int?)(job.Salary.Max * rate);
-            job?.Salary?.Currency = filter?.Salary?.Currency;
-
-            return job;
         }
     }
 }

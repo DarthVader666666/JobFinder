@@ -1,4 +1,4 @@
-﻿namespace JobFinders.Bll.Enums
+﻿namespace JobFinders.BLL.Enums
 {
     public enum JobSourcesEnum
     {
