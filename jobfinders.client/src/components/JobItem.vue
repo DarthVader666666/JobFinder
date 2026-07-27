@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { useStore } from "vuex";
+import Button from "primevue/button";
 
 const store = useStore();
 const finders = computed(() => store.getters.getFinders);
@@ -11,6 +12,8 @@ const props = defineProps({
     default: null,
   },
 });
+
+const emit = defineEmits(["saveJob"]);
 
 function getSalary(salary) {
   if (salary) {
@@ -48,14 +51,26 @@ function getSalary(salary) {
     </div>
     <div class="job-right">
       <span class="salary">{{ getSalary(props.job.salary) }}</span>
-      <a class="job-logo" :href="props.job.logo?.url ?? ''" target="_blank">
-        <img
-          v-if="props.job.logo?.source"
-          v-bind:src="
-            finders.find((x) => x.source === props.job.logo?.source).img
-          "
-        />
-      </a>
+      <div>
+        <div style="padding-bottom: 5px; text-align: end">
+          <Button
+            icon="pi pi-bookmark"
+            rounded
+            raised
+            :severity="props.job.saved ? 'success' : 'secondary'"
+            title="сохранить"
+            @click="emit('saveJob')"
+          ></Button>
+        </div>
+        <a class="job-logo" :href="props.job.logo?.url ?? ''" target="_blank">
+          <img
+            v-if="props.job.logo?.source"
+            v-bind:src="
+              finders.find((x) => x.source === props.job.logo?.source).img
+            "
+          />
+        </a>
+      </div>
     </div>
   </div>
 </template>

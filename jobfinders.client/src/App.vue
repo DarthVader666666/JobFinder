@@ -13,7 +13,9 @@ import InputText from "primevue/inputtext";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useStore } from "vuex";
 import { helper } from "./helper.js";
+import { useToast } from "primevue/usetoast";
 
+const toast = useToast();
 const store = useStore();
 const isPending = computed(() => store.getters.getPending);
 const jobs = computed(() => store.getters.getFilteredJobs);
@@ -59,6 +61,19 @@ function updateIsMobile() {
   }
 }
 
+function saveJob(job) {
+  console.log(job);
+  job.saved = !job.saved;
+
+  if (job.saved) {
+    store.dispatch("showSuccess", {
+      toast: toast,
+      summary: job.title,
+      detail: "Вакансия сохранена",
+    });
+  }
+}
+
 function scrollUp() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -93,7 +108,7 @@ function scrollUp() {
     </div>
     <div class="job-list" :class="{ mobileVisible: isJobsEmpty }">
       <div v-for="(job, index) in jobs" :key="index">
-        <JobItem :job="job"></JobItem>
+        <JobItem :job="job" @saveJob="saveJob(job)"></JobItem>
       </div>
     </div>
   </div>
