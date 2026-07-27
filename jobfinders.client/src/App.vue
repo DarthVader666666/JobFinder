@@ -20,9 +20,11 @@ const store = useStore();
 const isPending = computed(() => store.getters.getPending);
 const jobs = computed(() => store.getters.getFilteredJobs);
 const isJobsEmpty = computed(() => jobs.value.length === 0);
+const savedJobs = computed(() => store.getters.getSavedJobs);
 const usdRate = ref(null);
 const eurRate = ref(null);
 const rubRate = ref(null);
+const savedJobsShown = ref(false);
 
 const showSearchBarModal = computed({
   get: () => store.getters.getShowSearchBarModal,
@@ -42,7 +44,7 @@ onMounted(async () => {
   usdRate.value = store.getters.getUsdRate;
   eurRate.value = store.getters.getEurRate;
   rubRate.value = store.getters.getRubRate;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  scrollUp();
 });
 
 onBeforeUnmount(() => {
@@ -62,16 +64,30 @@ function updateIsMobile() {
 }
 
 function saveJob(job) {
-  console.log(job);
   job.saved = !job.saved;
 
   if (job.saved) {
+    store.dispatch("addSavedJob", job);
     store.dispatch("showSuccess", {
       toast: toast,
       summary: job.title,
       detail: "Вакансия сохранена",
     });
+  } else {
+    store.dispatch("removeSavedJob", job);
   }
+}
+
+function showSavedJobs() {
+  savedJobsShown.value = !savedJobsShown.value;
+
+  if (savedJobsShown.value) {
+    store.commit("setFilteredJobs", savedJobs.value);
+  } else {
+    store.dispatch("updateFilteredJobs");
+  }
+
+  scrollUp();
 }
 
 function scrollUp() {
@@ -86,10 +102,24 @@ function scrollUp() {
       <span style="font-size: 1.6rem">Find Your Job</span>
       <span style="font-size: 0.9rem">Поиск работы в РБ</span>
     </div>
-    <div class="rates">
-      <span>USD: {{ usdRate }}</span>
-      <span>EUR: {{ eurRate }}</span>
-      <span>RUB: {{ Math.round(rubRate * 100) / 10000 }}</span>
+    <div style="display: flex; align-items: center">
+      <Button
+        :style="
+          savedJobsShown
+            ? { background: 'white', opacity: 0.9 }
+            : { background: 'lightgray', opacity: 0.6 }
+        "
+        rounded
+        severity="secondary"
+        icon="pi pi-bookmark"
+        :label="`${savedJobs.length || ''}`"
+        @click="showSavedJobs"
+      ></Button>
+      <div class="rates">
+        <span>USD: {{ usdRate }}</span>
+        <span>EUR: {{ eurRate }}</span>
+        <span>RUB: {{ Math.round(rubRate * 100) / 10000 }}</span>
+      </div>
     </div>
   </div>
   <div v-if="false" class="search-job">
@@ -191,7 +221,7 @@ function scrollUp() {
   display: none;
   position: fixed;
   bottom: 30px;
-  right: 30px;
+  right: 50px;
   opacity: 0.7;
   z-index: 1;
 
@@ -222,6 +252,10 @@ function scrollUp() {
   }
 
   .settings {
+    display: none;
+  }
+
+  .rates {
     display: none;
   }
 

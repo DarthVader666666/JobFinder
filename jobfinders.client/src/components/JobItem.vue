@@ -56,8 +56,8 @@ function getSalary(salary) {
           <Button
             icon="pi pi-bookmark"
             rounded
-            raised
-            :severity="props.job.saved ? 'success' : 'secondary'"
+            :outlined="props.job.saved ? false : true"
+            :severity="props.job.saved ? 'info' : 'secondary'"
             title="сохранить"
             @click="emit('saveJob')"
           ></Button>

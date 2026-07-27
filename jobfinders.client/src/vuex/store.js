@@ -59,6 +59,7 @@ const store = createStore({
     },
     bufferedJobs: [],
     filteredJobs: [],
+    savedJobs: [],
     allFindersChecked: true,
     currencies: ["$", "BYN", "€", "₽", "Нет"],
     apiCurrencies: ["USD", "EUR", "RUB"],
@@ -98,6 +99,10 @@ const store = createStore({
     },
     getFilteredJobs(state) {
       return state.filteredJobs;
+    },
+    getSavedJobs(state) {
+      state.savedJobs = JSON.parse(sessionStorage.getItem("savedJobs") || "[]");
+      return state.savedJobs;
     },
     getAllFindersChecked(state) {
       return state.finders.every((x) => x.active);
@@ -191,10 +196,30 @@ const store = createStore({
     setBufferedJobs(state, value) {
       state.bufferedJobs = [];
       value.forEach((x) => state.bufferedJobs.push(x));
+
+      const links = this.getters.getSavedJobs.map((sj) => sj.link);
+
+      state.bufferedJobs.forEach((bj) => {
+        if (links.includes(bj.link)) {
+          bj.saved = true;
+        }
+      });
     },
     setFilteredJobs(state, value) {
       state.filteredJobs = [];
       value.forEach((x) => state.filteredJobs.push(x));
+
+      const links = this.getters.getSavedJobs.map((sj) => sj.link);
+
+      state.filteredJobs.forEach((fj) => {
+        if (links.includes(fj.link)) {
+          fj.saved = true;
+        }
+      });
+    },
+    setSavedJobs(state, value) {
+      state.savedJobs = value;
+      sessionStorage.setItem("savedJobs", JSON.stringify(value));
     },
     setAllFindersChecked(state, value) {
       state.allFindersChecked = value;
@@ -360,6 +385,19 @@ const store = createStore({
           commit("setFilteredJobs", jobs);
         }
       });
+    },
+    addSavedJob({ state, getters, commit }, job) {
+      const savedJobs = getters.getSavedJobs;
+      savedJobs.push(job);
+      commit("setSavedJobs", savedJobs);
+      commit("setFilteredJobs", state.filteredJobs);
+      commit("setBufferedJobs", state.bufferedJobs);
+    },
+    removeSavedJob({ state, commit, getters }, job) {
+      const savedJobs = getters.getSavedJobs.filter((x) => x.link !== job.link);
+      commit("setSavedJobs", savedJobs);
+      commit("setFilteredJobs", state.filteredJobs);
+      commit("setBufferedJobs", state.bufferedJobs);
     },
   },
 });
