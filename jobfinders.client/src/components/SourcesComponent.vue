@@ -4,6 +4,13 @@ import ToggleSwitch from "primevue/toggleswitch";
 import { computed } from "vue";
 import { useStore } from "vuex";
 
+const props = defineProps({
+  disableSources: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const store = useStore();
 const finders = computed(() => store.getters.getFinders);
 const allFindersChecked = computed(() => store.getters.getAllFindersChecked);
@@ -27,6 +34,7 @@ function toggleAllSources(value) {
       <ToggleSwitch
         :modelValue="allFindersChecked"
         @update:modelValue="toggleAllSources($event)"
+        :disabled="props.disableSources"
       />
       <span>Все</span>
     </div>
@@ -38,6 +46,7 @@ function toggleAllSources(value) {
         @update:modelValue="checkFinder(finder, $event)"
         :binary="true"
         :modelValue="finder.active"
+        :disabled="props.disableSources"
       />
     </div>
   </div>

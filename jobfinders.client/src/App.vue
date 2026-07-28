@@ -10,21 +10,27 @@ import SourcesComponent from "./components/SourcesComponent.vue";
 import FilterComponent from "./components/FilterComponent.vue";
 import JobItem from "./components/JobItem.vue";
 import InputText from "primevue/inputtext";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { helper } from "./helper.js";
 import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
 const store = useStore();
-const isPending = computed(() => store.getters.getPending);
-const jobs = computed(() => store.getters.getFilteredJobs);
-const isJobsEmpty = computed(() => jobs.value.length === 0);
-const savedJobs = computed(() => store.getters.getSavedJobs);
+
 const usdRate = ref(null);
 const eurRate = ref(null);
 const rubRate = ref(null);
 const savedJobsShown = ref(false);
+
+const isPending = computed(() => store.getters.getPending);
+const jobs = computed(() =>
+  savedJobsShown.value
+    ? store.getters.getSavedJobs
+    : store.getters.getFilteredJobs,
+);
+const isJobsEmpty = computed(() => jobs.value.length === 0);
+const savedJobs = computed(() => store.getters.getSavedJobs);
 
 const showSearchBarModal = computed({
   get: () => store.getters.getShowSearchBarModal,
@@ -34,6 +40,12 @@ const showSearchBarModal = computed({
 const showSettingsModal = computed({
   get: () => store.getters.getShowSettingsModal,
   set: (value) => store.commit("setShowSettingsModal", value),
+});
+
+watch(savedJobs, (newValue) => {
+  if (!newValue.length) {
+    showSavedJobs(false);
+  }
 });
 
 onMounted(async () => {
@@ -78,15 +90,10 @@ function saveJob(job) {
   }
 }
 
-function showSavedJobs() {
-  savedJobsShown.value = !savedJobsShown.value;
-
-  if (savedJobsShown.value) {
-    store.commit("setFilteredJobs", savedJobs.value);
-  } else {
-    store.dispatch("updateFilteredJobs");
-  }
-
+function showSavedJobs(value) {
+  value === undefined
+    ? (savedJobsShown.value = !savedJobsShown.value)
+    : (savedJobsShown.value = value);
   scrollUp();
 }
 
@@ -113,7 +120,7 @@ function scrollUp() {
         severity="secondary"
         icon="pi pi-bookmark"
         :label="`${savedJobs.length || ''}`"
-        @click="showSavedJobs"
+        @click="showSavedJobs()"
       ></Button>
       <div class="rates">
         <span>USD: {{ usdRate }}</span>
@@ -127,13 +134,13 @@ function scrollUp() {
   </div>
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
-      <SearchBar></SearchBar>
+      <SearchBar @showSavedJobs="showSavedJobs"></SearchBar>
       <div class="sources-and-filter">
         <span>Источники</span>
         <hr />
-        <SourcesComponent></SourcesComponent>
+        <SourcesComponent :disableSources="savedJobsShown"></SourcesComponent>
         <hr />
-        <FilterComponent></FilterComponent>
+        <FilterComponent :disableFilter="savedJobsShown"></FilterComponent>
       </div>
     </div>
     <div class="job-list" :class="{ mobileVisible: isJobsEmpty }">
@@ -152,7 +159,10 @@ function scrollUp() {
     ></Button>
   </div>
   <SearchBarModal v-model:visible="showSearchBarModal"></SearchBarModal>
-  <SettingsModal v-model:visible="showSettingsModal"></SettingsModal>
+  <SettingsModal
+    :disableModal="savedJobsShown"
+    v-model:visible="showSettingsModal"
+  ></SettingsModal>
   <PendingModal v-model:visible="isPending"></PendingModal>
 </template>
 
@@ -160,7 +170,17 @@ function scrollUp() {
 .header {
   display: flex;
   justify-content: space-between;
-  padding: 3px;
+  width: 100%;
+  padding: 10px 15px 15px 15px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--BACKGROUND-COLOR) 0%,
+    var(--BACKGROUND-COLOR) 0%,
+    transparent 100%
+  );
 }
 
 .title {
@@ -195,7 +215,7 @@ function scrollUp() {
 }
 
 .main {
-  padding: 10px 20px 20px 20px;
+  padding: 86px 20px 20px 20px;
   display: flex;
   flex-direction: row;
   gap: 40px;
@@ -203,7 +223,7 @@ function scrollUp() {
 
 .settings {
   position: sticky;
-  top: 10px;
+  top: 94px;
   align-self: flex-start;
   min-width: 180px;
   width: 25%;
@@ -211,6 +231,7 @@ function scrollUp() {
 }
 
 .job-list {
+  padding-bottom: 230px;
   width: 70%;
   display: flex;
   flex-direction: column;
@@ -220,15 +241,14 @@ function scrollUp() {
 .buttons {
   display: none;
   position: fixed;
-  bottom: 30px;
-  right: 50px;
+  bottom: 20px;
+  right: 20px;
   opacity: 0.7;
   z-index: 1;
 
   button {
     width: 60px;
     height: 60px;
-
     i {
       font-size: 1.4rem;
     }
@@ -248,6 +268,7 @@ function scrollUp() {
   }
 
   .job-list {
+    padding-top: 70px;
     width: 100%;
   }
 
@@ -260,6 +281,7 @@ function scrollUp() {
   }
 
   .settings.mobileVisible {
+    padding-top: 80px;
     width: 100%;
     display: block;
   }

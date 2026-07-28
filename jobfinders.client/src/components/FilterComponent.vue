@@ -7,6 +7,13 @@ import { computed } from "vue";
 import { useStore } from "vuex";
 import { helper } from "@/helper";
 
+const props = defineProps({
+  disableFilter: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const store = useStore();
 const toast = useToast();
 
@@ -84,6 +91,7 @@ function updateFilteredJobs(value) {
         v-model="exactTitle"
         @change="updateFilteredJobs(exactTitle)"
         binary
+        :disabled="props.disableFilter"
       ></Checkbox>
     </div>
 
@@ -93,6 +101,7 @@ function updateFilteredJobs(value) {
         v-model="orderBySalary"
         @change="updateFilteredJobs(orderBySalary)"
         binary
+        :disabled="props.disableFilter"
       ></Checkbox>
     </div>
     <div class="currency">
@@ -101,6 +110,7 @@ function updateFilteredJobs(value) {
         v-model="currency"
         :options="store.state.currencies"
         @update:modelValue="setCurrencyValues($event)"
+        :disabled="props.disableFilter"
       />
     </div>
   </div>
@@ -117,6 +127,7 @@ function updateFilteredJobs(value) {
           )
         "
         binary
+        :disabled="props.disableFilter"
       ></Checkbox>
     </div>
     <div class="min-max">
@@ -137,7 +148,7 @@ function updateFilteredJobs(value) {
     <Slider
       v-model="range"
       range
-      :disabled="!salaryDefined"
+      :disabled="!salaryDefined || props.disableFilter"
       @slideend="() => updateFilteredJobs(salaryDefined)"
     ></Slider>
   </div>
@@ -180,6 +191,7 @@ function updateFilteredJobs(value) {
   flex-direction: column;
   align-items: center;
   gap: 15px;
+  font-size: 0.9rem;
 
   .p-slider {
     width: 90%;

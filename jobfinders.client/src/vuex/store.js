@@ -101,7 +101,7 @@ const store = createStore({
       return state.filteredJobs;
     },
     getSavedJobs(state) {
-      state.savedJobs = JSON.parse(sessionStorage.getItem("savedJobs") || "[]");
+      state.savedJobs = JSON.parse(localStorage.getItem("savedJobs") || "[]");
       return state.savedJobs;
     },
     getAllFindersChecked(state) {
@@ -202,6 +202,8 @@ const store = createStore({
       state.bufferedJobs.forEach((bj) => {
         if (links.includes(bj.link)) {
           bj.saved = true;
+        } else {
+          bj.saved = false;
         }
       });
     },
@@ -214,12 +216,14 @@ const store = createStore({
       state.filteredJobs.forEach((fj) => {
         if (links.includes(fj.link)) {
           fj.saved = true;
+        } else {
+          fj.saved = false;
         }
       });
     },
     setSavedJobs(state, value) {
       state.savedJobs = value;
-      sessionStorage.setItem("savedJobs", JSON.stringify(value));
+      localStorage.setItem("savedJobs", JSON.stringify(value));
     },
     setAllFindersChecked(state, value) {
       state.allFindersChecked = value;

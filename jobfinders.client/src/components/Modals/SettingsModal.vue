@@ -5,6 +5,13 @@ import FilterComponent from "../FilterComponent.vue";
 import Button from "primevue/button";
 import { useStore } from "vuex";
 
+const props = defineProps({
+  disableModal: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const store = useStore();
 
 async function closeFilter() {
@@ -21,9 +28,9 @@ async function closeFilter() {
     class="filter-dialog"
   >
     <div class="settings">
-      <SourcesComponent />
+      <SourcesComponent :disableSources="props.disableModal" />
       <hr />
-      <FilterComponent />
+      <FilterComponent :disableFilter="props.disableModal" />
     </div>
 
     <Button

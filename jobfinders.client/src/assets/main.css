@@ -1,5 +1,10 @@
+:root {
+  /* COLORS */
+  --BACKGROUND-COLOR: rgb(0, 66, 110);
+}
+
 body {
-  background: rgb(0, 66, 110);
+  background: var(--BACKGROUND-COLOR);
   min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
 }

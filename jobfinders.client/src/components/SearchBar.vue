@@ -8,6 +8,7 @@ import { useToast } from "primevue/usetoast";
 const toast = useToast();
 const store = useStore()
 const jobs = computed(() => store.getters.getFilteredJobs)
+const emit = defineEmits(['showSavedJobs'])
 
 async function findJobs() {
   store.commit('setShowSearchBarModal', false)
@@ -18,6 +19,7 @@ async function findJobs() {
     store.dispatch('showError', { toast: toast, summary: 'showError', detail: `Ошибка сервера: ${response.data.errorText}` });
   } else if (response.status === 200){
     store.dispatch('showSuccess', { toast: toast, summary: "OK", detail: `Найдено совпадений: ${jobs.value.length}` });
+    emit('showSavedJobs', false)
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
