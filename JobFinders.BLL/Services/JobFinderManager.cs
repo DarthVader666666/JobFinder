@@ -34,15 +34,17 @@ namespace JobFinders.BLL.Services
         {
             var transliteration = Enum.Parse<TransliterationEnum>(setting.LocationTransliteration);
 
+            filter?.Location = string.IsNullOrEmpty(filter?.Location) && setting.MandatoryLocation ? "minsk" : filter?.Location;
+
             filter?.Location = transliteration switch
             {
                 TransliterationEnum.Latin => Transliteration.CyrillicToLatin(filter?.Location),
                 TransliterationEnum.Cyrillic => Transliteration.LatinToCyrillic(filter?.Location),
             };
 
-            var specialityUrlCompatible = filter?.Speciality is null ? string.Empty : WebUtility.UrlEncode(filter?.Speciality);
+            filter?.Speciality = filter?.Speciality is null ? string.Empty : WebUtility.UrlEncode(filter?.Speciality);
 
-            var url = setting.LinkTemplate?.Replace(locationPlaceholder, filter?.Location).Replace(specialityPlaceholder, specialityUrlCompatible);
+            var url = setting.LinkTemplate?.Replace(locationPlaceholder, filter?.Location).Replace(specialityPlaceholder, filter?.Speciality);
 
             if (setting == null)
             {
