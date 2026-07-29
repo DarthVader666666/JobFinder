@@ -26,6 +26,7 @@ const showFeedbackModal = ref(false);
 
 const savedJobsShown = computed(() => store.getters.getSavedJobsShown);
 const isPending = computed(() => store.getters.getPending);
+const isSending = computed(() => store.getters.getSending);
 const jobs = computed(() =>
   savedJobsShown.value
     ? store.getters.getSavedJobs
@@ -110,7 +111,8 @@ function scrollUp() {
     </div>
     <div style="display: flex; align-items: center; gap: 10px">
       <Button
-        icon="pi pi-send"
+        :icon="`pi ${isSending ? 'pi-spinner pi-spin' : 'pi-send'}`"
+        :disabled="isSending"
         rounded
         severity="secondary"
         title="Оставить отзыв"

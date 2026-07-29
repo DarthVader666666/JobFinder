@@ -6,6 +6,7 @@ const store = createStore({
     serverUrl: import.meta.env.VITE_API_URL,
     nbrbCurrRateUrl: "https://api.nbrb.by/exrates/rates?periodicity=0",
     pending: false,
+    sending: false,
     showSearchBarModal: false,
     showSettingsModal: false,
     finders: [
@@ -76,6 +77,9 @@ const store = createStore({
   getters: {
     getPending(state) {
       return state.pending;
+    },
+    getSending(state) {
+      return state.sending;
     },
     getSpeciality(state) {
       return state.jobsRequest.speciality;
@@ -177,6 +181,9 @@ const store = createStore({
   mutations: {
     setPending(state, value) {
       state.pending = value;
+    },
+    setSending(state, value) {
+      state.sending = value;
     },
     setSpeciality(state, value) {
       state.jobsRequest.speciality = value;
@@ -419,8 +426,9 @@ const store = createStore({
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     },
-    sendComment({ state, dispatch }, { request, toast }) {
-      axios
+    async sendComment({ state, commit, dispatch }, { request, toast }) {
+      commit("setSending", true);
+      await axios
         .post(`${state.serverUrl}/user/sendComment`, request, {
           headers: { "Content-Type": "application/json" },
         })
@@ -441,6 +449,9 @@ const store = createStore({
               detail: "Не удалось отправить сообщение",
             });
           }
+        })
+        .finally(() => {
+          commit("setSending", false);
         });
     },
   },
