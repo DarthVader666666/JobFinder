@@ -30,7 +30,7 @@ namespace JobFinders.Server.Controllers
 
             var result = await _emailSender.SendEmailAsync(email,
                     "Отзыв от пользователя JobFinders",
-                    $"{request?.Comment}"
+                    $"<span style=\"font-size: 1rem\">{request?.Comment}</span>"
                 );
 
             return result ? Ok() : StatusCode(500);

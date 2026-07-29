@@ -1,5 +1,4 @@
-﻿
-using Azure.Communication.Email;
+﻿using Azure.Communication.Email;
 
 using Microsoft.Extensions.Configuration;
 
