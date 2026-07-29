@@ -14,6 +14,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { helper } from "./helper.js";
 import { useToast } from "primevue/usetoast";
+import FeedbackModal from "./components/Modals/FeedbackModal.vue";
 
 const toast = useToast();
 const store = useStore();
@@ -21,8 +22,9 @@ const store = useStore();
 const usdRate = ref(null);
 const eurRate = ref(null);
 const rubRate = ref(null);
-const savedJobsShown = ref(false);
+const showFeedbackModal = ref(false);
 
+const savedJobsShown = computed(() => store.getters.getSavedJobsShown);
 const isPending = computed(() => store.getters.getPending);
 const jobs = computed(() =>
   savedJobsShown.value
@@ -44,7 +46,7 @@ const showSettingsModal = computed({
 
 watch(savedJobs, (newValue) => {
   if (!newValue.length) {
-    showSavedJobs(false);
+    store.dispatch("showSavedJobs", false);
   }
 });
 
@@ -82,19 +84,16 @@ function saveJob(job) {
     store.dispatch("addSavedJob", job);
     store.dispatch("showSuccess", {
       toast: toast,
-      summary: job.title,
-      detail: "Вакансия сохранена",
+      summary: "Вакансия сохранена",
+      detail: job.title,
     });
   } else {
     store.dispatch("removeSavedJob", job);
   }
 }
 
-function showSavedJobs(value) {
-  value === undefined
-    ? (savedJobsShown.value = !savedJobsShown.value)
-    : (savedJobsShown.value = value);
-  scrollUp();
+function handleShowFeedbackModal(value) {
+  showFeedbackModal.value = value;
 }
 
 function scrollUp() {
@@ -103,13 +102,21 @@ function scrollUp() {
 </script>
 
 <template>
-  <Toast style="width: 320px" />
+  <Toast style="width: 320px; z-index: 2" />
   <div class="header">
     <div class="title">
       <span style="font-size: 1.6rem">Find Your Job</span>
       <span style="font-size: 0.9rem">Поиск работы в РБ</span>
     </div>
-    <div style="display: flex; align-items: center">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <Button
+        icon="pi pi-send"
+        rounded
+        severity="secondary"
+        title="Оставить отзыв"
+        @click="handleShowFeedbackModal(true)"
+      >
+      </Button>
       <Button
         :style="
           savedJobsShown
@@ -120,7 +127,7 @@ function scrollUp() {
         severity="secondary"
         icon="pi pi-bookmark"
         :label="`${savedJobs.length || ''}`"
-        @click="showSavedJobs()"
+        @click="store.dispatch('showSavedJobs')"
       ></Button>
       <div class="rates">
         <span>USD: {{ usdRate }}</span>
@@ -134,7 +141,7 @@ function scrollUp() {
   </div>
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
-      <SearchBar @showSavedJobs="showSavedJobs"></SearchBar>
+      <SearchBar></SearchBar>
       <div class="sources-and-filter">
         <span>Источники</span>
         <hr />
@@ -163,6 +170,11 @@ function scrollUp() {
     :disableModal="savedJobsShown"
     v-model:visible="showSettingsModal"
   ></SettingsModal>
+  <FeedbackModal
+    v-model:visible="showFeedbackModal"
+    :toast="toast"
+    @handleShowFeedbackModal="handleShowFeedbackModal"
+  ></FeedbackModal>
   <PendingModal v-model:visible="isPending"></PendingModal>
 </template>
 
@@ -181,6 +193,10 @@ function scrollUp() {
     var(--BACKGROUND-COLOR) 0%,
     transparent 100%
   );
+
+  :deep(.p-button-icon) {
+    font-size: 1.3rem;
+  }
 }
 
 .title {

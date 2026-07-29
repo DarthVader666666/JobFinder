@@ -71,6 +71,7 @@ const store = createStore({
     },
     range: [0.02, 100],
     rangeMultiplier: 50,
+    savedJobsShown: false,
   },
   getters: {
     getPending(state) {
@@ -169,6 +170,9 @@ const store = createStore({
         return state.rangeMultiplier;
       }
     },
+    getSavedJobsShown(state) {
+      return state.savedJobsShown;
+    },
   },
   mutations: {
     setPending(state, value) {
@@ -260,6 +264,9 @@ const store = createStore({
     },
     setRange(state, value) {
       state.range = value;
+    },
+    setSavedJobsShown(state, value) {
+      state.savedJobsShown = value;
     },
   },
   actions: {
@@ -402,6 +409,39 @@ const store = createStore({
       commit("setSavedJobs", savedJobs);
       commit("setFilteredJobs", state.filteredJobs);
       commit("setBufferedJobs", state.bufferedJobs);
+    },
+    showSavedJobs({ state, commit }, value) {
+      value === undefined
+        ? commit("setSavedJobsShown", !state.savedJobsShown)
+        : commit("setSavedJobsShown", value);
+
+      if (state.savedJobsShown) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    },
+    sendComment({ state, dispatch }, { request, toast }) {
+      axios
+        .post(`${state.serverUrl}/user/sendComment`, request, {
+          headers: { "Content-Type": "application/json" },
+        })
+        .then(async (response) => {
+          if (response.status === 200) {
+            dispatch("showSuccess", {
+              toast: toast,
+              summary: "Спасибо!",
+              detail: "Сообщение отправлено",
+            });
+          }
+        })
+        .catch((error) => {
+          if (error.response) {
+            dispatch("showError", {
+              toast: toast,
+              summary: "Ошибка",
+              detail: "Не удалось отправить сообщение",
+            });
+          }
+        });
     },
   },
 });

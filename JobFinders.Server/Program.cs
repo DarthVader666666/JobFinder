@@ -15,6 +15,7 @@ builder.Services.AddCors(options => options.AddPolicy("AllowClient",
     .AllowAnyHeader().AllowAnyMethod().Build()));
 
 builder.Services.AddScoped<JobFinderManager>();
+builder.Services.AddScoped<AzureEmailSender>();
 
 builder.Services.Configure<List<JobFinderSetting>>(builder.Configuration.GetSection("JobFinderSettings"));
 
