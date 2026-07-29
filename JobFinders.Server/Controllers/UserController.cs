@@ -10,10 +10,12 @@ namespace JobFinders.Server.Controllers
     public class UserController : Controller
     {
         private readonly AzureEmailSender _emailSender;
+        private readonly IConfiguration _configuration;
 
-        public UserController(AzureEmailSender emailSender)
+        public UserController(AzureEmailSender emailSender, IConfiguration configuration)
         {
             _emailSender = emailSender;
+            _configuration = configuration;
         }
 
         [HttpPost]
@@ -24,7 +26,9 @@ namespace JobFinders.Server.Controllers
                 return BadRequest();
             }
 
-            var result = await _emailSender.SendEmailAsync("rumyancer@gmail.com",
+            var email = _configuration["Email"];
+
+            var result = await _emailSender.SendEmailAsync(email,
                     "Отзыв от пользователя JobFinders",
                     $"{request?.Comment}"
                 );
