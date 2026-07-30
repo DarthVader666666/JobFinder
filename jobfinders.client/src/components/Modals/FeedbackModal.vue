@@ -16,7 +16,7 @@ const comment = ref("");
 const emit = defineEmits(["handleShowFeedbackModal"]);
 
 function sendComment() {
-  if (comment.value) {
+  if (comment.value.trim()) {
     store.dispatch("sendComment", {
       toast: props.toast,
       request: { comment: comment.value },

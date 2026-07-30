@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using System.Text.RegularExpressions;
 
 using HtmlAgilityPack;
@@ -35,6 +36,7 @@ namespace JobFinders.BLL.Services
             var transliteration = Enum.Parse<TransliterationEnum>(setting.LocationTransliteration);
 
             filter?.Location = string.IsNullOrEmpty(filter?.Location) && setting.MandatoryLocation ? "minsk" : filter?.Location;
+            filter?.Location = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(filter?.Location ?? "");
 
             filter?.Location = transliteration switch
             {
