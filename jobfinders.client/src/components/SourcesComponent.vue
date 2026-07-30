@@ -36,7 +36,7 @@ function toggleAllSources(value) {
         @update:modelValue="toggleAllSources($event)"
         :disabled="props.disableSources"
       />
-      <span>Все</span>
+      <span>Все источники</span>
     </div>
   </div>
   <div class="finder-options">

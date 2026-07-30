@@ -145,8 +145,6 @@ function scrollUp() {
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
       <SearchBar></SearchBar>
       <div class="sources-and-filter">
-        <span>Источники</span>
-        <hr />
         <SourcesComponent :disableSources="savedJobsShown"></SourcesComponent>
         <hr />
         <FilterComponent :disableFilter="savedJobsShown"></FilterComponent>
