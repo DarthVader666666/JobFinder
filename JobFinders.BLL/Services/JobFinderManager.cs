@@ -171,9 +171,10 @@ namespace JobFinders.BLL.Services
             if (currencyMatch.Success)
             {
                 int index = currencyMatch.Index;
+                int range = 30;
 
-                int start = Math.Max(0, index - 20);
-                int length = Math.Min(innerText.Length - start, 20);
+                int start = Math.Max(0, index - (index < range ? index : range));
+                int length = Math.Min(innerText.Length - start, (innerText.Length - 1 < range ? innerText.Length : range));
 
                 var substring = innerText.Substring(start, length);
 

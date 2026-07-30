@@ -41,6 +41,11 @@ const store = createStore({
         source: "Rework",
         active: true,
       },
+      {
+        img: "gsz-logo-large.png",
+        source: "GSZ",
+        active: true,
+      },
     ],
     jobsRequest: {
       speciality: "",
