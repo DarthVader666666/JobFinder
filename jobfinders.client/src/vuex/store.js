@@ -75,7 +75,7 @@ const store = createStore({
       date: null,
       rates: null,
     },
-    range: [0.2, 100],
+    range: [0.1, 100],
     rangeMultiplier: 100,
     savedJobsShown: false,
   },
@@ -134,7 +134,10 @@ const store = createStore({
           orderBySalary: state.jobsRequest.filter.orderBySalary,
           salary: {
             min: state.range[0] * getters.getRangeMultiplier,
-            max: state.range[1] * getters.getRangeMultiplier,
+            max:
+              state.range[1] === 100
+                ? 100000000
+                : state.range[1] * getters.getRangeMultiplier,
             currency: state.selectedCurrency,
           },
           currencyRates:
@@ -174,7 +177,7 @@ const store = createStore({
         state.selectedCurrency === "Нет" ||
         state.selectedCurrency === "BYN"
       ) {
-        return state.rangeMultiplier * 5;
+        return state.rangeMultiplier;
       } else {
         return state.rangeMultiplier;
       }

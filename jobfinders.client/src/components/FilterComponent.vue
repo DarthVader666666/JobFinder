@@ -140,12 +140,19 @@ function updateFilteredJobs(value, scrollUp = true) {
           selectedCurrency === "Нет" ? "" : " " + selectedCurrency
         }}</span></span
       >
-      <span :style="{ opacity: !salaryDefined ? 0.4 : 1 }"
+      <span
+        v-if="range[1] < 100"
+        :style="{ opacity: !salaryDefined ? 0.4 : 1, paddingBottom: '5px' }"
         >{{ range[1] * rangeMultiplier
         }}<span>{{
           selectedCurrency === "Нет" ? "" : " " + selectedCurrency
-        }}</span></span
-      >
+        }}</span>
+      </span>
+      <i
+        v-else
+        class="icon-infinity"
+        :style="{ opacity: !salaryDefined ? 0.4 : 1, fontSize: '1.5rem' }"
+      ></i>
     </div>
 
     <Slider
@@ -206,6 +213,13 @@ function updateFilteredJobs(value, scrollUp = true) {
     justify-content: space-between;
     font-size: 0.9rem;
     width: 90%;
+  }
+
+  .icon-infinity {
+    width: 1.3rem;
+    height: 1.3rem;
+    background-size: contain;
+    background-image: url("../../public/infinity.png");
   }
 }
 </style>
