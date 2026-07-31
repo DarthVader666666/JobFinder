@@ -76,7 +76,8 @@ namespace JobFinders.BLL.Services
 
                     return true;
                 })
-                .Select(job => filter?.Salary?.Currency != "Нет" ? Convert(job, filter) : job);
+                .Select(job => filter?.Salary?.Currency != "Нет" ? Convert(job, filter) : job)
+                ;
 
             return jobs ?? [];
         }
@@ -152,12 +153,12 @@ namespace JobFinders.BLL.Services
 
         private Salary? GetSalary(IEnumerable<HtmlNode> nodes, JobFinderSetting setting)
         {
-            var innerText =  string.IsNullOrEmpty(setting.Salary?.Value)
+            var innerText = string.IsNullOrEmpty(setting.Salary?.Value)
                 ? nodes.FirstOrDefault(x => ContainsCurrencySymbols(x.InnerText))?.InnerText
                 : nodes.FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains(setting.Salary.Value))?.InnerText;
 
             if (string.IsNullOrEmpty(innerText))
-            { 
+            {
                 return null;
             }
 
@@ -208,30 +209,33 @@ namespace JobFinders.BLL.Services
                 _ => null
             };
 
-            innerText = Regex.Replace(innerText, @"(?<=\d)\s*до\s*(?=\d)", "-");            
-            innerText = Regex.Replace(innerText, @"[^\d\s\-–—]", "");
-            innerText = Regex.Replace(innerText, @"\s+", "");
+            var salaryMatch = Regex.Match(innerText, @"(\d[\d\s]*)\s*[-–—]\s*(\d[\d\s]*)|(\d[\d\s]*)");
 
-            var match = Regex.Match(innerText, @"^(?<min>\d+)(?:[-–—](?<max>\d+))?$");
-
-            if (match.Success)
+            if (salaryMatch.Success)
             {
-                var min = match.Groups["min"].Value.Trim();
-                var max = match.Groups["max"].Success ? match.Groups["max"].Value.Trim() : min;
+                string minStr = salaryMatch.Groups[1].Success ? salaryMatch.Groups[1].Value : salaryMatch.Groups[3].Value;
+                string maxStr = salaryMatch.Groups[2].Success ? salaryMatch.Groups[2].Value : minStr;
 
-                salary.Min = ParseSalary(min);
-                salary.Max = ParseSalary(max);
+                minStr = Regex.Replace(minStr, @"\s+", "");
+                maxStr = Regex.Replace(maxStr, @"\s+", "");
+
+                salary.Min = ParseSalary(minStr);
+                salary.Max = ParseSalary(maxStr);
+
+                return salary;
             }
-            else if (!string.IsNullOrEmpty(innerText))
+            else
             {
-                salary.Min = salary.Max = ParseSalary(innerText);
-            }
-            else 
-            {
-                salary = null;
+                var singleMatch = Regex.Match(innerText, @"(\d[\d\s]*)");
+                if (singleMatch.Success)
+                {
+                    var numStr = Regex.Replace(singleMatch.Groups[1].Value, @"\s+", "");
+                    salary.Min = salary.Max = ParseSalary(numStr);
+                    return salary;
+                }
             }
 
-            return salary;
+            return null;
         }
 
         private bool ContainsCurrencySymbols(string innerText)

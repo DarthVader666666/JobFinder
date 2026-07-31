@@ -68,17 +68,20 @@ async function setCurrencyValues(selectedSalary) {
   }
 
   helper.convertSalaries(selectedSalary);
-  updateFilteredJobs(orderBySalary.value);
+  updateFilteredJobs(orderBySalary.value, false);
 }
 
-function updateFilteredJobs(value) {
+function updateFilteredJobs(value, scrollUp = true) {
   if (store.getters.getBufferedJobs?.length) {
     if (!value) {
       store.commit("setFilteredJobs", store.getters.getBufferedJobs);
     }
 
     store.dispatch("updateFilteredJobs");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    if (scrollUp) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }
 }
 </script>
@@ -190,7 +193,7 @@ function updateFilteredJobs(value) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 5px;
   font-size: 0.9rem;
 
   .p-slider {

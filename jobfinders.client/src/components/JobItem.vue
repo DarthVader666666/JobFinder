@@ -17,8 +17,21 @@ const emit = defineEmits(["saveJob"]);
 
 function getSalary(salary) {
   if (salary) {
-    return `${props.job.salary.min === props.job.salary.max ? props.job.salary.min : props.job.salary.min + " - " + props.job.salary.max} ${props.job.salary.currency}`;
+    return `${
+      props.job.salary.min === props.job.salary.max
+        ? getLongSalary(props.job.salary.min)
+        : getLongSalary(props.job.salary.min) +
+          " - " +
+          getLongSalary(props.job.salary.max)
+    } ${props.job.salary.currency}`;
   }
+}
+
+function getLongSalary(value) {
+  if (value >= 10000) {
+    return `${Math.round(value / 1000)}K`;
+  }
+  return value;
 }
 </script>
 

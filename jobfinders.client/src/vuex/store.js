@@ -75,8 +75,8 @@ const store = createStore({
       date: null,
       rates: null,
     },
-    range: [0.02, 100],
-    rangeMultiplier: 50,
+    range: [0.2, 100],
+    rangeMultiplier: 100,
     savedJobsShown: false,
   },
   getters: {
@@ -174,7 +174,7 @@ const store = createStore({
         state.selectedCurrency === "Нет" ||
         state.selectedCurrency === "BYN"
       ) {
-        return state.rangeMultiplier * 2;
+        return state.rangeMultiplier * 5;
       } else {
         return state.rangeMultiplier;
       }
