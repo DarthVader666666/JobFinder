@@ -44,19 +44,19 @@ function getLongSalary(value) {
             ><i class="pi pi-exclamation-circle"></i
             >{{ ` ${props.job.title}` }}</span
           >
-          <span v-else>{{ props.job.title }}</span>
+          <span v-else :title="props.job.title">{{ props.job.title }}</span>
         </div>
         <div class="job-details">
-          <span v-if="props.job.experience"
+          <span v-if="props.job.experience" :title="props.job.experience"
             ><i class="pi pi-briefcase"></i>{{ props.job.experience }}</span
           >
-          <span v-if="props.job.company"
+          <span v-if="props.job.company" :title="props.job.company"
             ><i class="pi pi-building"></i>{{ props.job.company }}</span
           >
-          <span v-if="props.job.location"
+          <span v-if="props.job.location" :title="props.job.location"
             ><i class="pi pi-map-marker"></i>{{ props.job.location }}</span
           >
-          <span v-if="props.job.timePosted"
+          <span v-if="props.job.timePosted" :title="props.job.timePosted"
             ><i class="pi pi-clock"></i>{{ props.job.timePosted }}</span
           >
         </div>

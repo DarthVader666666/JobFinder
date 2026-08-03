@@ -74,6 +74,7 @@ namespace JobFinders.BLL.Services
 
                     return true;
                 })
+                .Select(job => filter?.Salary?.Currency != "Нет" ? Convert(job, filter) : job)
                 .Where(job =>
                 {
                     if (filter?.SalaryDefined ?? false)
@@ -84,9 +85,7 @@ namespace JobFinders.BLL.Services
                     }
 
                     return true;
-                })
-                .Select(job => filter?.Salary?.Currency != "Нет" ? Convert(job, filter) : job)
-                ;
+                });
 
             return jobs ?? [];
         }
