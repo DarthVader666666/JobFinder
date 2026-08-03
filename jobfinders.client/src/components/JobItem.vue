@@ -173,6 +173,10 @@ function getLongSalary(value) {
   padding-bottom: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  -webkit-line-break: anywhere;
 }
 
 .job-item:hover {

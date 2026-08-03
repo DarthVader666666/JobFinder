@@ -77,6 +77,18 @@ export const helper = {
       case "BYN":
         apiCurrency = "BYN";
         break;
+      case "₸":
+        apiCurrency = "KZT";
+        break;
+      case "₾":
+        apiCurrency = "GEL";
+        break;
+      case "₼":
+        apiCurrency = "AZN";
+        break;
+      case "so'm":
+        apiCurrency = "UZS";
+        break;
       default:
         apiCurrency = "Нет";
     }

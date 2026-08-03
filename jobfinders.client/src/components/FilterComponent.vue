@@ -219,7 +219,7 @@ function updateFilteredJobs(value, scrollUp = true) {
     width: 1.3rem;
     height: 1.3rem;
     background-size: contain;
-    background-image: url("../../public/infinity.png");
+    background-image: url("/infinity.png");
   }
 }
 </style>

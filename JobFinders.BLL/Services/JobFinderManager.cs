@@ -21,14 +21,18 @@ namespace JobFinders.BLL.Services
         private readonly string[] euro = { "€", "EUR" };
         private readonly string[] belRub = { "Br", "BYN", "руб", "" };
         private readonly string[] rusRub = { "₽" };
+        private readonly string[] tenge = { "₸" };
+        private readonly string[] lari = { "₾" };
+        private readonly string[] manat = { "₼" };
+        private readonly string[] som = { "so'm" };
 
-        private readonly Dictionary<string, string> currenciesApi = new() { ["$"] = "USD", ["€"] = "EUR", ["₽"] = "RUB", ["BYN"] = "BYN" };
+        private readonly Dictionary<string, string> currenciesApi = new() { ["$"] = "USD", ["€"] = "EUR", ["₽"] = "RUB", ["BYN"] = "BYN", ["₸"] = "KZT", ["₾"] = "GEL", ["₼"] = "AZN", ["so'm"] = "UZS", };
 
         private readonly string[] currencies;
 
         public JobFinderManager()
         {
-            currencies = usd.Concat(euro).Concat(belRub).Concat(rusRub).ToArray();
+            currencies = usd.Concat(euro).Concat(belRub).Concat(rusRub).Concat(tenge).Concat(lari).Concat(manat).Concat(som).ToArray();
         }
 
         public async Task<IEnumerable<Job?>> ProcessAsync(JobFinderSetting? setting, JobsFilter? filter)
@@ -43,6 +47,11 @@ namespace JobFinders.BLL.Services
                 TransliterationEnum.Latin => Transliteration.CyrillicToLatin(filter?.Location),
                 TransliterationEnum.Cyrillic => Transliteration.LatinToCyrillic(filter?.Location),
             };
+
+            if (setting.ConvertLocation)
+            {
+                filter?.Location = setting?.LocationDictionary?.FirstOrDefault(x => filter?.Location?.Contains(x.Key, StringComparison.InvariantCultureIgnoreCase) ?? false).Value ?? string.Empty;
+            }
 
             filter?.Speciality = filter?.Speciality is null ? string.Empty : WebUtility.UrlEncode(filter?.Speciality);
 
@@ -206,6 +215,10 @@ namespace JobFinders.BLL.Services
                 var x when x(euro) => "€",
                 var x when x(belRub) => "BYN",
                 var x when x(rusRub) => "₽",
+                var x when x(tenge) => "₸",
+                var x when x(lari) => "₾",
+                var x when x(manat) => "₼",
+                var x when x(som) => "so'm",
                 _ => null
             };
 

@@ -4,7 +4,7 @@ import axios from "axios";
 const store = createStore({
   state: {
     serverUrl: import.meta.env.VITE_API_URL,
-    nbrbCurrRateUrl: "https://api.nbrb.by/exrates/rates?periodicity=0",
+    nbrbCurrRateUrl: "https://api.nbrb.by/exrates/rates?periodicity=",
     pending: false,
     sending: false,
     showSearchBarModal: false,
@@ -46,6 +46,11 @@ const store = createStore({
         source: "GSZ",
         active: true,
       },
+      {
+        img: "headhunter-logo-large.png",
+        source: "Headhunter",
+        active: true,
+      },
     ],
     jobsRequest: {
       speciality: "",
@@ -67,8 +72,8 @@ const store = createStore({
     filteredJobs: [],
     savedJobs: [],
     allFindersChecked: true,
-    currencies: ["$", "BYN", "€", "₽", "Нет"],
-    apiCurrencies: ["USD", "EUR", "RUB"],
+    currencies: ["$", "BYN", "€", "₽", "₸", "₾", "₼", "so'm", "Нет"],
+    apiCurrencies: ["USD", "EUR", "RUB", "KZT", "GEL", "AZN", "UZS"],
     oldCurrency: "Нет",
     selectedCurrency: "Нет",
     currencyData: {
@@ -173,11 +178,10 @@ const store = createStore({
     getRangeMultiplier(state) {
       if (state.selectedCurrency === "₽") {
         return state.rangeMultiplier * 100;
-      } else if (
-        state.selectedCurrency === "Нет" ||
-        state.selectedCurrency === "BYN"
-      ) {
-        return state.rangeMultiplier;
+      } else if (state.selectedCurrency === "₸") {
+        return state.rangeMultiplier * 1000;
+      } else if (state.selectedCurrency === "so'm") {
+        return state.rangeMultiplier * 10000;
       } else {
         return state.rangeMultiplier;
       }
@@ -268,9 +272,7 @@ const store = createStore({
         now.getDate(),
       );
       state.currencyData.date = currentDate;
-      state.currencyData.rates = value.filter((x) =>
-        state.apiCurrencies.includes(x.Cur_Abbreviation),
-      );
+      state.currencyData.rates = value;
       state.currencyData.rates.push({
         Cur_Abbreviation: "BYN",
         Cur_OfficialRate: 1,
@@ -349,16 +351,23 @@ const store = createStore({
       });
     },
     async downloadCurrencyRates({ state, commit, dispatch }, toast) {
-      await axios
-        .get(`${state.nbrbCurrRateUrl}`, {
-          headers: { "Content-Type": "application/json" },
-        })
-        .then(async (response) => {
+      async function getRates(periodicity) {
+        try {
+          const response = await axios.get(
+            `${state.nbrbCurrRateUrl}${periodicity}`,
+            {
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+
           if (response.status === 200) {
-            commit("setCurrencyData", response.data);
+            return response.data.filter((x) =>
+              state.apiCurrencies.includes(x.Cur_Abbreviation),
+            );
           }
-        })
-        .catch((error) => {
+
+          return [];
+        } catch (error) {
           if (error.response) {
             dispatch("showError", {
               toast: toast,
@@ -366,7 +375,13 @@ const store = createStore({
               detail: "Не обновились курсы валют",
             });
           }
-        });
+
+          return [];
+        }
+      }
+
+      var rates = [...(await getRates(0)), ...(await getRates(1))];
+      commit("setCurrencyData", rates);
     },
     updateFilteredJobs({ state, commit }) {
       var jobs = [];

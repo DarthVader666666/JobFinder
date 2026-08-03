@@ -10,6 +10,8 @@
         public bool AddBaseUrlToHrefPrefix { get; set; } = false;
         public bool ZeroBasedPagination { get; set; } = false;
         public bool MandatoryLocation { get; set; } = false;
+        public bool ConvertLocation { get; set; } = false;
+        public Dictionary<string, string>? LocationDictionary { get; set; }
         public HtmlTag? VacancyTag { get; set; }
         public HtmlAttribute? Salary { get; set; }
         public HtmlAttribute? Location { get; set; }
