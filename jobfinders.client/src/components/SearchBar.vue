@@ -1,13 +1,17 @@
 <script setup>
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button'
+import AutoComplete from 'primevue/autocomplete';
 import { useStore } from 'vuex';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useToast } from "primevue/usetoast";
+import { searchbarHelper } from '@/searchbarHelper';
 
 const toast = useToast();
 const store = useStore()
 const jobs = computed(() => store.getters.getFilteredJobs)
+
+const filteredSpecialities = ref([]);
 
 async function findJobs() {
   store.commit('setShowSearchBarModal', false)
@@ -23,11 +27,29 @@ async function findJobs() {
   }
 }
 
+function searchSpecialities(event) {
+    const query = event.query.toLowerCase();
+    filteredSpecialities.value = query ? searchbarHelper.specialities.filter((item) => item.toLowerCase().includes(query)) : [...searchbarHelper.specialities];
+};
+
 </script>
 
 <template>
     <form class="serch-bar" v-on:submit.prevent="findJobs">
-      <InputText v-model="store.state.jobsRequest.speciality" type="text" placeholder="Специальность / должность / компания" required="true"/>
+      <AutoComplete
+        v-model="store.state.jobsRequest.speciality"
+        :suggestions="filteredSpecialities"
+        @complete="searchSpecialities"
+        placeholder="Специальность / должность / компания"
+        required="true"
+        scrollHeight="14rem"
+        emptySearchMessage=""
+      >
+
+      </AutoComplete>
+
+
+      <!-- <InputText v-model="store.state.jobsRequest.speciality" type="text" placeholder="Специальность / должность / компания" required="true"/> -->
       <InputText v-model="store.state.jobsRequest.location" type="text" placeholder="Город / локация"/>
       <div style="text-align: end;">
         <Button class="find-btn" type="submit">Найти</button>
@@ -50,5 +72,9 @@ async function findJobs() {
 
   .find-btn:hover {
     cursor: pointer;
+  }
+
+  .p-autocomplete:deep(input) {
+    width: 100%;
   }
 </style>
