@@ -2,17 +2,17 @@
 {
     public class Job
     {
+        public string? Source { get; set; }
         public string? Link { get; set; }
         public string? Title { get; set; }
         public string? Location { get; set; }
         public string? Company { get; set; }
         public string? Experience { get; set; }
         public string? TimePosted { get; set; }
-        public string? Source { get; set; }
         public bool Saved { get; set; } = false;
         public Salary? Salary { get; set; }
         public Salary? OriginalSalary { get; set; }
-        public Logo? Logo { get; set;  }
+        public Logo? Logo { get; set; }
     }
 
     public class Salary

@@ -42,6 +42,11 @@ const orderBySalary = computed({
   set: (value) => store.commit("setOrderBySalary", value),
 });
 
+const groupBySource = computed({
+  get: () => store.getters.getGroupBySource,
+  set: (value) => store.commit("setGroupBySource", value),
+});
+
 const range = computed({
   get: () => store.getters.getRange,
   set: (value) => store.commit("setRange", value),
@@ -103,6 +108,15 @@ function updateFilteredJobs(value, scrollUp = true) {
       <Checkbox
         v-model="orderBySalary"
         @change="updateFilteredJobs(orderBySalary)"
+        binary
+        :disabled="props.disableFilter"
+      ></Checkbox>
+    </div>
+    <div>
+      <span>группировать по источникам</span>
+      <Checkbox
+        v-model="groupBySource"
+        @change="updateFilteredJobs(groupBySource)"
         binary
         :disabled="props.disableFilter"
       ></Checkbox>

@@ -15,7 +15,6 @@ import Dialog from "primevue/dialog";
   >
     <div class="content">
       <i class="pi pi-spin pi-spinner-dotted"></i>
-      <!-- <span>Поиск...</span> -->
     </div>
   </Dialog>
 </template>

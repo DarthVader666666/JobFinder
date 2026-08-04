@@ -151,8 +151,8 @@ function getLongSalary(value) {
   align-items: center;
   border-radius: 20px;
   &:hover {
-    background-color: white;
-    box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.3);
+    background-color: rgb(248, 250, 252);
+    /* box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.3); */
   }
   img {
     width: 100%;

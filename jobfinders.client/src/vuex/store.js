@@ -60,6 +60,7 @@ const store = createStore({
         exactTitle: false,
         salaryDefined: false,
         orderBySalary: false,
+        groupBySource: false,
         salary: {
           min: null,
           max: null,
@@ -82,6 +83,7 @@ const store = createStore({
     },
     range: [0.1, 100],
     rangeMultiplier: 100,
+    infinity: 100000000,
     savedJobsShown: false,
   },
   getters: {
@@ -105,6 +107,9 @@ const store = createStore({
     },
     getOrderBySalary(state) {
       return state.jobsRequest.filter.orderBySalary;
+    },
+    getGroupBySource(state) {
+      return state.jobsRequest.filter.groupBySource;
     },
     getFinders(state) {
       return state.finders;
@@ -137,11 +142,12 @@ const store = createStore({
           exactTitle: state.jobsRequest.filter.exactTitle,
           salaryDefined: state.jobsRequest.filter.salaryDefined,
           orderBySalary: state.jobsRequest.filter.orderBySalary,
+          groupBySource: state.jobsRequest.filter.groupBySource,
           salary: {
             min: state.range[0] * getters.getRangeMultiplier,
             max:
               state.range[1] === 100
-                ? 100000000
+                ? state.infinity
                 : state.range[1] * getters.getRangeMultiplier,
             currency: state.selectedCurrency,
           },
@@ -211,6 +217,9 @@ const store = createStore({
     },
     setOrderBySalary(state, value) {
       state.jobsRequest.filter.orderBySalary = value;
+    },
+    setGroupBySource(state, value) {
+      state.jobsRequest.filter.groupBySource = value;
     },
     checkFinder(state, payload) {
       const finder = state.finders.find((x) => x.source === payload.source);
@@ -412,6 +421,10 @@ const store = createStore({
             );
           }
 
+          if (key === "groupBySource") {
+            jobs = jobs.sort((x, y) => x.source.localeCompare(y.source));
+          }
+
           if (key === "salaryDefined") {
             jobs = jobs.filter(
               (fj) =>
@@ -419,7 +432,9 @@ const store = createStore({
                 fj.salary.min >=
                   state.range[0] * this.getters.getRangeMultiplier &&
                 fj.salary.max <=
-                  state.range[1] * this.getters.getRangeMultiplier,
+                  (state.range[1] === 100
+                    ? state.infinity
+                    : state.range[1] * this.getters.getRangeMultiplier),
             );
           }
 

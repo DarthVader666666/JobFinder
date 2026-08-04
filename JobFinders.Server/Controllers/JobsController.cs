@@ -59,8 +59,12 @@ namespace JobFinders.Server.Controllers
             });
 
             var response = request?.Filter?.OrderBySalary ?? false
-                ? responseList.OrderByDescending(x => x.Salary?.Max).AsEnumerable()
+                ? responseList.OrderByDescending(x => x?.Salary?.Max).AsEnumerable()
                 : responseList;
+
+            response = request?.Filter?.GroupBySource ?? false
+                ? response.OrderBy(x => x?.Source).AsEnumerable()
+                : response;
 
             return Ok(response);
         }
