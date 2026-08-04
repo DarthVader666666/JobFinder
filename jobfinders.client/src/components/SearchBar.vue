@@ -1,5 +1,4 @@
 <script setup>
-import InputText from 'primevue/inputtext';
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete';
 import { useStore } from 'vuex';
@@ -12,6 +11,7 @@ const store = useStore()
 const jobs = computed(() => store.getters.getFilteredJobs)
 
 const filteredSpecialities = ref([]);
+const filteredLocations = ref([]);
 
 async function findJobs() {
   store.commit('setShowSearchBarModal', false)
@@ -27,9 +27,18 @@ async function findJobs() {
   }
 }
 
-function searchSpecialities(event) {
+function searchSpeciality(event) {
     const query = event.query.toLowerCase();
-    filteredSpecialities.value = query ? searchbarHelper.specialities.filter((item) => item.toLowerCase().includes(query)) : [...searchbarHelper.specialities];
+    filteredSpecialities.value = query
+      ? searchbarHelper.specialities.filter((item) => item.toLowerCase().includes(query))
+      : [...searchbarHelper.specialities];
+};
+
+function searchLocation(event) {
+    const query = event.query.toLowerCase();
+    filteredLocations.value = query
+      ? searchbarHelper.locations.filter((item) => item.toLowerCase().includes(query))
+      : [...searchbarHelper.locations];
 };
 
 </script>
@@ -39,18 +48,21 @@ function searchSpecialities(event) {
       <AutoComplete
         v-model="store.state.jobsRequest.speciality"
         :suggestions="filteredSpecialities"
-        @complete="searchSpecialities"
+        @complete="searchSpeciality"
         placeholder="Специальность / должность / компания"
         required="true"
         scrollHeight="14rem"
-        emptySearchMessage=""
       >
-
+      </AutoComplete>
+      <AutoComplete
+        v-model="store.state.jobsRequest.location"
+        :suggestions="filteredLocations"
+        @complete="searchLocation"
+        placeholder="Город / локация"
+        scrollHeight="14rem"
+      >
       </AutoComplete>
 
-
-      <!-- <InputText v-model="store.state.jobsRequest.speciality" type="text" placeholder="Специальность / должность / компания" required="true"/> -->
-      <InputText v-model="store.state.jobsRequest.location" type="text" placeholder="Город / локация"/>
       <div style="text-align: end;">
         <Button class="find-btn" type="submit">Найти</button>
       </div>
