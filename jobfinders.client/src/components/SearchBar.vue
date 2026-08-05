@@ -8,6 +8,9 @@ import { searchbarHelper } from '@/searchbarHelper';
 
 const toast = useToast();
 const store = useStore()
+
+const emit = defineEmits(['resetFirstPage'])
+
 const jobs = computed(() => store.getters.getFilteredJobs)
 
 const filteredSpecialities = ref([]);
@@ -17,6 +20,7 @@ async function findJobs() {
   store.commit('setShowSearchBarModal', false)
 
   const response = await store.dispatch("downloadJobs");
+  emit('resetFirstPage')
 
   if (response.status === 500) {
     store.dispatch('showError', { toast: toast, summary: 'showError', detail: `Ошибка сервера: ${response.data.errorText}` });

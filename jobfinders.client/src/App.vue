@@ -174,7 +174,7 @@ function resetFirstPage() {
   </div>
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
-      <SearchBar></SearchBar>
+      <SearchBar @resetFirstPage="resetFirstPage"></SearchBar>
       <div class="sources-and-filter">
         <SourcesComponent
           :disableSources="savedJobsShown"
@@ -220,7 +220,10 @@ function resetFirstPage() {
       ><i class="pi pi-sliders-h"></i
     ></Button>
   </div>
-  <SearchBarModal v-model:visible="showSearchBarModal"></SearchBarModal>
+  <SearchBarModal
+    v-model:visible="showSearchBarModal"
+    :resetFirstPage="resetFirstPage"
+  ></SearchBarModal>
   <SettingsModal
     :disableModal="savedJobsShown"
     v-model:visible="showSettingsModal"
