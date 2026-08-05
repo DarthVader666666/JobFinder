@@ -1,20 +1,25 @@
 <script setup>
 import "@/assets/main.css";
-import SearchBar from "./components/SearchBar.vue";
 import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+import Select from "primevue/select";
+
 import Toast from "primevue/toast";
+
 import PendingModal from "./components/Modals/PendingModal.vue";
 import SearchBarModal from "./components/Modals/SearchBarModal.vue";
+import FeedbackModal from "./components/Modals/FeedbackModal.vue";
 import SettingsModal from "./components/Modals/SettingsModal.vue";
+
+import SearchBar from "./components/SearchBar.vue";
 import SourcesComponent from "./components/SourcesComponent.vue";
 import FilterComponent from "./components/FilterComponent.vue";
 import JobItem from "./components/JobItem.vue";
-import InputText from "primevue/inputtext";
+
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { helper } from "./helper.js";
 import { useToast } from "primevue/usetoast";
-import FeedbackModal from "./components/Modals/FeedbackModal.vue";
 
 const toast = useToast();
 const store = useStore();
@@ -46,15 +51,19 @@ const showSettingsModal = computed({
 });
 
 const firstPage = ref(0);
-const rows = 20;
+const rows = ref(20);
 
 const slicedJobs = computed(() =>
-  jobs.value.slice(firstPage.value * rows, firstPage.value * rows + rows),
+  jobs.value.slice(
+    firstPage.value * rows.value,
+    firstPage.value * rows.value + rows.value,
+  ),
 );
 
 const isFirstPage = computed(() => firstPage.value <= 0);
 const isLastPage = computed(
-  () => firstPage.value * rows + slicedJobs.value.length >= jobs.value.length,
+  () =>
+    firstPage.value * rows.value + slicedJobs.value.length >= jobs.value.length,
 );
 
 watch(savedJobs, (newValue) => {
@@ -116,16 +125,16 @@ function scrollUp() {
 function navigationHandler(direction) {
   if (direction === "back" && firstPage.value > 0) {
     firstPage.value--;
-    scrollUp();
   }
 
   if (
     direction === "forward" &&
-    firstPage.value * rows + slicedJobs.value.length < jobs.value.length
+    firstPage.value * rows.value + slicedJobs.value.length < jobs.value.length
   ) {
     firstPage.value++;
-    scrollUp();
   }
+
+  scrollUp();
 }
 
 function resetFirstPage() {
@@ -197,22 +206,29 @@ function resetFirstPage() {
         <JobItem :job="job" @saveJob="saveJob(job)"></JobItem>
       </div>
       <div v-if="jobs.length" class="navigation-buttons">
-        <Button
-          rounded
-          icon="pi pi-arrow-left"
-          :disabled="isFirstPage"
-          @click="navigationHandler('back')"
-        ></Button>
-        <span
-          >{{ firstPage * rows + 1 }} ...
-          {{ firstPage * rows + slicedJobs.length }}</span
-        >
-        <Button
-          rounded
-          icon="pi pi-arrow-right"
-          :disabled="isLastPage"
-          @click="navigationHandler('forward')"
-        ></Button>
+        <Select
+          style="position: sticky; width: 90px; top: 0"
+          v-model="rows"
+          :options="[10, 20, 30, 40, 50]"
+        ></Select>
+        <div style="display: flex; gap: 15px; align-items: center">
+          <Button
+            rounded
+            icon="pi pi-arrow-left"
+            :disabled="isFirstPage"
+            @click="navigationHandler('back')"
+          ></Button>
+          <span
+            >{{ firstPage * rows + 1 }} -
+            {{ firstPage * rows + slicedJobs.length }}
+          </span>
+          <Button
+            rounded
+            icon="pi pi-arrow-right"
+            :disabled="isLastPage"
+            @click="navigationHandler('forward')"
+          ></Button>
+        </div>
       </div>
     </div>
   </div>
@@ -339,19 +355,16 @@ function resetFirstPage() {
   position: sticky;
   bottom: 15px;
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  justify-content: center;
   align-items: center;
   opacity: 0.7;
 
   span {
-    background-color: rgb(16 185 129);
-    opacity: 0.8;
+    background: rgb(16 185 129);
     color: white;
-    padding: 5px;
-    border-radius: 30px;
-    width: 80px;
-    text-align: center;
+    padding: 5px 10px 5px 10px;
+    border-radius: 15px;
   }
 }
 
