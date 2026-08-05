@@ -45,6 +45,18 @@ const showSettingsModal = computed({
   set: (value) => store.commit("setShowSettingsModal", value),
 });
 
+const firstPage = ref(0);
+const rows = 20;
+
+const slicedJobs = computed(() =>
+  jobs.value.slice(firstPage.value * rows, firstPage.value * rows + rows),
+);
+
+const isFirstPage = computed(() => firstPage.value <= 0);
+const isLastPage = computed(
+  () => firstPage.value * rows + slicedJobs.value.length >= jobs.value.length,
+);
+
 watch(savedJobs, (newValue) => {
   if (!newValue.length) {
     store.dispatch("showSavedJobs", false);
@@ -100,6 +112,25 @@ function handleShowFeedbackModal(value) {
 function scrollUp() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+function navigationHandler(direction) {
+  if (direction === "back" && firstPage.value > 0) {
+    firstPage.value--;
+    scrollUp();
+  }
+
+  if (
+    direction === "forward" &&
+    firstPage.value * rows + slicedJobs.value.length < jobs.value.length
+  ) {
+    firstPage.value++;
+    scrollUp();
+  }
+}
+
+function resetFirstPage() {
+  firstPage.value = 0;
+}
 </script>
 
 <template>
@@ -145,18 +176,42 @@ function scrollUp() {
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
       <SearchBar></SearchBar>
       <div class="sources-and-filter">
-        <SourcesComponent :disableSources="savedJobsShown"></SourcesComponent>
+        <SourcesComponent
+          :disableSources="savedJobsShown"
+          @resetFirstPage="resetFirstPage"
+        ></SourcesComponent>
         <hr />
-        <FilterComponent :disableFilter="savedJobsShown"></FilterComponent>
+        <FilterComponent
+          :disableFilter="savedJobsShown"
+          @resetFirstPage="resetFirstPage"
+        ></FilterComponent>
       </div>
     </div>
     <div class="job-list" :class="{ mobileVisible: isJobsEmpty }">
-      <div v-for="(job, index) in jobs" :key="index">
+      <div v-for="(job, index) in slicedJobs" :key="index">
         <JobItem :job="job" @saveJob="saveJob(job)"></JobItem>
+      </div>
+      <div v-if="jobs.length" class="navigation-buttons">
+        <Button
+          rounded
+          icon="pi pi-arrow-left"
+          :disabled="isFirstPage"
+          @click="navigationHandler('back')"
+        ></Button>
+        <span
+          >{{ firstPage * rows + 1 }} ...
+          {{ firstPage * rows + slicedJobs.length }}</span
+        >
+        <Button
+          rounded
+          icon="pi pi-arrow-right"
+          :disabled="isLastPage"
+          @click="navigationHandler('forward')"
+        ></Button>
       </div>
     </div>
   </div>
-  <div class="buttons" :class="{ mobileVisible: isJobsEmpty }">
+  <div class="settings-buttons" :class="{ mobileVisible: isJobsEmpty }">
     <Button rounded @click="scrollUp"><i class="pi pi-arrow-up"></i></Button>
     <Button rounded @click="store.commit('setShowSearchBarModal', true)"
       ><i class="pi pi-search"></i
@@ -169,6 +224,7 @@ function scrollUp() {
   <SettingsModal
     :disableModal="savedJobsShown"
     v-model:visible="showSettingsModal"
+    :resetFirstPage="resetFirstPage"
   ></SettingsModal>
   <FeedbackModal
     v-model:visible="showFeedbackModal"
@@ -254,7 +310,7 @@ function scrollUp() {
   gap: 15px;
 }
 
-.buttons {
+.settings-buttons {
   display: none;
   position: fixed;
   bottom: 20px;
@@ -268,6 +324,26 @@ function scrollUp() {
     i {
       font-size: 1.4rem;
     }
+  }
+}
+
+.navigation-buttons {
+  position: sticky;
+  bottom: 15px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.7;
+
+  span {
+    background-color: rgb(16 185 129);
+    opacity: 0.8;
+    color: white;
+    padding: 5px;
+    border-radius: 30px;
+    width: 80px;
+    text-align: center;
   }
 }
 
@@ -302,13 +378,13 @@ function scrollUp() {
     display: block;
   }
 
-  .buttons {
+  .settings-buttons {
     display: flex;
     flex-direction: column;
     gap: 15px;
   }
 
-  .buttons.mobileVisible {
+  .settings-buttons.mobileVisible {
     display: none;
   }
 

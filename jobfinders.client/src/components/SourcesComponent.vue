@@ -11,6 +11,8 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(["resetFirstPage"]);
+
 const store = useStore();
 const finders = computed(() => store.getters.getFinders);
 const allFindersChecked = computed(() => store.getters.getAllFindersChecked);
@@ -18,12 +20,14 @@ const allFindersChecked = computed(() => store.getters.getAllFindersChecked);
 function checkFinder(finder, checked) {
   store.commit("checkFinder", { source: finder.source, active: checked });
   store.dispatch("updateFilteredJobs");
+  emit("resetFirstPage");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function toggleAllSources(value) {
   store.commit("setAllFindersChecked", value);
   store.dispatch("updateFilteredJobs");
+  emit("resetFirstPage");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 </script>
@@ -41,12 +45,15 @@ function toggleAllSources(value) {
   </div>
   <div class="finder-options">
     <div class="finder-option" v-for="(finder, index) in finders" :key="index">
-      <img v-bind:src="finder.img" :alt="finder.source" />
+      <label :for="finder.source">
+        <img v-bind:src="finder.img" :alt="finder.source" />
+      </label>
       <Checkbox
         @update:modelValue="checkFinder(finder, $event)"
         :binary="true"
         :modelValue="finder.active"
         :disabled="props.disableSources"
+        :inputId="finder.source"
       />
     </div>
   </div>
@@ -70,11 +77,11 @@ function toggleAllSources(value) {
 .finder-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 15px;
+  gap: 10px;
   padding: 10px;
 
   img {
-    width: 70px;
+    width: 60px;
     height: 20px;
   }
 }

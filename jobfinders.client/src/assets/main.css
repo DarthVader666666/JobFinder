@@ -10,5 +10,5 @@ body {
 }
 
 .p-autocomplete-empty-message {
-  display: none;
+  display: none !important;
 }

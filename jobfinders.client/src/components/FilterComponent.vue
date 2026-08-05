@@ -16,6 +16,7 @@ const props = defineProps({
 
 const store = useStore();
 const toast = useToast();
+const emit = defineEmits(["resetFirstPage"]);
 
 const currency = computed({
   get: () => store.getters.getSelectedCurrency,
@@ -83,6 +84,7 @@ function updateFilteredJobs(value, scrollUp = true) {
     }
 
     store.dispatch("updateFilteredJobs");
+    emit("resetFirstPage");
 
     if (scrollUp) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -94,31 +96,34 @@ function updateFilteredJobs(value, scrollUp = true) {
 <template>
   <div class="filter">
     <div>
-      <span>точное совпадение</span>
+      <label for="exactTitle">точное совпадение</label>
       <Checkbox
         v-model="exactTitle"
         @change="updateFilteredJobs(exactTitle)"
         binary
         :disabled="props.disableFilter"
+        inputId="exactTitle"
       ></Checkbox>
     </div>
 
     <div>
-      <span>сначала высокая з/п</span>
+      <label for="orderBySalary">сначала высокая з/п</label>
       <Checkbox
         v-model="orderBySalary"
         @change="updateFilteredJobs(orderBySalary)"
         binary
         :disabled="props.disableFilter"
+        inputId="orderBySalary"
       ></Checkbox>
     </div>
     <div>
-      <span>группировать по источникам</span>
+      <label for="groupBySource">группировать по источникам</label>
       <Checkbox
         v-model="groupBySource"
         @change="updateFilteredJobs(groupBySource)"
         binary
         :disabled="props.disableFilter"
+        inputId="groupBySource"
       ></Checkbox>
     </div>
     <div class="currency">
@@ -134,7 +139,7 @@ function updateFilteredJobs(value, scrollUp = true) {
   <hr />
   <div class="range">
     <div style="display: flex; gap: 10px">
-      <span>уровень з/п</span>
+      <label for="salaryDefined">уровень з/п</label>
       <Checkbox
         v-model="salaryDefined"
         @change="
@@ -145,6 +150,7 @@ function updateFilteredJobs(value, scrollUp = true) {
         "
         binary
         :disabled="props.disableFilter"
+        inputId="salaryDefined"
       ></Checkbox>
     </div>
     <div class="min-max">
@@ -189,10 +195,9 @@ function updateFilteredJobs(value, scrollUp = true) {
   div {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-
+    text-align: end;
     max-width: 120px;
-    gap: 5px;
+    gap: 8px;
   }
 }
 
