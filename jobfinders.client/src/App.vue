@@ -160,7 +160,12 @@ function resetFirstPage() {
         severity="secondary"
         icon="pi pi-bookmark"
         :label="`${savedJobs.length || ''}`"
-        @click="store.dispatch('showSavedJobs')"
+        @click="
+          () => {
+            store.dispatch('showSavedJobs');
+            resetFirstPage();
+          }
+        "
       ></Button>
       <div class="rates">
         <span>USD: {{ usdRate }}</span>
