@@ -16,10 +16,13 @@ const jobs = computed(() => store.getters.getFilteredJobs)
 const filteredSpecialities = ref([]);
 const filteredLocations = ref([]);
 
+const speciality = ref('')
+const location = ref('')
+
 async function findJobs() {
   store.commit('setShowSearchBarModal', false)
 
-  const response = await store.dispatch("downloadJobs");
+  const response = await store.dispatch("downloadJobs", { speciality: speciality.value, location: location.value });
   emit('resetFirstPage')
 
   if (response.status === 500) {
@@ -34,14 +37,14 @@ async function findJobs() {
 function searchSpeciality(event) {
     const query = event.query.toLowerCase();
     filteredSpecialities.value = query
-      ? searchbarHelper.specialities.filter((item) => item.toLowerCase().includes(query))
+      ? searchbarHelper.specialities.filter((item) => item.toLowerCase().startsWith(query))
       : [...searchbarHelper.specialities];
 };
 
 function searchLocation(event) {
     const query = event.query.toLowerCase();
     filteredLocations.value = query
-      ? searchbarHelper.locations.filter((item) => item.toLowerCase().includes(query))
+      ? searchbarHelper.locations.filter((item) => item.toLowerCase().startsWith(query))
       : [...searchbarHelper.locations];
 };
 
@@ -50,7 +53,7 @@ function searchLocation(event) {
 <template>
     <form class="serch-bar" v-on:submit.prevent="findJobs">
       <AutoComplete
-        v-model="store.state.jobsRequest.speciality"
+        v-model="speciality"
         :suggestions="filteredSpecialities"
         @complete="searchSpeciality"
         placeholder="Специальность / должность / компания"
@@ -59,7 +62,7 @@ function searchLocation(event) {
       >
       </AutoComplete>
       <AutoComplete
-        v-model="store.state.jobsRequest.location"
+        v-model="location"
         :suggestions="filteredLocations"
         @complete="searchLocation"
         placeholder="Город / локация"

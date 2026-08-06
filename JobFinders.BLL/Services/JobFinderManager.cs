@@ -53,9 +53,7 @@ namespace JobFinders.BLL.Services
                 filter?.Location = setting?.LocationDictionary?.FirstOrDefault(x => filter?.Location?.Contains(x.Key, StringComparison.InvariantCultureIgnoreCase) ?? false).Value ?? string.Empty;
             }
 
-            filter?.Speciality = filter?.Speciality is null ? string.Empty : WebUtility.UrlEncode(filter?.Speciality);
-
-            var url = setting.LinkTemplate?.Replace(locationPlaceholder, filter?.Location).Replace(specialityPlaceholder, filter?.Speciality);
+            var url = setting.LinkTemplate?.Replace(locationPlaceholder, filter?.Location).Replace(specialityPlaceholder, WebUtility.UrlEncode(filter?.Speciality));
 
             if (setting == null)
             {
@@ -69,7 +67,9 @@ namespace JobFinders.BLL.Services
                     if (filter?.ExactTitle ?? false)
                     {
                         var specialityParts = filter?.Speciality?.Split([' ', '-']) ?? [];
-                        return specialityParts.Any(s => job.Title?.Contains(s.Trim(), StringComparison.InvariantCultureIgnoreCase) ?? false);
+                        var titleParts = job.Title?.Split([' ', '-']) ?? [];
+
+                        return specialityParts.Any(sp => titleParts.Contains(sp.Trim(), StringComparer.OrdinalIgnoreCase));
                     }
 
                     return true;

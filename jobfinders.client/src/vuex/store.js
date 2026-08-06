@@ -320,8 +320,11 @@ const store = createStore({
           }
         });
     },
-    async downloadJobs({ state, commit, getters }) {
+    async downloadJobs({ state, commit, getters }, request) {
       commit("setPending", true);
+      state.jobsRequest.speciality = request.speciality;
+      state.jobsRequest.location = request.location;
+
       return await axios
         .post(`${state.serverUrl}/jobs/getjobs`, getters.getJobsRequest, {
           headers: { "Content-Type": "application/json" },
@@ -408,11 +411,16 @@ const store = createStore({
       keys.forEach((key) => {
         if (state.jobsRequest.filter[key]) {
           if (key === "exactTitle") {
-            jobs = jobs.filter((fj) =>
-              fj.title
-                .toLowerCase()
-                .includes(state.jobsRequest.speciality.toLowerCase()),
-            );
+            jobs = jobs.filter((job) => {
+              const specialityParts = state.jobsRequest.speciality
+                .split(/[ -]/)
+                .map((x) => x.toLowerCase());
+              const titleParts = job.title
+                .split(/[ -]/)
+                .map((x) => x.toLowerCase());
+
+              return specialityParts.some((sp) => titleParts.includes(sp));
+            });
           }
 
           if (key === "orderBySalary") {
