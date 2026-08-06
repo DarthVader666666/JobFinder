@@ -7,6 +7,7 @@
     <SpaRoot>..\jobfinders.client</SpaRoot>
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:5173</SpaProxyServerUrl>
+    <UserSecretsId>35b7299b-e494-43b2-b279-78a066b26a2c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

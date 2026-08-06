@@ -1,10 +1,12 @@
 ﻿using Azure.Communication.Email;
 
+using JobFinders.BLL.Interfaces;
+
 using Microsoft.Extensions.Configuration;
 
 namespace JobFinders.BLL.Services
 {
-    public class AzureEmailSender
+    public class AzureEmailSender: IEmailSender
     {
         private readonly IConfiguration _configuration;
 

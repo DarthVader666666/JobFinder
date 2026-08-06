@@ -445,7 +445,9 @@ const store = createStore({
                 .split(/[ -]/)
                 .map((x) => x.toLowerCase());
 
-              return specialityParts.some((sp) => titleParts.includes(sp));
+              return specialityParts.some((sp) =>
+                titleParts.some((tp) => tp.includes(sp)),
+              );
             });
           }
 

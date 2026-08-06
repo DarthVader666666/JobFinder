@@ -1,3 +1,4 @@
+using JobFinders.BLL.Interfaces;
 using JobFinders.BLL.Models;
 using JobFinders.BLL.Services;
 using JobFinders.Server.Middleware;
@@ -14,8 +15,12 @@ builder.Services.AddCors(options => options.AddPolicy("AllowClient",
     .WithOrigins(origins ?? [])
     .AllowAnyHeader().AllowAnyMethod().Build()));
 
-builder.Services.AddScoped<JobFinderManager>();
-builder.Services.AddScoped<AzureEmailSender>();
+builder.Services.AddScoped<IJobFinderManager, JobFinderManager>();
+builder.Services.AddScoped<IEmailSender, AzureEmailSender>();
+builder.Services.AddScoped<ICurrencyConverter, CurrencyConverter>();
+builder.Services.AddScoped<IHtmlLoader, HtmlLoader>();
+builder.Services.AddScoped<IJobParser, JobParser>();
+builder.Services.AddScoped<ITransliterator, Transliterator>();
 
 builder.Services.Configure<List<JobFinderSetting>>(builder.Configuration.GetSection("JobFinderSettings"));
 

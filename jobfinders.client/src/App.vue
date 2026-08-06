@@ -143,7 +143,7 @@ function resetFirstPage() {
 </script>
 
 <template>
-  <Toast style="width: 320px; z-index: 2" />
+  <Toast style="width: 320px; z-index: 3" />
   <div class="header">
     <div class="title">
       <span style="font-size: 1.6rem">Find Your Job</span>

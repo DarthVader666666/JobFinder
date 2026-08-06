@@ -1,18 +1,17 @@
-﻿using JobFinders.BLL.Services;
-
-using Microsoft.AspNetCore.Cors;
+﻿using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using JobFinders.Server.Models;
+using JobFinders.BLL.Interfaces;
 
 namespace JobFinders.Server.Controllers
 {
     [EnableCors("AllowClient")]
     public class UserController : Controller
     {
-        private readonly AzureEmailSender _emailSender;
+        private readonly IEmailSender _emailSender;
         private readonly IConfiguration _configuration;
 
-        public UserController(AzureEmailSender emailSender, IConfiguration configuration)
+        public UserController(IEmailSender emailSender, IConfiguration configuration)
         {
             _emailSender = emailSender;
             _configuration = configuration;

@@ -7,16 +7,17 @@ using JobFinders.Server.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using JobFinders.BLL.Interfaces;
 
 namespace JobFinders.Server.Controllers
 {
     [EnableCors("AllowClient")]
     public class JobsController : Controller
     {
-        private readonly JobFinderManager _jobFinderManager;
+        private readonly IJobFinderManager _jobFinderManager;
         private readonly List<JobFinderSetting> _jobFinderSettings;
 
-        public JobsController(JobFinderManager jobFinderManager, IOptions<List<JobFinderSetting>> jobFinderSettings)
+        public JobsController(IJobFinderManager jobFinderManager, IOptions<List<JobFinderSetting>> jobFinderSettings)
         {
             _jobFinderManager = jobFinderManager;
             _jobFinderSettings = jobFinderSettings.Value;
@@ -53,17 +54,17 @@ namespace JobFinders.Server.Controllers
                         CurrencyRates = request?.Filter?.CurrencyRates
                     };
 
-                    var jobs = await _jobFinderManager.ProcessAsync(setting, filter);
+                    var jobs = await _jobFinderManager.ProcessAsync(setting, filter, ct);
 
-                    Parallel.ForEach(jobs, (job) =>
+                    foreach (var job in jobs)
                     {
                         responseList.Add(job);
-                    });
+                    }
                 });
             }
-            catch (Exception ex) 
+            catch
             {
-                throw ex;
+                throw;
             }            
 
             var response = request?.Filter?.OrderBySalary ?? false
