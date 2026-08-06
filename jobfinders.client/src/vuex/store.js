@@ -85,6 +85,7 @@ const store = createStore({
     rangeMultiplier: 100,
     infinity: 100000000,
     savedJobsShown: false,
+    abortController: null,
   },
   getters: {
     getPending(state) {
@@ -294,6 +295,9 @@ const store = createStore({
     setSavedJobsShown(state, value) {
       state.savedJobsShown = value;
     },
+    setAbortController(state, value) {
+      state.abortController = value;
+    },
   },
   actions: {
     async getFetch({ commit }, { url, usePending, func }) {
@@ -321,12 +325,20 @@ const store = createStore({
         });
     },
     async downloadJobs({ state, commit, getters }, request) {
+      if (state.abortController) {
+        state.abortController.abort();
+      }
+
+      const abortController = new AbortController();
+      commit("setAbortController", abortController);
+
       commit("setPending", true);
       state.jobsRequest.speciality = request.speciality;
       state.jobsRequest.location = request.location;
 
       return await axios
         .post(`${state.serverUrl}/jobs/getjobs`, getters.getJobsRequest, {
+          signal: abortController.signal,
           headers: { "Content-Type": "application/json" },
         })
         .then(async (response) => {
@@ -338,12 +350,18 @@ const store = createStore({
         })
         .catch((error) => {
           if (error.response) {
+            console.log(error.response);
             commit("setFilteredJobs", [error.response.data.errorText]);
             return { status: error.response.status };
+          }
+
+          if (axios.isCancel(error)) {
+            return { status: 499 };
           }
         })
         .finally(() => {
           commit("setPending", false);
+          commit("setAbortController", null);
         });
     },
     showSuccess(_, { toast, summary, detail }) {
@@ -357,6 +375,14 @@ const store = createStore({
     showError(_, { toast, summary, detail }) {
       toast.add({
         severity: "error",
+        summary: summary,
+        detail: detail,
+        life: 2000,
+      });
+    },
+    showInfo(_, { toast, summary, detail }) {
+      toast.add({
+        severity: "info",
         summary: summary,
         detail: detail,
         life: 2000,

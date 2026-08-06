@@ -35,8 +35,10 @@ namespace JobFinders.BLL.Services
             currencies = usd.Concat(euro).Concat(belRub).Concat(rusRub).Concat(tenge).Concat(lari).Concat(manat).Concat(som).ToArray();
         }
 
-        public async Task<IEnumerable<Job?>> ProcessAsync(JobFinderSetting? setting, JobsFilter? filter)
+        public async Task<IEnumerable<Job?>> ProcessAsync(JobFinderSetting? setting, JobsFilter? filter, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var transliteration = Enum.Parse<TransliterationEnum>(setting.LocationTransliteration);
 
             filter?.Location = string.IsNullOrEmpty(filter?.Location) && setting.MandatoryLocation ? "minsk" : filter?.Location;
@@ -60,10 +62,17 @@ namespace JobFinders.BLL.Services
                 throw new Exception($"{nameof(JobFinderSetting)} not found");
             }
 
-            var jobs = (await GetJobsAsync(url, setting))
-                .Where(job => !(job.Experience is null && job.Location is null && job.Company is null && job.TimePosted is null))
+            var jobs = (await GetJobsAsync(url, setting, cancellationToken))
+                .Where(job => 
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    return !(job.Experience is null && job.Location is null && job.Company is null && job.TimePosted is null);
+                })
                 .Where(job =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     if (filter?.ExactTitle ?? false)
                     {
                         var specialityParts = filter?.Speciality?.Split([' ', '-']) ?? [];
@@ -77,6 +86,8 @@ namespace JobFinders.BLL.Services
                 .Select(job => filter?.Salary?.Currency != "Нет" ? Convert(job, filter) : job)
                 .Where(job =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     if (filter?.SalaryDefined ?? false)
                     {
                         return !string.IsNullOrEmpty(job?.Salary?.Currency)
@@ -90,13 +101,14 @@ namespace JobFinders.BLL.Services
             return jobs ?? [];
         }
 
-        private async Task<IEnumerable<Job>> GetJobsAsync(string? url, JobFinderSetting? setting)
+        private async Task<IEnumerable<Job>> GetJobsAsync(string? url, JobFinderSetting? setting, CancellationToken cancellationToken)
         {
             var nodes = Enumerable.Empty<HtmlNode>();
             IEnumerable<Job> jobs;
 
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var htmlDoc = await new HtmlWeb().LoadFromWebAsync(url);
 
                 nodes = (htmlDoc?.DocumentNode?.Descendants(setting?.VacancyTag?.Tag ?? "")

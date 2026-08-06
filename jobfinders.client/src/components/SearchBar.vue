@@ -16,8 +16,8 @@ const jobs = computed(() => store.getters.getFilteredJobs)
 const filteredSpecialities = ref([]);
 const filteredLocations = ref([]);
 
-const speciality = ref('')
-const location = ref('')
+const speciality = ref(store.state.jobsRequest.speciality)
+const location = ref(store.state.jobsRequest.location)
 
 async function findJobs() {
   store.commit('setShowSearchBarModal', false)
@@ -31,6 +31,8 @@ async function findJobs() {
     store.dispatch('showSuccess', { toast: toast, summary: "OK", detail: `Найдено совпадений: ${jobs.value.length}` });
     store.dispatch('showSavedJobs', false)
     window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if (response.status === 499) {
+    store.dispatch('showInfo', { toast: toast, summary: "Поиск прерван", detail: 'Отменено пользователем' });
   }
 }
 
