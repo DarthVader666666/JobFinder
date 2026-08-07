@@ -15,6 +15,8 @@ builder.Services.AddCors(options => options.AddPolicy("AllowClient",
     .WithOrigins(origins ?? [])
     .AllowAnyHeader().AllowAnyMethod().Build()));
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<IJobFinderManager, JobFinderManager>();
 builder.Services.AddScoped<IEmailSender, AzureEmailSender>();
 builder.Services.AddScoped<IHtmlLoader, HtmlLoader>();

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using JobFinders.BLL.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace JobFinders.Server.Controllers
 {
@@ -15,11 +16,13 @@ namespace JobFinders.Server.Controllers
     public class JobsController : Controller
     {
         private readonly IJobFinderManager _jobFinderManager;
+        private readonly IMemoryCache _cache;
         private readonly List<JobFinderSetting> _jobFinderSettings;
 
-        public JobsController(IJobFinderManager jobFinderManager, IOptions<List<JobFinderSetting>> jobFinderSettings)
+        public JobsController(IJobFinderManager jobFinderManager, IMemoryCache cache, IOptions<List<JobFinderSetting>> jobFinderSettings)
         {
             _jobFinderManager = jobFinderManager;
+            _cache = cache;
             _jobFinderSettings = jobFinderSettings.Value;
         }
 
@@ -29,6 +32,11 @@ namespace JobFinders.Server.Controllers
             if (request is null)
             {
                 return BadRequest();
+            }
+
+            if (_cache.TryGetValue($"{request.Speciality}{request.Location}", out ConcurrentBag<Job?>? cachedJobs))
+            { 
+                return Ok(cachedJobs);
             }
 
             var parallelOptions = new ParallelOptions { CancellationToken = cancellationToken };
@@ -64,6 +72,13 @@ namespace JobFinders.Server.Controllers
             {
                 throw;
             }
+
+            var cacheOptions = new MemoryCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromMinutes(10))
+                .SetAbsoluteExpiration(TimeSpan.FromHours(1))
+                .SetPriority(CacheItemPriority.Normal);
+
+            _cache.Set($"{request?.Speciality}{request?.Location}", responseList, cacheOptions);
 
             return Ok(responseList);
         }
