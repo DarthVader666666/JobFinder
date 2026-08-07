@@ -68,6 +68,7 @@ function getLongSalary(value) {
         <div style="padding-bottom: 5px; text-align: end">
           <Button
             icon="pi pi-bookmark"
+            style="border-color: rgb(100, 116, 139, 0.6)"
             rounded
             :outlined="props.job.saved ? false : true"
             :severity="props.job.saved ? 'info' : 'secondary'"

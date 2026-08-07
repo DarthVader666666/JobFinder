@@ -53,14 +53,18 @@ namespace JobFinders.BLL.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (filter?.SalaryDefined ?? false)
+                    if (filter?.Salary?.Min > 0)
                     {
                         return !string.IsNullOrEmpty(job?.Salary?.Currency)
-                            && job?.Salary.Min >= filter?.Salary?.Min
-                            && job?.Salary.Max <= filter.Salary.Max;
+                            && (job.Salary.Min != job.Salary.Max || job.Salary.Min >= filter?.Salary?.Min)
+                            && job?.Salary.Min <= filter?.Salary?.Max
+                            && job?.Salary.Max >= filter.Salary.Min
+                            && (job.Salary.Min <= filter.Salary.Max || job.Salary.Max <= filter.Salary.Max);
                     }
-
-                    return true;
+                    else
+                    {
+                        return job?.Salary is null || job.Salary?.Max <= filter?.Salary?.Max;
+                    }
                 });
 
             return jobs ?? [];

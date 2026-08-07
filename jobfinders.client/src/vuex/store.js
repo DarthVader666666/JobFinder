@@ -58,7 +58,6 @@ const store = createStore({
       sources: [],
       filter: {
         exactTitle: false,
-        salaryDefined: false,
         orderBySalary: false,
         groupBySource: false,
         salary: {
@@ -81,7 +80,7 @@ const store = createStore({
       date: null,
       rates: null,
     },
-    range: [0.1, 100],
+    range: [0, 100],
     rangeMultiplier: 100,
     infinity: 100000000,
     savedJobsShown: false,
@@ -102,9 +101,6 @@ const store = createStore({
     },
     getExactTitle(state) {
       return state.jobsRequest.filter.exactTitle;
-    },
-    getSalaryDefined(state) {
-      return state.jobsRequest.filter.salaryDefined;
     },
     getOrderBySalary(state) {
       return state.jobsRequest.filter.orderBySalary;
@@ -141,7 +137,6 @@ const store = createStore({
         sources: state.finders.filter((f) => f.active).map((f) => f.source),
         filter: {
           exactTitle: state.jobsRequest.filter.exactTitle,
-          salaryDefined: state.jobsRequest.filter.salaryDefined,
           orderBySalary: state.jobsRequest.filter.orderBySalary,
           groupBySource: state.jobsRequest.filter.groupBySource,
           salary: {
@@ -212,9 +207,6 @@ const store = createStore({
     },
     setExactTitle(state, value) {
       state.jobsRequest.filter.exactTitle = value;
-    },
-    setSalaryDefined(state, value) {
-      state.jobsRequest.filter.salaryDefined = value;
     },
     setOrderBySalary(state, value) {
       state.jobsRequest.filter.orderBySalary = value;
@@ -435,47 +427,63 @@ const store = createStore({
       const keys = Object.keys(state.jobsRequest.filter) ?? [];
 
       keys.forEach((key) => {
-        if (state.jobsRequest.filter[key]) {
-          if (key === "exactTitle") {
-            jobs = jobs.filter((job) => {
-              const specialityParts = state.jobsRequest.speciality
-                .split(/[ -]/)
-                .map((x) => x.toLowerCase());
-              const titleParts = job.title
-                .split(/[ -]/)
-                .map((x) => x.toLowerCase());
-
-              return specialityParts.some((sp) =>
-                titleParts.some((tp) => tp.includes(sp)),
-              );
-            });
-          }
-
-          if (key === "orderBySalary") {
-            jobs = jobs.sort(
-              (x, y) => (y.salary?.max ?? 0) - (x.salary?.max ?? 0),
-            );
-          }
-
-          if (key === "groupBySource") {
-            jobs = jobs.sort((x, y) => x.source.localeCompare(y.source));
-          }
-
-          if (key === "salaryDefined") {
-            jobs = jobs.filter(
-              (fj) =>
-                fj.salary?.currency &&
-                fj.salary.min >=
-                  state.range[0] * this.getters.getRangeMultiplier &&
-                fj.salary.max <=
-                  (state.range[1] === 100
-                    ? state.infinity
-                    : state.range[1] * this.getters.getRangeMultiplier),
-            );
-          }
-
-          commit("setFilteredJobs", jobs);
+        if (!state.jobsRequest.filter[key]) {
+          return;
         }
+        if (key === "exactTitle") {
+          jobs = jobs.filter((job) => {
+            const specialityParts = state.jobsRequest.speciality
+              .split(/[ -]/)
+              .map((x) => x.toLowerCase());
+            const titleParts = job.title
+              .split(/[ -]/)
+              .map((x) => x.toLowerCase());
+
+            return specialityParts.some((sp) =>
+              titleParts.some((tp) => tp.includes(sp)),
+            );
+          });
+        }
+
+        if (key === "orderBySalary") {
+          jobs = jobs.sort(
+            (x, y) => (y.salary?.max ?? 0) - (x.salary?.max ?? 0),
+          );
+        }
+
+        if (key === "groupBySource") {
+          jobs = jobs.sort((x, y) => x.source.localeCompare(y.source));
+        }
+
+        if (state.range[0]) {
+          const minRange = state.range[0] * this.getters.getRangeMultiplier;
+          const maxRange =
+            state.range[1] < 100
+              ? state.range[1] * this.getters.getRangeMultiplier
+              : state.infinity;
+
+          jobs = jobs.filter(
+            (fj) =>
+              fj.salary?.currency &&
+              (fj.salary?.min === fj.salary?.max
+                ? fj.salary?.min >= minRange
+                : true) &&
+              fj.salary?.min <= maxRange &&
+              fj.salary?.max >= minRange &&
+              (fj.salary?.min <= maxRange ? true : fj.salary?.max <= maxRange),
+          );
+        } else {
+          jobs = jobs.filter(
+            (fj) =>
+              !fj.salary ||
+              fj.salary?.max <=
+                (state.range[1] === 100
+                  ? state.infinity
+                  : state.range[1] * this.getters.getRangeMultiplier),
+          );
+        }
+
+        commit("setFilteredJobs", jobs);
       });
     },
     addSavedJob({ state, getters, commit }, job) {

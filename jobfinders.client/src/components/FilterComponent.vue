@@ -33,11 +33,6 @@ const exactTitle = computed({
   set: (value) => store.commit("setExactTitle", value),
 });
 
-const salaryDefined = computed({
-  get: () => store.getters.getSalaryDefined,
-  set: (value) => store.commit("setSalaryDefined", value),
-});
-
 const orderBySalary = computed({
   get: () => store.getters.getOrderBySalary,
   set: (value) => store.commit("setOrderBySalary", value),
@@ -139,47 +134,28 @@ function updateFilteredJobs(value, scrollUp = true) {
   <hr />
   <div class="range">
     <div style="display: flex; gap: 10px">
-      <label for="salaryDefined">уровень з/п</label>
-      <Checkbox
-        v-model="salaryDefined"
-        @change="
-          updateFilteredJobs(
-            salaryDefined,
-            store.getters.getShowSettingsModal && salaryDefined,
-          )
-        "
-        binary
-        :disabled="props.disableFilter"
-        inputId="salaryDefined"
-      ></Checkbox>
+      <span>уровень з/п</span>
     </div>
     <div class="min-max">
-      <span :style="{ opacity: !salaryDefined ? 0.4 : 1 }"
+      <span
         >{{ range[0] * rangeMultiplier
         }}<span>{{
           selectedCurrency === "Нет" ? "" : " " + selectedCurrency
         }}</span></span
       >
-      <span
-        v-if="range[1] < 100"
-        :style="{ opacity: !salaryDefined ? 0.4 : 1, paddingBottom: '5px' }"
+      <span v-if="range[1] < 100"
         >{{ range[1] * rangeMultiplier
         }}<span>{{
           selectedCurrency === "Нет" ? "" : " " + selectedCurrency
         }}</span>
       </span>
-      <i
-        v-else
-        class="icon-infinity"
-        :style="{ opacity: !salaryDefined ? 0.4 : 1, fontSize: '1.5rem' }"
-      ></i>
+      <i v-else class="icon-infinity"></i>
     </div>
 
     <Slider
       v-model="range"
       range
-      :disabled="!salaryDefined || props.disableFilter"
-      @slideend="() => updateFilteredJobs(salaryDefined)"
+      @slideend="() => updateFilteredJobs()"
     ></Slider>
   </div>
 </template>
@@ -231,6 +207,7 @@ function updateFilteredJobs(value, scrollUp = true) {
     display: flex;
     justify-content: space-between;
     font-size: 0.9rem;
+    height: 25px;
     width: 90%;
   }
 

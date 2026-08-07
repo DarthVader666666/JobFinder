@@ -169,7 +169,8 @@ namespace JobFinders.BLL.Services
                 _ => null
             };
 
-            var salaryMatch = Regex.Match(innerText, @"(\d[\d\s]*)\s*[-–—]\s*(\d[\d\s]*)|(\d[\d\s]*)");
+            innerText = innerText.Replace(currencyMatch.Value, "");
+            var salaryMatch = Regex.Match(innerText, @"(\d[\d\s]*)\s*(?:[-–—]|\bдо\b)\s*(\d[\d\s]*)|(\d[\d\s]*)");
 
             if (salaryMatch.Success)
             {

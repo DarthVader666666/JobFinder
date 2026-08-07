@@ -44,7 +44,6 @@ namespace JobFinders.Server.Controllers
                         Speciality = request?.Speciality,
                         Location = request?.Location,
                         ExactTitle = request?.Filter?.ExactTitle ?? false,
-                        SalaryDefined = request?.Filter?.SalaryDefined ?? false,
                         Salary = new()
                         {
                             Currency = request?.Filter?.Salary?.Currency,
