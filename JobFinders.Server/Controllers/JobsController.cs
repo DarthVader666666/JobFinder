@@ -34,7 +34,9 @@ namespace JobFinders.Server.Controllers
                 return BadRequest();
             }
 
-            if (_cache.TryGetValue($"{request.Speciality}{request.Location}", out ConcurrentBag<Job?>? cachedJobs))
+            var key = $"{request.Speciality}{request.Location}".ToUpper();
+
+            if (_cache.TryGetValue(key, out ConcurrentBag<Job?>? cachedJobs))
             { 
                 return Ok(cachedJobs);
             }
@@ -78,7 +80,7 @@ namespace JobFinders.Server.Controllers
                 .SetAbsoluteExpiration(TimeSpan.FromHours(1))
                 .SetPriority(CacheItemPriority.Normal);
 
-            _cache.Set($"{request?.Speciality}{request?.Location}", responseList, cacheOptions);
+            _cache.Set(key, responseList, cacheOptions);
 
             return Ok(responseList);
         }
