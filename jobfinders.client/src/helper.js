@@ -4,26 +4,16 @@ export const helper = {
   convertSalaries(selectedCurrency) {
     var apiCurrency = this.getNbrbApiCurrency(selectedCurrency);
 
-    if (apiCurrency === "Нет") {
-      store.state.filteredJobs.forEach((job) => {
-        if (job.salary) {
-          job.salary.max = job.originalSalary.max;
-          job.salary.min = job.originalSalary.min;
-          job.salary.currency = job.originalSalary.currency;
-        }
-      });
-    } else {
-      store.state.filteredJobs.forEach((job) => {
-        if (
-          job.salary &&
-          job.salary.currency &&
-          job.salary.currency != selectedCurrency
-        ) {
-          const jobCurrency = this.getNbrbApiCurrency(job.salary.currency);
-          this.convert(job, jobCurrency, selectedCurrency, apiCurrency);
-        }
-      });
-    }
+    store.state.filteredJobs.forEach((job) => {
+      if (
+        job.salary &&
+        job.salary.currency &&
+        job.salary.currency != selectedCurrency
+      ) {
+        const jobCurrency = this.getNbrbApiCurrency(job.salary.currency);
+        this.convert(job, jobCurrency, selectedCurrency, apiCurrency);
+      }
+    });
   },
   convert(job, jobCurrency, selectedCurrency, apiCurrency) {
     if (job.originalSalary?.currency === selectedCurrency) {
@@ -62,7 +52,7 @@ export const helper = {
     job.salary.currency = selectedCurrency;
   },
   getNbrbApiCurrency(currency) {
-    var apiCurrency = "Нет";
+    var apiCurrency = "BYN";
 
     switch (currency) {
       case "$":
@@ -73,9 +63,6 @@ export const helper = {
         break;
       case "₽":
         apiCurrency = "RUB";
-        break;
-      case "BYN":
-        apiCurrency = "BYN";
         break;
       case "₸":
         apiCurrency = "KZT";
@@ -89,8 +76,6 @@ export const helper = {
       case "so'm":
         apiCurrency = "UZS";
         break;
-      default:
-        apiCurrency = "Нет";
     }
 
     return apiCurrency;

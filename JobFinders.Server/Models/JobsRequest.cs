@@ -16,6 +16,5 @@ namespace JobFinders.Server.Models
         public bool OrderBySalary { get; set; } = false;
         public bool GroupBySource { get; set; } = false;
         public Salary? Salary { get; set; }
-        public ICollection<CurrencyData>? CurrencyRates { get; set; } = [];
     }
 }

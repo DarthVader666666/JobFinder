@@ -17,7 +17,6 @@ builder.Services.AddCors(options => options.AddPolicy("AllowClient",
 
 builder.Services.AddScoped<IJobFinderManager, JobFinderManager>();
 builder.Services.AddScoped<IEmailSender, AzureEmailSender>();
-builder.Services.AddScoped<ICurrencyConverter, CurrencyConverter>();
 builder.Services.AddScoped<IHtmlLoader, HtmlLoader>();
 builder.Services.AddScoped<IJobParser, JobParser>();
 builder.Services.AddScoped<ITransliterator, Transliterator>();

@@ -49,8 +49,7 @@ namespace JobFinders.Server.Controllers
                             Currency = request?.Filter?.Salary?.Currency,
                             Min = request?.Filter?.Salary?.Min,
                             Max = request?.Filter?.Salary?.Max
-                        },
-                        CurrencyRates = request?.Filter?.CurrencyRates
+                        }
                     };
 
                     var jobs = await _jobFinderManager.ProcessAsync(setting, filter, ct);
@@ -64,17 +63,9 @@ namespace JobFinders.Server.Controllers
             catch
             {
                 throw;
-            }            
+            }
 
-            var response = request?.Filter?.OrderBySalary ?? false
-                ? responseList.OrderByDescending(x => x?.Salary?.Max).AsEnumerable()
-                : responseList;
-
-            response = request?.Filter?.GroupBySource ?? false
-                ? response.OrderBy(x => x?.Source).AsEnumerable()
-                : response;
-
-            return Ok(response);
+            return Ok(responseList);
         }
     }
 }

@@ -16,8 +16,8 @@ const jobs = computed(() => store.getters.getFilteredJobs)
 const filteredSpecialities = ref([]);
 const filteredLocations = ref([]);
 
-const speciality = ref(store.state.jobsRequest.speciality)
-const location = ref(store.state.jobsRequest.location)
+const speciality = computed({ get: () => store.getters.getSpeciality, set: (value) => store.commit('setSpeciality', value) })
+const location = computed({ get: () => store.getters.getLocation, set: (value) => store.commit('setLocation', value) })
 
 async function findJobs() {
   store.commit('setShowSearchBarModal', false)

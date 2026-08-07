@@ -7,6 +7,5 @@
         public bool ExactTitle { get; set; } = false;
         public bool OrderBySalary { get; set; } = false;
         public Salary? Salary { get; set; }
-        public ICollection<CurrencyData>? CurrencyRates { get; set; } = [];
     }
 }

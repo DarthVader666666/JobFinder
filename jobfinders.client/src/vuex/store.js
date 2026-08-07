@@ -1,5 +1,6 @@
 import { createStore } from "vuex";
 import axios from "axios";
+import { helper } from "@/helper";
 
 const store = createStore({
   state: {
@@ -52,9 +53,9 @@ const store = createStore({
         active: true,
       },
     ],
+    speciality: "",
+    location: "",
     jobsRequest: {
-      speciality: "",
-      location: "",
       sources: [],
       filter: {
         exactTitle: false,
@@ -72,16 +73,15 @@ const store = createStore({
     filteredJobs: [],
     savedJobs: [],
     allFindersChecked: true,
-    currencies: ["$", "BYN", "€", "₽", "₸", "₾", "₼", "so'm", "Нет"],
+    currencies: ["BYN", "$", "€", "₽"],
     apiCurrencies: ["USD", "EUR", "RUB", "KZT", "GEL", "AZN", "UZS"],
-    oldCurrency: "Нет",
-    selectedCurrency: "Нет",
+    selectedCurrency: "BYN",
     currencyData: {
       date: null,
       rates: null,
     },
     range: [0, 100],
-    rangeMultiplier: 100,
+    rangeMultiplier: 50,
     infinity: 100000000,
     savedJobsShown: false,
     abortController: null,
@@ -94,10 +94,10 @@ const store = createStore({
       return state.sending;
     },
     getSpeciality(state) {
-      return state.jobsRequest.speciality;
+      return state.speciality;
     },
     getLocation(state) {
-      return state.jobsRequest.location;
+      return state.location;
     },
     getExactTitle(state) {
       return state.jobsRequest.filter.exactTitle;
@@ -132,8 +132,8 @@ const store = createStore({
     },
     getJobsRequest(state, getters) {
       return {
-        speciality: state.jobsRequest.speciality.trim(),
-        location: state.jobsRequest.location.trim(),
+        speciality: state.speciality.trim(),
+        location: state.location.trim(),
         sources: state.finders.filter((f) => f.active).map((f) => f.source),
         filter: {
           exactTitle: state.jobsRequest.filter.exactTitle,
@@ -180,10 +180,8 @@ const store = createStore({
     getRangeMultiplier(state) {
       if (state.selectedCurrency === "₽") {
         return state.rangeMultiplier * 100;
-      } else if (state.selectedCurrency === "₸") {
-        return state.rangeMultiplier * 1000;
-      } else if (state.selectedCurrency === "so'm") {
-        return state.rangeMultiplier * 10000;
+      } else if (state.selectedCurrency === "BYN") {
+        return state.rangeMultiplier * 3;
       } else {
         return state.rangeMultiplier;
       }
@@ -200,10 +198,10 @@ const store = createStore({
       state.sending = value;
     },
     setSpeciality(state, value) {
-      state.jobsRequest.speciality = value;
+      state.speciality = value;
     },
     setLocation(state, value) {
-      state.jobsRequest.location = value;
+      state.location = value;
     },
     setExactTitle(state, value) {
       state.jobsRequest.filter.exactTitle = value;
@@ -316,7 +314,7 @@ const store = createStore({
           }
         });
     },
-    async downloadJobs({ state, commit, getters }, request) {
+    async downloadJobs({ state, commit, dispatch, getters }, request) {
       if (state.abortController) {
         state.abortController.abort();
       }
@@ -337,6 +335,8 @@ const store = createStore({
           if (response.status === 200) {
             commit("setFilteredJobs", response.data);
             commit("setBufferedJobs", response.data);
+            helper.convertSalaries(state.selectedCurrency);
+            dispatch("updateFilteredJobs");
             return { status: response.status };
           }
         })

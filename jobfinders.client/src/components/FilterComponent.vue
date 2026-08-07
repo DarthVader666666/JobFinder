@@ -52,7 +52,7 @@ const rangeMultiplier = computed(() => store.getters.getRangeMultiplier);
 
 const selectedCurrency = computed(() => store.getters.getSelectedCurrency);
 
-async function setCurrencyValues(selectedSalary) {
+async function setCurrencyValues(selectedCurrency) {
   const now = new Date();
   const currentDate = new Date(
     now.getFullYear(),
@@ -68,7 +68,7 @@ async function setCurrencyValues(selectedSalary) {
     await store.dispatch("downloadCurrencyRates", toast);
   }
 
-  helper.convertSalaries(selectedSalary);
+  helper.convertSalaries(selectedCurrency);
   updateFilteredJobs(orderBySalary.value, false);
 }
 
