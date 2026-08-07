@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 
-using JobFinders.BLL.Services;
 using JobFinders.BLL.Models;
 using JobFinders.Server.Models;
 

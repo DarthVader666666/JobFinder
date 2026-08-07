@@ -136,18 +136,13 @@ function updateFilteredJobs(value, scrollUp = true) {
     <div style="display: flex; gap: 10px">
       <span>уровень з/п</span>
     </div>
-    <div class="min-max">
+    <div class="min-max" :style="props.disableFilter ? { opacity: 0.5 } : {}">
       <span
         >{{ range[0] * rangeMultiplier
-        }}<span>{{
-          selectedCurrency === "Нет" ? "" : " " + selectedCurrency
-        }}</span></span
+        }}<span>{{ selectedCurrency }}</span></span
       >
       <span v-if="range[1] < 100"
-        >{{ range[1] * rangeMultiplier
-        }}<span>{{
-          selectedCurrency === "Нет" ? "" : " " + selectedCurrency
-        }}</span>
+        >{{ range[1] * rangeMultiplier }}<span>{{ selectedCurrency }}</span>
       </span>
       <i v-else class="icon-infinity"></i>
     </div>
@@ -155,6 +150,7 @@ function updateFilteredJobs(value, scrollUp = true) {
     <Slider
       v-model="range"
       range
+      :disabled="props.disableFilter"
       @slideend="() => updateFilteredJobs()"
     ></Slider>
   </div>
