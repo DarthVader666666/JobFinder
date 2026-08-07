@@ -20,6 +20,10 @@ const speciality = computed({ get: () => store.getters.getSpeciality, set: (valu
 const location = computed({ get: () => store.getters.getLocation, set: (value) => store.commit('setLocation', value) })
 
 async function findJobs() {
+  if(!(speciality.value || location.value)) {
+    return
+  }
+
   store.commit('setShowSearchBarModal', false)
 
   const response = await store.dispatch("downloadJobs", { speciality: speciality.value, location: location.value });
