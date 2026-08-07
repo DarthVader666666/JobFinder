@@ -432,7 +432,7 @@ const store = createStore({
         }
         if (key === "exactTitle") {
           jobs = jobs.filter((job) => {
-            const specialityParts = state.jobsRequest.speciality
+            const specialityParts = state.speciality
               .split(/[ -]/)
               .map((x) => x.toLowerCase());
             const titleParts = job.title
