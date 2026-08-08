@@ -40,9 +40,13 @@ jobs:
 
       # Copy built frontend into ASP.NET wwwroot
       - name: Copy frontend to wwwroot
-        run: |
-          robocopy jobfinders.client/dist ${{env.DOTNET_ROOT}}/myapp/wwwroot /E || exit 0
         shell: pwsh
+        run: |
+         robocopy jobfinders.client/dist ${{env.DOTNET_ROOT}}/myapp/wwwroot /E
+          if ($LASTEXITCODE -ge 8) {
+            Write-Error "Robocopy failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
