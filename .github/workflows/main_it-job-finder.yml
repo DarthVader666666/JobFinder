@@ -17,6 +17,32 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Install frontend dependencies
+      - name: Install npm dependencies
+        working-directory: ClientApp
+        run: npm ci
+
+      # Build Vue app
+      - name: Build Vue app
+        working-directory: ClientApp
+        run: npm run build
+
+      # Generate version.json using Node
+      - name: Generate version.json
+        working-directory: ClientApp
+        run: node build-version.js
+
+      # Copy built frontend into ASP.NET wwwroot
+      - name: Copy frontend to wwwroot
+        run: |
+          robocopy ClientApp/dist ${{env.DOTNET_ROOT}}/myapp/wwwroot /E
+        shell: pwsh
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4

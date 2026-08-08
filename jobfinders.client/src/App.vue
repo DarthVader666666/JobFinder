@@ -20,6 +20,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { helper } from "./helper.js";
 import { useToast } from "primevue/usetoast";
+import { versionChecker } from "./versionChecker.js";
 
 const toast = useToast();
 const store = useStore();
@@ -73,6 +74,14 @@ watch(savedJobs.value, (newValue) => {
 });
 
 onMounted(async () => {
+  versionChecker.startChecking(() => {
+    store.dispatch("showWarning", {
+      toast: toast,
+      summary: "Версия сайта устарела",
+      detail: "Пожалуйста, обновите страницу",
+    });
+  });
+
   window.addEventListener("resize", updateIsMobile);
 
   await helper.updateCurrencyRates();

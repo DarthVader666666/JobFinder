@@ -363,6 +363,14 @@ const store = createStore({
         life: 2000,
       });
     },
+    showWarning(_, { toast, summary, detail }) {
+      toast.add({
+        severity: "warn",
+        summary: summary,
+        detail: detail,
+        life: 2000,
+      });
+    },
     async downloadCurrencyRates({ state, commit, dispatch }, toast) {
       async function getRates(periodicity) {
         try {

@@ -9,7 +9,6 @@ const finders = computed(() => store.getters.getFinders);
 const props = defineProps({
   job: {
     type: Object,
-    default: null,
   },
 });
 
