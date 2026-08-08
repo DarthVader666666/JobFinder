@@ -17,36 +17,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
-      # Install frontend dependencies
-      - name: Install npm dependencies
-        working-directory: jobfinders.client
-        run: npm ci
-
-      # Build Vue app
-      - name: Build Vue app
-        working-directory: jobfinders.client
-        run: npm run build
-
-      # Generate version.json using Node
-      - name: Generate version.json
-        working-directory: jobfinders.client
-        run: node build-version.js
-
-      # Copy built frontend into ASP.NET wwwroot
-      - name: Copy frontend to wwwroot
-        shell: pwsh
-        run: |
-          robocopy jobfinders.client/dist ${{env.DOTNET_ROOT}}/myapp/wwwroot /E
-          if ($global:LASTEXITCODE -ge 8) {
-            Write-Error "Robocopy failed with exit code $global:LASTEXITCODE"
-            exit $global:LASTEXITCODE
-          }
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
