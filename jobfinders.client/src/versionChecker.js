@@ -4,7 +4,7 @@ const currentVersion = ref(null);
 
 async function loadVersion() {
   console.log("Before Fetch");
-  const res = await fetch("../dist/version.json", { cache: "no-store" });
+  const res = await fetch("version.json", { cache: "no-store" });
   const json = await res.json();
   console.log("Fetch Result: " + json);
   return json.version;
