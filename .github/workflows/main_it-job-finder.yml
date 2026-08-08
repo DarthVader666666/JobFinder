@@ -25,23 +25,23 @@ jobs:
 
       # Install frontend dependencies
       - name: Install npm dependencies
-        working-directory: ClientApp
+        working-directory: jobfinders.client
         run: npm ci
 
       # Build Vue app
       - name: Build Vue app
-        working-directory: ClientApp
+        working-directory: jobfinders.client
         run: npm run build
 
       # Generate version.json using Node
       - name: Generate version.json
-        working-directory: ClientApp
+        working-directory: jobfinders.client
         run: node build-version.js
 
       # Copy built frontend into ASP.NET wwwroot
       - name: Copy frontend to wwwroot
         run: |
-          robocopy ClientApp/dist ${{env.DOTNET_ROOT}}/myapp/wwwroot /E
+          robocopy jobfinders.client/dist ${{env.DOTNET_ROOT}}/myapp/wwwroot /E
         shell: pwsh
 
       - name: Set up .NET Core
