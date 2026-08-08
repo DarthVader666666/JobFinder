@@ -43,9 +43,9 @@ jobs:
         shell: pwsh
         run: |
           robocopy jobfinders.client/dist ${{env.DOTNET_ROOT}}/myapp/wwwroot /E
-          if ($LASTEXITCODE -ge 8) {
-            Write-Error "Robocopy failed with exit code $LASTEXITCODE"
-            exit $LASTEXITCODE
+          if ($global:LASTEXITCODE -ge 8) {
+            Write-Error "Robocopy failed with exit code $global:LASTEXITCODE"
+            exit $global:LASTEXITCODE
           }
 
       - name: Set up .NET Core
