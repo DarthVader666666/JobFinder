@@ -28,12 +28,12 @@ namespace JobFinders.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> GetJobs([FromBody] JobsRequest? request, CancellationToken cancellationToken)
         {
-            if (request is null)
+            if (request is null || !ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            var key = $"{request.Speciality}{request.Location}".ToUpper();
+            var key = $"{request.Speciality}{request.Location}{string.Join('_', request?.Sources ?? [])}".ToUpper();
 
             if (_cache.TryGetValue(key, out ConcurrentBag<Job?>? cachedJobs))
             { 
@@ -43,39 +43,31 @@ namespace JobFinders.Server.Controllers
             var parallelOptions = new ParallelOptions { CancellationToken = cancellationToken };
             var responseList = new ConcurrentBag<Job?>();
 
-            try
+            await Parallel.ForEachAsync(request?.Sources ?? [], parallelOptions, async (source, ct) =>
             {
-                await Parallel.ForEachAsync(request?.Sources ?? [], parallelOptions, async (source, ct) =>
+                var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
+                var filter = new JobsFilter
                 {
-                    var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
-                    var filter = new JobsFilter
+                    Speciality = request?.Speciality,
+                    Location = request?.Location,
+                    Salary = new()
                     {
-                        Speciality = request?.Speciality,
-                        Location = request?.Location,
-                        ExactTitle = request?.Filter?.ExactTitle ?? false,
-                        Salary = new()
-                        {
-                            Currency = request?.Filter?.Salary?.Currency,
-                            Min = request?.Filter?.Salary?.Min,
-                            Max = request?.Filter?.Salary?.Max
-                        }
-                    };
-
-                    var jobs = await _jobFinderManager.ProcessAsync(setting, filter, ct);
-
-                    foreach (var job in jobs)
-                    {
-                        responseList.Add(job);
+                        Currency = request?.Filter?.Salary?.Currency,
+                        Min = request?.Filter?.Salary?.Min,
+                        Max = request?.Filter?.Salary?.Max
                     }
-                });
-            }
-            catch
-            {
-                throw;
-            }
+                };
+
+                var jobs = await _jobFinderManager.ProcessAsync(setting, filter, ct);
+
+                foreach (var job in jobs)
+                {
+                    responseList.Add(job);
+                }
+            });
 
             var cacheOptions = new MemoryCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromMinutes(10))
+                .SetSlidingExpiration(TimeSpan.FromMinutes(30))
                 .SetAbsoluteExpiration(TimeSpan.FromHours(1))
                 .SetPriority(CacheItemPriority.Normal);
 

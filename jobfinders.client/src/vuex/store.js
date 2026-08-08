@@ -118,6 +118,9 @@ const store = createStore({
       return state.filteredJobs;
     },
     getSavedJobs(state) {
+      return state.savedJobs;
+    },
+    getSavedJobsCache(state) {
       state.savedJobs = JSON.parse(localStorage.getItem("savedJobs") || "[]");
       return state.savedJobs;
     },
@@ -219,32 +222,12 @@ const store = createStore({
     setBufferedJobs(state, value) {
       state.bufferedJobs = [];
       value.forEach((x) => state.bufferedJobs.push(x));
-
-      const links = this.getters.getSavedJobs.map((sj) => sj.link);
-
-      state.bufferedJobs.forEach((bj) => {
-        if (links.includes(bj.link)) {
-          bj.saved = true;
-        } else {
-          bj.saved = false;
-        }
-      });
     },
     setFilteredJobs(state, value) {
       state.filteredJobs = [];
       value.forEach((x) => state.filteredJobs.push(x));
-
-      const links = this.getters.getSavedJobs.map((sj) => sj.link);
-
-      state.filteredJobs.forEach((fj) => {
-        if (links.includes(fj.link)) {
-          fj.saved = true;
-        } else {
-          fj.saved = false;
-        }
-      });
     },
-    setSavedJobs(state, value) {
+    setSavedJobsCache(state, value) {
       state.savedJobs = value;
       localStorage.setItem("savedJobs", JSON.stringify(value));
     },
@@ -336,13 +319,13 @@ const store = createStore({
             commit("setFilteredJobs", response.data);
             commit("setBufferedJobs", response.data);
             helper.convertSalaries(state.selectedCurrency);
+            helper.checkSavedJobs();
             dispatch("updateFilteredJobs");
             return { status: response.status };
           }
         })
         .catch((error) => {
           if (error.response) {
-            console.log(error.response);
             commit("setFilteredJobs", [error.response.data.errorText]);
             return { status: error.response.status };
           }
@@ -486,18 +469,15 @@ const store = createStore({
         commit("setFilteredJobs", jobs);
       });
     },
-    addSavedJob({ state, getters, commit }, job) {
-      const savedJobs = getters.getSavedJobs;
-      savedJobs.push(job);
-      commit("setSavedJobs", savedJobs);
-      commit("setFilteredJobs", state.filteredJobs);
-      commit("setBufferedJobs", state.bufferedJobs);
+    addSavedJob({ state, commit }, job) {
+      state.savedJobs.push(job);
+      helper.checkUncheckSavedJob(job);
+      commit("setSavedJobsCache", state.savedJobs);
     },
-    removeSavedJob({ state, commit, getters }, job) {
-      const savedJobs = getters.getSavedJobs.filter((x) => x.link !== job.link);
-      commit("setSavedJobs", savedJobs);
-      commit("setFilteredJobs", state.filteredJobs);
-      commit("setBufferedJobs", state.bufferedJobs);
+    removeSavedJob({ state, commit }, job) {
+      state.savedJobs.splice(state.savedJobs.indexOf(job), 1);
+      helper.checkUncheckSavedJob(job);
+      commit("setSavedJobsCache", state.savedJobs);
     },
     showSavedJobs({ state, commit }, value) {
       value === undefined

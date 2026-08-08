@@ -34,11 +34,11 @@ const isPending = computed(() => store.getters.getPending);
 const isSending = computed(() => store.getters.getSending);
 const jobs = computed(() =>
   savedJobsShown.value
-    ? store.getters.getSavedJobs
+    ? store.getters.getSavedJobsCache
     : store.getters.getFilteredJobs,
 );
 const isJobsEmpty = computed(() => jobs.value.length === 0);
-const savedJobs = computed(() => store.getters.getSavedJobs);
+const savedJobs = computed(() => store.getters.getSavedJobsCache);
 
 const showSearchBarModal = computed({
   get: () => store.getters.getShowSearchBarModal,
@@ -66,7 +66,7 @@ const isLastPage = computed(
     firstPage.value * rows.value + slicedJobs.value.length >= jobs.value.length,
 );
 
-watch(savedJobs, (newValue) => {
+watch(savedJobs.value, (newValue) => {
   if (!newValue.length) {
     store.dispatch("showSavedJobs", false);
   }
@@ -179,7 +179,7 @@ function resetFirstPage() {
       <div class="rates">
         <span>USD: {{ usdRate }}</span>
         <span>EUR: {{ eurRate }}</span>
-        <span>RUB: {{ Math.round(rubRate * 100) / 10000 }}</span>
+        <span>RUR: {{ Math.round(rubRate * 100) / 10000 }}</span>
       </div>
     </div>
   </div>

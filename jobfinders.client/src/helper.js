@@ -98,4 +98,33 @@ export const helper = {
       await store.dispatch("downloadCurrencyRates");
     }
   },
+  areJobsEqual(job1, job2) {
+    return (
+      job1.title === job2.title &&
+      job1.source === job2.source &&
+      job1.location === job2.location &&
+      job1.company === job2.company &&
+      job1.experience === job2.experience &&
+      job1.timePosted === job2.timePosted
+    );
+  },
+  checkUncheckSavedJob(savedJob) {
+    const filteredJob = store.state.filteredJobs.find((fj) =>
+      helper.areJobsEqual(fj, savedJob),
+    );
+    if (filteredJob) {
+      filteredJob.saved = savedJob.saved;
+    }
+    const bufferedJob = store.state.bufferedJobs.find((fj) =>
+      helper.areJobsEqual(fj, savedJob),
+    );
+    if (bufferedJob) {
+      bufferedJob.saved = savedJob.saved;
+    }
+  },
+  checkSavedJobs() {
+    store.state.savedJobs.forEach((sj) => {
+      this.checkUncheckSavedJob(sj);
+    });
+  },
 };

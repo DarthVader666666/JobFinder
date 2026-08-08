@@ -20,7 +20,7 @@ const speciality = computed({ get: () => store.getters.getSpeciality, set: (valu
 const location = computed({ get: () => store.getters.getLocation, set: (value) => store.commit('setLocation', value) })
 
 async function findJobs() {
-  if(!(speciality.value || location.value)) {
+  if(!(speciality.value && store.state.finders.some(x => x.active))) {
     return
   }
 

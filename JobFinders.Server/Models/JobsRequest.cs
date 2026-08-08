@@ -1,9 +1,12 @@
-﻿using JobFinders.BLL.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+using JobFinders.BLL.Models;
 
 namespace JobFinders.Server.Models
 {
     public class JobsRequest
     {
+        [Required]
         public string? Speciality { get; set; }
         public string? Location { get; set; }
         public string[]? Sources { get; set; }
@@ -11,10 +14,6 @@ namespace JobFinders.Server.Models
     }
 
     public class Filter {
-        public bool ExactTitle { get; set; } = false;
-        public bool SalaryDefined { get; set; } = false;
-        public bool OrderBySalary { get; set; } = false;
-        public bool GroupBySource { get; set; } = false;
         public Salary? Salary { get; set; }
     }
 }
