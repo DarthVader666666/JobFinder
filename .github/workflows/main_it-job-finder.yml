@@ -21,7 +21,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       # Install frontend dependencies
       - name: Install npm dependencies
@@ -42,7 +42,7 @@ jobs:
       - name: Copy frontend to wwwroot
         shell: pwsh
         run: |
-         robocopy jobfinders.client/dist ${{env.DOTNET_ROOT}}/myapp/wwwroot /E
+          robocopy jobfinders.client/dist ${{env.DOTNET_ROOT}}/myapp/wwwroot /E
           if ($LASTEXITCODE -ge 8) {
             Write-Error "Robocopy failed with exit code $LASTEXITCODE"
             exit $LASTEXITCODE
