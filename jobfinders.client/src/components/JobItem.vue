@@ -5,6 +5,8 @@ import Button from "primevue/button";
 import { helper } from "@/helper";
 
 const store = useStore();
+const emit = defineEmits(["saveJob"]);
+
 const finders = computed(() => store.getters.getFinders);
 
 const props = defineProps({
@@ -12,21 +14,6 @@ const props = defineProps({
     type: Object,
   },
 });
-
-function saveJob(job) {
-  job.saved = !job.saved;
-
-  if (job.saved) {
-    store.dispatch("addSavedJob", job);
-    store.dispatch("showSuccess", {
-      toast: props.toast,
-      summary: "Вакансия сохранена",
-      detail: job.title,
-    });
-  } else {
-    store.dispatch("removeSavedJob", job);
-  }
-}
 </script>
 
 <template>
@@ -67,7 +54,7 @@ function saveJob(job) {
             :outlined="props.job.saved ? false : true"
             :severity="props.job.saved ? 'info' : 'secondary'"
             title="сохранить"
-            @click="saveJob"
+            @click="emit('saveJob', job)"
           ></Button>
         </div>
         <a class="job-logo" :href="props.job.logo?.url ?? ''" target="_blank">

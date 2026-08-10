@@ -159,6 +159,7 @@ function resetFirstPage() {
       </div>
     </div>
     <JobList
+      :toast="toast"
       :firstPage="firstPage"
       :savedJobsShown="savedJobsShown"
       :class="{ mobileVisible: isJobsEmpty }"

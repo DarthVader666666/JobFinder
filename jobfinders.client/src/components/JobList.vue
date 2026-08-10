@@ -52,6 +52,23 @@ const jobsRange = computed(() => [
   firstPage.value * rows.value + slicedJobs.value.length,
 ]);
 
+function saveJob(job) {
+  const index = slicedJobs.value.indexOf(job);
+  var savedJob = slicedJobs.value[index];
+  savedJob.saved = !savedJob.saved;
+
+  if (savedJob.saved) {
+    store.dispatch("addSavedJob", savedJob);
+    store.dispatch("showSuccess", {
+      toast: props.toast,
+      summary: "Вакансия сохранена",
+      detail: savedJob.title,
+    });
+  } else {
+    store.dispatch("removeSavedJob", savedJob);
+  }
+}
+
 function navigationHandler(direction) {
   if (direction === "back" && firstPage.value > 0) {
     firstPage.value--;
@@ -70,7 +87,7 @@ function navigationHandler(direction) {
 <template>
   <div class="job-list">
     <div v-for="(job, index) in slicedJobs" :key="index">
-      <JobItem :job="job"></JobItem>
+      <JobItem :job="job" @saveJob="saveJob"></JobItem>
     </div>
     <NavigationButtons
       :isFirstPage="isFirstPage"
