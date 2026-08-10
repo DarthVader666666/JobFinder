@@ -13,7 +13,20 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["saveJob"]);
+function saveJob(job) {
+  job.saved = !job.saved;
+
+  if (job.saved) {
+    store.dispatch("addSavedJob", job);
+    store.dispatch("showSuccess", {
+      toast: props.toast,
+      summary: "Вакансия сохранена",
+      detail: job.title,
+    });
+  } else {
+    store.dispatch("removeSavedJob", job);
+  }
+}
 </script>
 
 <template>
@@ -54,7 +67,7 @@ const emit = defineEmits(["saveJob"]);
             :outlined="props.job.saved ? false : true"
             :severity="props.job.saved ? 'info' : 'secondary'"
             title="сохранить"
-            @click="emit('saveJob')"
+            @click="saveJob"
           ></Button>
         </div>
         <a class="job-logo" :href="props.job.logo?.url ?? ''" target="_blank">

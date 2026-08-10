@@ -78,6 +78,8 @@ const store = createStore({
     infinity: 100000000,
     savedJobsShown: false,
     abortController: null,
+    firstPage: 0,
+    rows: 20,
   },
   getters: {
     getPending(state) {
@@ -174,6 +176,16 @@ const store = createStore({
     getSavedJobsShown(state) {
       return state.savedJobsShown;
     },
+    isJobsEmpty(state) {
+      var jobs = state.savedJobsShown ? state.savedJobs : state.filteredJobs;
+      return jobs.length === 0;
+    },
+    getFirstPage(state) {
+      return state.firstPage;
+    },
+    getRows(state) {
+      return state.rows;
+    },
   },
   mutations: {
     setPending(state, value) {
@@ -252,6 +264,12 @@ const store = createStore({
     },
     setAbortController(state, value) {
       state.abortController = value;
+    },
+    setFirstPage(state, value) {
+      state.firstPage = value;
+    },
+    setRows(state, value) {
+      state.rows = value;
     },
   },
   actions: {

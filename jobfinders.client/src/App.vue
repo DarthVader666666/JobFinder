@@ -2,7 +2,6 @@
 import "@/assets/main.css";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
-import Select from "primevue/select";
 
 import Toast from "primevue/toast";
 
@@ -14,13 +13,13 @@ import SettingsModal from "./components/Modals/SettingsModal.vue";
 import SearchBar from "./components/SearchBar.vue";
 import SourcesComponent from "./components/SourcesComponent.vue";
 import FilterComponent from "./components/FilterComponent.vue";
-import JobItem from "./components/JobItem.vue";
 
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { helper } from "./helper.js";
 import { useToast } from "primevue/usetoast";
 import { versionChecker } from "./versionChecker.js";
+import JobList from "./components/JobList.vue";
 
 const toast = useToast();
 const store = useStore();
@@ -33,13 +32,12 @@ const showFeedbackModal = ref(false);
 const savedJobsShown = computed(() => store.getters.getSavedJobsShown);
 const isPending = computed(() => store.getters.getPending);
 const isSending = computed(() => store.getters.getSending);
-const jobs = computed(() =>
-  savedJobsShown.value
-    ? store.getters.getSavedJobsCache
-    : store.getters.getFilteredJobs,
-);
-const isJobsEmpty = computed(() => jobs.value.length === 0);
+const isJobsEmpty = computed(() => store.getters.isJobsEmpty);
 const savedJobs = computed(() => store.getters.getSavedJobsCache);
+const firstPage = computed({
+  get: () => store.getters.getFirstPage,
+  set: (value) => store.commit("setFirstPage", value),
+});
 
 const showSearchBarModal = computed({
   get: () => store.getters.getShowSearchBarModal,
@@ -50,22 +48,6 @@ const showSettingsModal = computed({
   get: () => store.getters.getShowSettingsModal,
   set: (value) => store.commit("setShowSettingsModal", value),
 });
-
-const firstPage = ref(0);
-const rows = ref(20);
-
-const slicedJobs = computed(() =>
-  jobs.value.slice(
-    firstPage.value * rows.value,
-    firstPage.value * rows.value + rows.value,
-  ),
-);
-
-const isFirstPage = computed(() => firstPage.value <= 0);
-const isLastPage = computed(
-  () =>
-    firstPage.value * rows.value + slicedJobs.value.length >= jobs.value.length,
-);
 
 watch(savedJobs.value, (newValue) => {
   if (!newValue.length) {
@@ -89,7 +71,7 @@ onMounted(async () => {
   usdRate.value = store.getters.getUsdRate;
   eurRate.value = store.getters.getEurRate;
   rubRate.value = store.getters.getRubRate;
-  scrollUp();
+  helper.scrollUp();
 });
 
 onBeforeUnmount(() => {
@@ -108,42 +90,8 @@ function updateIsMobile() {
   }
 }
 
-function saveJob(job) {
-  job.saved = !job.saved;
-
-  if (job.saved) {
-    store.dispatch("addSavedJob", job);
-    store.dispatch("showSuccess", {
-      toast: toast,
-      summary: "Вакансия сохранена",
-      detail: job.title,
-    });
-  } else {
-    store.dispatch("removeSavedJob", job);
-  }
-}
-
 function handleShowFeedbackModal(value) {
   showFeedbackModal.value = value;
-}
-
-function scrollUp() {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-function navigationHandler(direction) {
-  if (direction === "back" && firstPage.value > 0) {
-    firstPage.value--;
-  }
-
-  if (
-    direction === "forward" &&
-    firstPage.value * rows.value + slicedJobs.value.length < jobs.value.length
-  ) {
-    firstPage.value++;
-  }
-
-  scrollUp();
 }
 
 function resetFirstPage() {
@@ -210,39 +158,16 @@ function resetFirstPage() {
         ></FilterComponent>
       </div>
     </div>
-    <div class="job-list" :class="{ mobileVisible: isJobsEmpty }">
-      <div v-for="(job, index) in slicedJobs" :key="index">
-        <JobItem :job="job" @saveJob="saveJob(job)"></JobItem>
-      </div>
-      <div v-if="jobs.length" class="navigation-buttons">
-        <Select
-          style="position: sticky; width: 90px; top: 0"
-          v-model="rows"
-          :options="[10, 20, 30, 40, 50]"
-        ></Select>
-        <div style="display: flex; gap: 15px; align-items: center">
-          <Button
-            rounded
-            icon="pi pi-arrow-left"
-            :disabled="isFirstPage"
-            @click="navigationHandler('back')"
-          ></Button>
-          <span
-            >{{ firstPage * rows + 1 }} -
-            {{ firstPage * rows + slicedJobs.length }}
-          </span>
-          <Button
-            rounded
-            icon="pi pi-arrow-right"
-            :disabled="isLastPage"
-            @click="navigationHandler('forward')"
-          ></Button>
-        </div>
-      </div>
-    </div>
+    <JobList
+      :firstPage="firstPage"
+      :savedJobsShown="savedJobsShown"
+      :class="{ mobileVisible: isJobsEmpty }"
+    ></JobList>
   </div>
   <div class="settings-buttons" :class="{ mobileVisible: isJobsEmpty }">
-    <Button rounded @click="scrollUp"><i class="pi pi-arrow-up"></i></Button>
+    <Button rounded @click="helper.scrollUp()"
+      ><i class="pi pi-arrow-up"></i
+    ></Button>
     <Button rounded @click="store.commit('setShowSearchBarModal', true)"
       ><i class="pi pi-search"></i
     ></Button>
@@ -335,14 +260,6 @@ function resetFirstPage() {
   min-width: 290px;
 }
 
-.job-list {
-  padding-bottom: 230px;
-  width: 70%;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
 .settings-buttons {
   display: none;
   position: fixed;
@@ -357,23 +274,6 @@ function resetFirstPage() {
     i {
       font-size: 1.4rem;
     }
-  }
-}
-
-.navigation-buttons {
-  position: sticky;
-  bottom: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  opacity: 0.7;
-
-  span {
-    background: rgb(16 185 129);
-    color: white;
-    padding: 5px 10px 5px 10px;
-    border-radius: 15px;
   }
 }
 
