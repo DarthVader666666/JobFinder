@@ -4,6 +4,6 @@ namespace JobFinders.BLL.Interfaces
 {
     public interface IJobFinderManager
     {
-        Task<IEnumerable<Job?>> ProcessAsync(JobFinderSetting? setting, JobsFilter? filter, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Job?>> ProcessAsync(JobFinderSetting? setting, JobsQuery? filter, CancellationToken cancellationToken = default);
     }
 }

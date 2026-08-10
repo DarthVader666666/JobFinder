@@ -53,21 +53,14 @@ const store = createStore({
         active: true,
       },
     ],
-    speciality: "",
-    location: "",
-    jobsRequest: {
-      sources: [],
-      filter: {
-        exactTitle: false,
-        orderBySalary: false,
-        groupBySource: false,
-        salary: {
-          min: null,
-          max: null,
-          currency: null,
-          rates: [],
-        },
-      },
+    filter: {
+      exactTitle: false,
+      orderBySalary: false,
+      groupBySource: false,
+    },
+    request: {
+      speciality: "",
+      location: "",
     },
     bufferedJobs: [],
     filteredJobs: [],
@@ -94,19 +87,19 @@ const store = createStore({
       return state.sending;
     },
     getSpeciality(state) {
-      return state.speciality;
+      return state.request.speciality;
     },
     getLocation(state) {
-      return state.location;
+      return state.request.location;
     },
     getExactTitle(state) {
-      return state.jobsRequest.filter.exactTitle;
+      return state.filter.exactTitle;
     },
     getOrderBySalary(state) {
-      return state.jobsRequest.filter.orderBySalary;
+      return state.filter.orderBySalary;
     },
     getGroupBySource(state) {
-      return state.jobsRequest.filter.groupBySource;
+      return state.filter.groupBySource;
     },
     getFinders(state) {
       return state.finders;
@@ -135,27 +128,16 @@ const store = createStore({
     },
     getJobsRequest(state, getters) {
       return {
-        speciality: state.speciality.trim(),
-        location: state.location.trim(),
         sources: state.finders.filter((f) => f.active).map((f) => f.source),
-        filter: {
-          exactTitle: state.jobsRequest.filter.exactTitle,
-          orderBySalary: state.jobsRequest.filter.orderBySalary,
-          groupBySource: state.jobsRequest.filter.groupBySource,
-          salary: {
-            min: state.range[0] * getters.getRangeMultiplier,
-            max:
-              state.range[1] === 100
-                ? state.infinity
-                : state.range[1] * getters.getRangeMultiplier,
-            currency: state.selectedCurrency,
-          },
-          currencyRates:
-            getters.getCurrencyData.rates?.map((x) => ({
-              Abbreviation: x.Cur_Abbreviation,
-              Rate: x.Cur_OfficialRate,
-              Scale: x.Cur_Scale,
-            })) ?? [],
+        speciality: state.request.speciality.trim(),
+        location: state.request.location.trim(),
+        salary: {
+          min: state.range[0] * getters.getRangeMultiplier,
+          max:
+            state.range[1] === 100
+              ? state.infinity
+              : state.range[1] * getters.getRangeMultiplier,
+          currency: state.selectedCurrency,
         },
       };
     },
@@ -201,19 +183,19 @@ const store = createStore({
       state.sending = value;
     },
     setSpeciality(state, value) {
-      state.speciality = value;
+      state.request.speciality = value;
     },
     setLocation(state, value) {
-      state.location = value;
+      state.request.location = value;
     },
     setExactTitle(state, value) {
-      state.jobsRequest.filter.exactTitle = value;
+      state.filter.exactTitle = value;
     },
     setOrderBySalary(state, value) {
-      state.jobsRequest.filter.orderBySalary = value;
+      state.filter.orderBySalary = value;
     },
     setGroupBySource(state, value) {
-      state.jobsRequest.filter.groupBySource = value;
+      state.filter.groupBySource = value;
     },
     checkFinder(state, payload) {
       const finder = state.finders.find((x) => x.source === payload.source);
@@ -297,37 +279,40 @@ const store = createStore({
           }
         });
     },
-    async downloadJobs({ state, commit, dispatch, getters }, request) {
+    async downloadJobs({ state, commit, dispatch, getters }) {
       if (state.abortController) {
         state.abortController.abort();
       }
 
       const abortController = new AbortController();
       commit("setAbortController", abortController);
-
       commit("setPending", true);
-      state.jobsRequest.speciality = request.speciality;
-      state.jobsRequest.location = request.location;
 
       return await axios
         .post(`${state.serverUrl}/jobs/getjobs`, getters.getJobsRequest, {
           signal: abortController.signal,
           headers: { "Content-Type": "application/json" },
         })
-        .then(async (response) => {
+        .then((response) => {
           if (response.status === 200) {
             commit("setFilteredJobs", response.data);
             commit("setBufferedJobs", response.data);
             helper.convertSalaries(state.selectedCurrency);
             helper.checkSavedJobs();
             dispatch("updateFilteredJobs");
+            store.dispatch("showSavedJobs", false);
             return { status: response.status };
           }
         })
         .catch((error) => {
           if (error.response) {
-            commit("setFilteredJobs", [error.response.data.errorText]);
-            return { status: error.response.status };
+            commit("setFilteredJobs", [
+              error.response.data.errorText ?? error.response.data,
+            ]);
+            return {
+              status: error.response.status,
+              error: error.response.data.errorText ?? error.response.data,
+            };
           }
 
           if (axios.isCancel(error)) {
@@ -335,8 +320,8 @@ const store = createStore({
           }
         })
         .finally(() => {
-          commit("setPending", false);
           commit("setAbortController", null);
+          commit("setPending", false);
         });
     },
     showSuccess(_, { toast, summary, detail }) {
@@ -415,15 +400,15 @@ const store = createStore({
         )
         .forEach((j) => jobs.push(j));
 
-      const keys = Object.keys(state.jobsRequest.filter) ?? [];
+      const keys = Object.keys(state.filter) ?? [];
 
       keys.forEach((key) => {
-        if (!state.jobsRequest.filter[key]) {
+        if (!state.filter[key]) {
           return;
         }
         if (key === "exactTitle") {
           jobs = jobs.filter((job) => {
-            const specialityParts = state.speciality
+            const specialityParts = state.request.speciality
               .split(/[ -]/)
               .map((x) => x.toLowerCase());
             const titleParts = job.title

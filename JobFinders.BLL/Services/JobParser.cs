@@ -28,8 +28,8 @@ namespace JobFinders.BLL.Services
 
         public Job? Parse(JobFinderSetting? setting, HtmlNode? node, string? url)
         {
-            var anchor = node.Descendants("a").FirstOrDefault(node =>
-                    node.Attributes["href"] != null && node.Attributes["href"].Value.Contains(setting.HrefPrefix) && node.InnerText.Trim().Any());
+            var anchor = node?.Descendants("a").FirstOrDefault(node =>
+                    node.Attributes["href"] != null && node.Attributes["href"].Value.Contains(setting?.HrefPrefix ?? "") && node.InnerText.Trim().Any());
 
             var href = ConvertSpecialSymbols(anchor?.Attributes["href"].Value);
 
@@ -38,19 +38,19 @@ namespace JobFinders.BLL.Services
                 return null;
             }
 
-            var descendants = node.Descendants();
+            var descendants = node?.Descendants();
 
             var job = new Job
             {
                 Source = setting?.Source,
-                Link = setting.AddBaseUrlToHrefPrefix ? setting.BaseUrl + href : href,
+                Link = (setting?.AddBaseUrlToHrefPrefix ?? false) ? setting.BaseUrl + href : href,
                 Title = GetTitle(anchor.InnerText),
-                OriginalSalary = GetSalary(descendants, setting),
-                Company = GetInnerText(descendants, setting.Company),
-                Experience = GetInnerText(descendants, setting.Experience),
-                Location = GetInnerText(descendants, setting.Location),
-                TimePosted = GetInnerText(descendants, setting.TimePosted),
-                Logo = new Logo { Source = setting.Source, Url = url }
+                OriginalSalary = GetSalary(descendants ?? [], setting),
+                Company = GetInnerText(descendants, setting?.Company),
+                Experience = GetInnerText(descendants, setting?.Experience),
+                Location = GetInnerText(descendants, setting?.Location),
+                TimePosted = GetInnerText(descendants, setting?.TimePosted),
+                Logo = new Logo { Source = setting?.Source, Url = url }
             };
 
             if (job.OriginalSalary is not null)
@@ -94,24 +94,24 @@ namespace JobFinders.BLL.Services
             return int.Parse(salary);
         }
 
-        private string? GetInnerText(IEnumerable<HtmlNode> nodes, Models.HtmlAttribute? cssAttribute)
+        private string? GetInnerText(IEnumerable<HtmlNode>? nodes, Models.HtmlAttribute? cssAttribute)
         {
             if (cssAttribute is null)
             {
                 return null;
             }
 
-            var innerText = nodes.FirstOrDefault(x => (x.Attributes[$"{cssAttribute.Attribute}"]?.Value ?? "")
+            var innerText = nodes?.FirstOrDefault(x => (x.Attributes[$"{cssAttribute.Attribute}"]?.Value ?? "")
                 .Contains(cssAttribute?.Value ?? ""))?.InnerText;
 
             return ConvertSpecialSymbols(innerText);
         }
 
-        private Salary? GetSalary(IEnumerable<HtmlNode> nodes, JobFinderSetting setting)
+        private Salary? GetSalary(IEnumerable<HtmlNode>? nodes, JobFinderSetting? setting)
         {
-            var innerText = string.IsNullOrEmpty(setting.Salary?.Value)
-                ? nodes.FirstOrDefault(x => ContainsCurrencySymbols(x.InnerText))?.InnerText
-                : nodes.FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains(setting.Salary.Value))?.InnerText;
+            var innerText = string.IsNullOrEmpty(setting?.Salary?.Value)
+                ? nodes?.FirstOrDefault(x => ContainsCurrencySymbols(x.InnerText))?.InnerText
+                : nodes?.FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains(setting.Salary.Value))?.InnerText;
 
             if (string.IsNullOrEmpty(innerText))
             {
@@ -123,7 +123,7 @@ namespace JobFinders.BLL.Services
             innerText = ConvertSpecialSymbols(innerText);
 
             var currencyPattern = $@"(?i){string.Join("|", currencies.Select(Regex.Escape))}";
-            var currencyMatch = Regex.Match(innerText, currencyPattern);
+            var currencyMatch = Regex.Match(innerText ?? "", currencyPattern);
 
             if (currencyMatch.Success)
             {
@@ -131,16 +131,16 @@ namespace JobFinders.BLL.Services
                 int range = 30;
 
                 int start = Math.Max(0, index - (index < range ? index : range));
-                int length = Math.Min(innerText.Length - start, (innerText.Length - 1 < range ? innerText.Length : range));
+                int length = Math.Min(innerText?.Length ?? 0 - start, (innerText?.Length - 1 < range ? innerText?.Length ?? 0 : range));
 
-                var substring = innerText.Substring(start, length);
+                var substring = innerText?.Substring(start, length);
 
                 if (substring.IsWhiteSpace())
                 {
                     start = index;
-                    innerText = innerText.Substring(start, length);
+                    innerText = innerText?.Substring(start, length);
                 }
-                else if (Regex.IsMatch(substring, currencyPattern))
+                else if (Regex.IsMatch(substring ?? "", currencyPattern))
                 {
                     innerText = substring;
                 }
@@ -169,8 +169,8 @@ namespace JobFinders.BLL.Services
                 _ => null
             };
 
-            innerText = innerText.Replace(currencyMatch.Value, "");
-            var salaryMatch = Regex.Match(innerText, @"(\d[\d\s]*)\s*(?:[-–—]|\bдо\b)\s*(\d[\d\s]*)|(\d[\d\s]*)");
+            innerText = innerText?.Replace(currencyMatch.Value, "");
+            var salaryMatch = Regex.Match(innerText ?? "", @"(\d[\d\s]*)\s*(?:[-–—]|\bдо\b)\s*(\d[\d\s]*)|(\d[\d\s]*)");
 
             if (salaryMatch.Success)
             {
@@ -187,7 +187,7 @@ namespace JobFinders.BLL.Services
             }
             else
             {
-                var singleMatch = Regex.Match(innerText, @"(\d[\d\s]*)");
+                var singleMatch = Regex.Match(innerText ?? "", @"(\d[\d\s]*)");
                 if (singleMatch.Success)
                 {
                     var numStr = Regex.Replace(singleMatch.Groups[1].Value, @"\s+", "");

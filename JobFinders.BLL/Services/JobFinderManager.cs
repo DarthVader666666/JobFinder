@@ -12,7 +12,7 @@ namespace JobFinders.BLL.Services
             _htmlLoader = htmlLoader;
         }
 
-        public async Task<IEnumerable<Job?>> ProcessAsync(JobFinderSetting? setting, JobsFilter? filter, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Job?>> ProcessAsync(JobFinderSetting? setting, JobsQuery? query, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -21,7 +21,7 @@ namespace JobFinders.BLL.Services
                 throw new Exception($"{nameof(JobFinderSetting)} not found");
             }
 
-            var jobs = (await _htmlLoader.GetJobsAsync(setting, filter))
+            var jobs = (await _htmlLoader.GetJobsAsync(setting, query))
                 .Where(job => !(job.Experience is null && job.Location is null && job.Company is null && job.TimePosted is null));               
 
             return jobs ?? [];

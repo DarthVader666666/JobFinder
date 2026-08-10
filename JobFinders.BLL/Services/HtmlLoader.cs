@@ -22,17 +22,17 @@ namespace JobFinders.BLL.Services
             _jobParser = jobParser;
         }
 
-        public async Task<IEnumerable<Job>> GetJobsAsync(JobFinderSetting? setting, JobsFilter? filter)
+        public async Task<IEnumerable<Job>> GetJobsAsync(JobFinderSetting? setting, JobsQuery? query)
         {
-            filter?.Location = _transliterator.Transliterate(filter?.Location, setting);
-            var url = setting?.LinkTemplate?.Replace(locationPlaceholder, filter?.Location).Replace(specialityPlaceholder, WebUtility.UrlEncode(filter?.Speciality));
+            query?.Location = _transliterator.Transliterate(query?.Location, setting);
+            var url = setting?.LinkTemplate?.Replace(locationPlaceholder, query?.Location).Replace(specialityPlaceholder, WebUtility.UrlEncode(query?.Speciality));
 
             var nodes = Enumerable.Empty<HtmlNode>();
             IEnumerable<Job> jobs;
 
             try
             {                
-                var htmlDoc = await new HtmlWeb().LoadFromWebAsync(url);
+                var htmlDoc = await new HtmlWeb().LoadFromWebAsync(url ?? "");
 
                 nodes = (htmlDoc?.DocumentNode?.Descendants(setting?.VacancyTag?.Tag ?? "")
                     .Where(n => n?.Attributes["class"] != null && n.Attributes["class"].Value.Contains($"{setting?.VacancyTag?.HtmlAttribute?.Value}")) ?? []);

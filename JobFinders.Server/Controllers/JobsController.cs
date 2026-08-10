@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using JobFinders.BLL.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
+using AutoMapper;
 
 namespace JobFinders.Server.Controllers
 {
@@ -16,12 +17,14 @@ namespace JobFinders.Server.Controllers
     {
         private readonly IJobFinderManager _jobFinderManager;
         private readonly IMemoryCache _cache;
+        private readonly IMapper _automapper;
         private readonly List<JobFinderSetting> _jobFinderSettings;
 
-        public JobsController(IJobFinderManager jobFinderManager, IMemoryCache cache, IOptions<List<JobFinderSetting>> jobFinderSettings)
+        public JobsController(IJobFinderManager jobFinderManager, IMemoryCache cache, IMapper automapper, IOptions<List<JobFinderSetting>> jobFinderSettings)
         {
             _jobFinderManager = jobFinderManager;
             _cache = cache;
+            _automapper = automapper;
             _jobFinderSettings = jobFinderSettings.Value;
         }
 
@@ -46,19 +49,9 @@ namespace JobFinders.Server.Controllers
             await Parallel.ForEachAsync(request?.Sources ?? [], parallelOptions, async (source, ct) =>
             {
                 var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
-                var filter = new JobsFilter
-                {
-                    Speciality = request?.Speciality,
-                    Location = request?.Location,
-                    Salary = new()
-                    {
-                        Currency = request?.Filter?.Salary?.Currency,
-                        Min = request?.Filter?.Salary?.Min,
-                        Max = request?.Filter?.Salary?.Max
-                    }
-                };
+                var query = _automapper.Map<JobsRequest?, JobsQuery>(request);
 
-                var jobs = await _jobFinderManager.ProcessAsync(setting, filter, ct);
+                var jobs = await _jobFinderManager.ProcessAsync(setting, query, ct);
 
                 foreach (var job in jobs)
                 {

@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useStore } from "vuex";
 import Button from "primevue/button";
+import { helper } from "@/helper";
 
 const store = useStore();
 const finders = computed(() => store.getters.getFinders);
@@ -13,25 +14,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["saveJob"]);
-
-function getSalary(salary) {
-  if (salary) {
-    return `${
-      props.job.salary.min === props.job.salary.max
-        ? getLongSalary(props.job.salary.min)
-        : getLongSalary(props.job.salary.min) +
-          " - " +
-          getLongSalary(props.job.salary.max)
-    } ${props.job.salary.currency}`;
-  }
-}
-
-function getLongSalary(value) {
-  if (value >= 10000) {
-    return `${Math.round(value / 1000)}K`;
-  }
-  return value;
-}
 </script>
 
 <template>
@@ -62,7 +44,7 @@ function getLongSalary(value) {
       </a>
     </div>
     <div class="job-right">
-      <span class="salary">{{ getSalary(props.job.salary) }}</span>
+      <span class="salary">{{ helper.formatSalary(props.job.salary) }}</span>
       <div>
         <div style="padding-bottom: 5px; text-align: end">
           <Button

@@ -1,6 +1,7 @@
 using JobFinders.BLL.Interfaces;
 using JobFinders.BLL.Models;
 using JobFinders.BLL.Services;
+using JobFinders.Server.Configuration;
 using JobFinders.Server.Middleware;
 
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -16,6 +17,7 @@ builder.Services.AddCors(options => options.AddPolicy("AllowClient",
     .AllowAnyHeader().AllowAnyMethod().Build()));
 
 builder.Services.AddMemoryCache();
+builder.Services.ConfigureAutomapper();
 
 builder.Services.AddScoped<IJobFinderManager, JobFinderManager>();
 builder.Services.AddScoped<IEmailSender, AzureEmailSender>();

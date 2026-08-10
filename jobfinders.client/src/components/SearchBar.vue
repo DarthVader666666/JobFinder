@@ -26,14 +26,13 @@ async function findJobs() {
 
   store.commit('setShowSearchBarModal', false)
 
-  const response = await store.dispatch("downloadJobs", { speciality: speciality.value, location: location.value });
+  const response = await store.dispatch("downloadJobs");
   emit('resetFirstPage')
 
   if (response.status === 500) {
-    store.dispatch('showError', { toast: toast, summary: 'showError', detail: `Ошибка сервера: ${response.data.errorText}` });
+    store.dispatch('showError', { toast: toast, summary: 'Ошибка сервера', detail: `${response.error}` });
   } else if (response.status === 200){
     store.dispatch('showSuccess', { toast: toast, summary: "OK", detail: `Найдено совпадений: ${jobs.value.length}` });
-    store.dispatch('showSavedJobs', false)
     window.scrollTo({ top: 0, behavior: "smooth" });
   } else if (response.status === 499) {
     store.dispatch('showInfo', { toast: toast, summary: "Поиск прерван", detail: 'Отменено пользователем' });

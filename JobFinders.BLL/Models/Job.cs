@@ -17,8 +17,8 @@
 
     public class Salary
     { 
-        public int? Max { get; set; }
         public int? Min { get; set; }
+        public int? Max { get; set; }
         public string? Currency { get; set; } = "";
     }
 

@@ -127,4 +127,23 @@ export const helper = {
       this.checkUncheckSavedJob(sj);
     });
   },
+  formatSalary(salary) {
+    function formatLongSalary(value) {
+      if (value >= 10000) {
+        const thousands = Math.floor(value / 1000);
+        const hundreds = Math.round((value % 1000) / 100);
+
+        return hundreds > 0 ? `${thousands}K${hundreds}` : `${thousands}K`;
+      }
+      return value;
+    }
+
+    if (salary) {
+      return `${
+        salary.min === salary.max
+          ? formatLongSalary(salary.min)
+          : formatLongSalary(salary.min) + " - " + formatLongSalary(salary.max)
+      } ${salary.currency}`;
+    }
+  },
 };

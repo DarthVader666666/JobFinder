@@ -1,6 +1,6 @@
 ﻿namespace JobFinders.BLL.Models
 {
-    public class JobsFilter
+    public class JobsQuery
     {
         public string? Speciality { get; set; } = "";
         public string? Location { get; set; } = "minsk";
