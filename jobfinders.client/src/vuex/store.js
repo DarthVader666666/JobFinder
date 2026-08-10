@@ -49,7 +49,7 @@ const store = createStore({
       },
       {
         img: "headhunter-logo-large.png",
-        source: "Headhunter",
+        source: "HeadHunter",
         active: true,
       },
     ],

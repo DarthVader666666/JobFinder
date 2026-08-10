@@ -24,6 +24,9 @@ async function findJobs() {
     return
   }
 
+  speciality.value = speciality.value.trim()
+  location.value = location.value.trim()
+
   store.commit('setShowSearchBarModal', false)
 
   const response = await store.dispatch("downloadJobs");
