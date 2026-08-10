@@ -353,7 +353,7 @@ const store = createStore({
         severity: "warn",
         summary: summary,
         detail: detail,
-        life: 2000,
+        life: 5000,
       });
     },
     async downloadCurrencyRates({ state, commit, dispatch }, toast) {
