@@ -1,4 +1,5 @@
 <script setup>
+import { helper } from "@/helper";
 import Checkbox from "primevue/checkbox";
 import ToggleSwitch from "primevue/toggleswitch";
 import { computed } from "vue";
@@ -21,14 +22,14 @@ function checkFinder(finder, checked) {
   store.commit("checkFinder", { source: finder.source, active: checked });
   store.dispatch("updateFilteredJobs");
   emit("resetFirstPage");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  helper.scrollUp();
 }
 
 function toggleAllSources(value) {
   store.commit("setAllFindersChecked", value);
   store.dispatch("updateFilteredJobs");
   emit("resetFirstPage");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  helper.scrollUp();
 }
 </script>
 

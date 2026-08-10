@@ -17,11 +17,20 @@
             }
             catch (Exception ex)
             {
-                context.Response.StatusCode = 500;
-                await context.Response.WriteAsJsonAsync(new
+                var cancellationToken = context.RequestAborted;
+
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    errorText = ex.Message
-                });
+                    context.Response.StatusCode = 499;
+                }
+                else
+                {
+                    context.Response.StatusCode = 500;
+                    await context.Response.WriteAsJsonAsync(new
+                    {
+                        errorText = ex.Message
+                    });
+                }                
             }
         }
     }

@@ -409,6 +409,7 @@ const store = createStore({
     },
     updateFilteredJobs({ state, commit }) {
       var jobs = [];
+
       state.bufferedJobs
         .filter((j) =>
           state.finders
@@ -476,9 +477,9 @@ const store = createStore({
                   : state.range[1] * this.getters.getRangeMultiplier),
           );
         }
-
-        commit("setFilteredJobs", jobs);
       });
+
+      commit("setFilteredJobs", jobs);
     },
     addSavedJob({ state, commit }, job) {
       state.savedJobs.push(job);
