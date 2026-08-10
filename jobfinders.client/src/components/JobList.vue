@@ -85,7 +85,7 @@ function navigationHandler(direction) {
 <style scoped>
 .job-list {
   padding-bottom: 230px;
-  width: 70%;
+  width: 50%;
   display: flex;
   flex-direction: column;
   gap: 15px;

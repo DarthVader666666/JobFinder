@@ -263,7 +263,7 @@ function resetFirstPage() {
 .settings-buttons {
   display: none;
   position: fixed;
-  bottom: 20px;
+  bottom: 50px;
   right: 20px;
   opacity: 0.7;
   z-index: 1;
