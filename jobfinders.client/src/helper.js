@@ -4,15 +4,17 @@ export const helper = {
   convertSalaries(selectedCurrency) {
     var apiCurrency = this.getNbrbApiCurrency(selectedCurrency);
 
-    store.state.filteredJobs.forEach((job) => {
-      if (
-        job.salary &&
-        job.salary.currency &&
-        job.salary.currency != selectedCurrency
-      ) {
-        const jobCurrency = this.getNbrbApiCurrency(job.salary.currency);
-        this.convert(job, jobCurrency, selectedCurrency, apiCurrency);
-      }
+    store.state.filteredJobs.forEach((jobs) => {
+      jobs.forEach((job) => {
+        if (
+          job.salary &&
+          job.salary.currency &&
+          job.salary.currency != selectedCurrency
+        ) {
+          const jobCurrency = this.getNbrbApiCurrency(job.salary.currency);
+          this.convert(job, jobCurrency, selectedCurrency, apiCurrency);
+        }
+      });
     });
   },
   convert(job, jobCurrency, selectedCurrency, apiCurrency) {
@@ -109,18 +111,25 @@ export const helper = {
     );
   },
   checkUncheckSavedJob(savedJob) {
-    const filteredJob = store.state.filteredJobs.find((fj) =>
-      helper.areJobsEqual(fj, savedJob),
-    );
-    if (filteredJob) {
-      filteredJob.saved = savedJob.saved;
-    }
-    const bufferedJob = store.state.bufferedJobs.find((fj) =>
-      helper.areJobsEqual(fj, savedJob),
-    );
-    if (bufferedJob) {
-      bufferedJob.saved = savedJob.saved;
-    }
+    store.state.filteredJobs.forEach((jobGroup) => {
+      var filteredJob = jobGroup.find((fj) =>
+        helper.areJobsEqual(fj, savedJob),
+      );
+      if (filteredJob) {
+        filteredJob.saved = savedJob.saved;
+        return;
+      }
+    });
+
+    store.state.bufferedJobs.forEach((jobGroup) => {
+      var bufferedJob = jobGroup.find((bj) =>
+        helper.areJobsEqual(bj, savedJob),
+      );
+      if (bufferedJob) {
+        bufferedJob.saved = savedJob.saved;
+        return;
+      }
+    });
   },
   checkSavedJobs() {
     store.state.savedJobs.forEach((sj) => {

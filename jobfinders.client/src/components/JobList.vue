@@ -4,6 +4,7 @@ import JobItem from "./JobItem.vue";
 import NavigationButtons from "./NavigationButtons.vue";
 import { useStore } from "vuex";
 import { helper } from "@/helper.js";
+import JobGroup from "./JobGroup.vue";
 
 const store = useStore();
 
@@ -53,8 +54,21 @@ const jobsRange = computed(() => [
 ]);
 
 function saveJob(job) {
-  const index = slicedJobs.value.indexOf(job);
-  var savedJob = slicedJobs.value[index];
+  var savedJob;
+
+  if (slicedJobs.value[0]?.length ?? false) {
+    slicedJobs.value.forEach((jobGroup) => {
+      var j = jobGroup.find((sj) => helper.areJobsEqual(sj, job));
+
+      if (j) {
+        savedJob = j;
+        return;
+      }
+    });
+  } else {
+    savedJob = slicedJobs.value.find((sj) => helper.areJobsEqual(sj, job));
+  }
+
   savedJob.saved = !savedJob.saved;
 
   if (savedJob.saved) {
@@ -87,7 +101,11 @@ function navigationHandler(direction) {
 <template>
   <div class="job-list">
     <div v-for="(job, index) in slicedJobs" :key="index">
-      <JobItem :job="job" @saveJob="saveJob"></JobItem>
+      <JobItem v-if="savedJobsShown" :job="job" @saveJob="saveJob"></JobItem>
+      <div v-else>
+        <JobGroup v-if="job.length > 1" :jobGroup="job"></JobGroup>
+        <JobItem v-else :job="job[0]" @saveJob="saveJob"></JobItem>
+      </div>
     </div>
     <NavigationButtons
       :isFirstPage="isFirstPage"

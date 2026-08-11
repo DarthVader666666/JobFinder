@@ -39,7 +39,7 @@ namespace JobFinders.Server.Controllers
 
             var key = $"{request.Speciality}{request.Location}{string.Join('_', request?.Sources ?? [])}".ToUpper();
 
-            if (_cache.TryGetValue(key, out ConcurrentBag<Job?>? cachedJobs))
+            if (_cache.TryGetValue(key, out Job?[][]? cachedJobs))
             { 
                 return Ok(cachedJobs);
             }
@@ -60,28 +60,29 @@ namespace JobFinders.Server.Controllers
                 }
             });
 
-            //var groupedResponse = responseList
-            //    .GroupBy(job => new Job {
-            //        Title = job?.Title, 
-            //        OriginalSalary = new Salary 
-            //        {
-            //            Currency = job?.OriginalSalary?.Currency,
-            //            Min = job?.OriginalSalary?.Min,
-            //            Max = job?.OriginalSalary?.Max,
-            //        },
-            //        Company = job?.Company
-            //    }, new CompanyComparer())
-            //    .Select(group => group.OrderBy(job => job?.Source).ToArray())
-            //    .ToArray();
+            var groupedResponse = responseList
+                .GroupBy(job => new Job
+                {
+                    Title = job?.Title,
+                    OriginalSalary = new Salary
+                    {
+                        Currency = job?.OriginalSalary?.Currency,
+                        Min = job?.OriginalSalary?.Min,
+                        Max = job?.OriginalSalary?.Max,
+                    },
+                    Company = job?.Company
+                }, new CompanyComparer())
+                .Select(group => group.OrderBy(job => job?.Source).ToArray())
+                .ToArray();
 
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(30))
                 .SetAbsoluteExpiration(TimeSpan.FromHours(1))
                 .SetPriority(CacheItemPriority.Normal);
 
-            _cache.Set(key, responseList, cacheOptions);
+            _cache.Set(key, groupedResponse, cacheOptions);
 
-            return Ok(responseList);
+            return Ok(groupedResponse);
         }
     }
 }
