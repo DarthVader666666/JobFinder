@@ -97,6 +97,13 @@ function handleShowFeedbackModal(value) {
 function resetFirstPage() {
   firstPage.value = 0;
 }
+
+function showSavedJobsHandler() {
+  if (savedJobs.value.length > 0) {
+    store.dispatch("showSavedJobs");
+    resetFirstPage();
+  }
+}
 </script>
 
 <template>
@@ -126,12 +133,7 @@ function resetFirstPage() {
         severity="secondary"
         icon="pi pi-bookmark"
         :label="`${savedJobs.length || ''}`"
-        @click="
-          () => {
-            store.dispatch('showSavedJobs');
-            resetFirstPage();
-          }
-        "
+        @click="showSavedJobsHandler"
       ></Button>
       <div class="rates">
         <span>USD: {{ usdRate }}</span>

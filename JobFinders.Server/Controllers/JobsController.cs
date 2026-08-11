@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using JobFinders.BLL.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using AutoMapper;
+using JobFinders.Server.Services;
 
 namespace JobFinders.Server.Controllers
 {
@@ -58,6 +59,20 @@ namespace JobFinders.Server.Controllers
                     responseList.Add(job);
                 }
             });
+
+            //var groupedResponse = responseList
+            //    .GroupBy(job => new Job {
+            //        Title = job?.Title, 
+            //        OriginalSalary = new Salary 
+            //        {
+            //            Currency = job?.OriginalSalary?.Currency,
+            //            Min = job?.OriginalSalary?.Min,
+            //            Max = job?.OriginalSalary?.Max,
+            //        },
+            //        Company = job?.Company
+            //    }, new CompanyComparer())
+            //    .Select(group => group.OrderBy(job => job?.Source).ToArray())
+            //    .ToArray();
 
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(30))
