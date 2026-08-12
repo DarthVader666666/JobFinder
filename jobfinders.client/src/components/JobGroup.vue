@@ -1,21 +1,40 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useStore } from "vuex";
 import { helper } from "@/helper";
+import JobGroupModal from "./Modals/JobGroupModal.vue";
 
 const store = useStore();
-const finders = computed(() => store.getters.getFinders);
 
 const props = defineProps({
   jobGroup: {
     type: Array,
     default: () => [],
   },
+  toast: {
+    type: Object,
+    default: null,
+  },
+});
+
+const logos = ref([]);
+const showJobGroupModal = ref(false);
+
+const finders = computed(() => store.getters.getFinders);
+
+onMounted(() => {
+  props.jobGroup
+    .map((job) => job.logo)
+    .forEach((logo) => {
+      if (!logos.value.map((l) => l.source).includes(logo.source)) {
+        logos.value.push(logo);
+      }
+    });
 });
 
 function getValue(key) {
-  const value = props.jobGroup.filter((job) => job[key] !== null);
-  return value.length > 0 ? value[0][key] : "";
+  const job = props.jobGroup.find((job) => job[key]);
+  return job ? job[key] : "";
 }
 
 const experience = getValue("experience");
@@ -23,10 +42,18 @@ const company = getValue("company");
 const location = getValue("location");
 const timePosted = getValue("timePosted");
 const salary = getValue("salary");
+
+function showJobGroupModalHandler() {
+  showJobGroupModal.value = true;
+}
 </script>
 
 <template>
-  <div class="job-group">
+  <div
+    class="job-group"
+    :class="showJobGroupModal ? 'invisible' : ''"
+    @click="showJobGroupModalHandler"
+  >
     <div class="group-back"></div>
     <div class="group-middle"></div>
     <div class="group-front">
@@ -63,19 +90,21 @@ const salary = getValue("salary");
         </div>
       </div>
       <div class="group-bottom">
-        <div
-          v-for="(job, index) in props.jobGroup"
-          :key="index"
-          class="job-logo"
-        >
+        <div v-for="(logo, index) in logos" :key="index" class="job-logo">
           <img
-            v-if="job.logo?.source"
-            v-bind:src="finders.find((x) => x.source === job.logo?.source).img"
+            v-if="logo.source"
+            v-bind:src="finders.find((x) => x.source === logo.source).img"
           />
         </div>
       </div>
     </div>
   </div>
+  <JobGroupModal
+    v-model:visible="showJobGroupModal"
+    :jobGroup="props.jobGroup"
+    :toast="props.toast"
+  >
+  </JobGroupModal>
 </template>
 
 <style scoped>
@@ -180,6 +209,7 @@ const salary = getValue("salary");
   display: flex;
   justify-content: end;
   height: 20%;
+  overflow: hidden;
 }
 
 .job-logo {
@@ -190,6 +220,21 @@ const salary = getValue("salary");
   img {
     height: 30px;
     padding: 3px;
+  }
+}
+
+.invisible :deep(*) {
+  background: transparent;
+  color: transparent;
+  box-shadow: none;
+
+  &:hover {
+    background: transparent;
+  }
+
+  img,
+  i {
+    display: none;
   }
 }
 </style>

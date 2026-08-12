@@ -71,7 +71,7 @@ namespace JobFinders.Server.Controllers
                         Max = job?.OriginalSalary?.Max,
                     },
                     Company = job?.Company
-                }, new CompanyComparer())
+                }, new JobComparer())
                 .Select(group => group.OrderBy(job => job?.Source).ToArray())
                 .ToArray();
 

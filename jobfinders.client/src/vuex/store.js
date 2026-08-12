@@ -409,17 +409,19 @@ const store = createStore({
     },
     updateFilteredJobs({ state, commit }) {
       var jobs = [];
+      const activeSources = state.finders
+        .filter((f) => f.active)
+        .map((f) => f.source);
 
       state.bufferedJobs
         .filter((jobGroup) =>
-          state.finders
-            .filter((f) => f.active)
-            .map((f) => f.source)
-            .some((finderSource) =>
-              jobGroup.map((job) => job.source).includes(finderSource),
-            ),
+          activeSources.some((finderSource) =>
+            jobGroup.map((job) => job.source).includes(finderSource),
+          ),
         )
-        .forEach((ja) => jobs.push(ja));
+        .forEach((ja) =>
+          jobs.push(ja.filter((x) => activeSources.includes(x.source))),
+        );
 
       const keys = Object.keys(state.filter) ?? [];
 
