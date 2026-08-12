@@ -215,11 +215,11 @@ const store = createStore({
     },
     setBufferedJobs(state, value) {
       state.bufferedJobs = [];
-      value.forEach((x) => state.bufferedJobs.push(x));
+      state.bufferedJobs.push(...value);
     },
     setFilteredJobs(state, value) {
       state.filteredJobs = [];
-      value.forEach((x) => state.filteredJobs.push(x));
+      state.filteredJobs.push(...value);
     },
     setSavedJobsCache(state, value) {
       state.savedJobs = value;
@@ -409,15 +409,19 @@ const store = createStore({
     },
     updateFilteredJobs({ state, commit }) {
       var jobs = [];
+      const activeSources = state.finders
+        .filter((f) => f.active)
+        .map((f) => f.source);
 
       state.bufferedJobs
-        .filter((j) =>
-          state.finders
-            .filter((f) => f.active)
-            .map((f) => f.source)
-            .includes(j.source),
+        .filter((jobGroup) =>
+          activeSources.some((finderSource) =>
+            jobGroup.map((job) => job.source).includes(finderSource),
+          ),
         )
-        .forEach((j) => jobs.push(j));
+        .forEach((ja) =>
+          jobs.push(ja.filter((x) => activeSources.includes(x.source))),
+        );
 
       const keys = Object.keys(state.filter) ?? [];
 
@@ -426,11 +430,11 @@ const store = createStore({
           return;
         }
         if (key === "exactTitle") {
-          jobs = jobs.filter((job) => {
+          jobs = jobs.filter((jobGroup) => {
             const specialityParts = state.request.speciality
               .split(/[ -]/)
               .map((x) => x.toLowerCase());
-            const titleParts = job.title
+            const titleParts = jobGroup[0].title
               .split(/[ -]/)
               .map((x) => x.toLowerCase());
 
@@ -442,12 +446,12 @@ const store = createStore({
 
         if (key === "orderBySalary") {
           jobs = jobs.sort(
-            (x, y) => (y.salary?.max ?? 0) - (x.salary?.max ?? 0),
+            (x, y) => (y[0].salary?.max ?? 0) - (x[0].salary?.max ?? 0),
           );
         }
 
         if (key === "groupBySource") {
-          jobs = jobs.sort((x, y) => x.source.localeCompare(y.source));
+          jobs = jobs.sort((x, y) => x[0].source.localeCompare(y[0].source));
         }
 
         if (state.range[0]) {
@@ -458,20 +462,22 @@ const store = createStore({
               : state.infinity;
 
           jobs = jobs.filter(
-            (fj) =>
-              fj.salary?.currency &&
-              (fj.salary?.min === fj.salary?.max
-                ? fj.salary?.min >= minRange
+            (jobGroup) =>
+              jobGroup[0].salary?.currency &&
+              (jobGroup[0].salary?.min === jobGroup[0].salary?.max
+                ? jobGroup[0].salary?.min >= minRange
                 : true) &&
-              fj.salary?.min <= maxRange &&
-              fj.salary?.max >= minRange &&
-              (fj.salary?.min <= maxRange ? true : fj.salary?.max <= maxRange),
+              jobGroup[0].salary?.min <= maxRange &&
+              jobGroup[0].salary?.max >= minRange &&
+              (jobGroup[0].salary?.min <= maxRange
+                ? true
+                : jobGroup[0].salary?.max <= maxRange),
           );
         } else {
           jobs = jobs.filter(
-            (fj) =>
-              !fj.salary ||
-              fj.salary?.max <=
+            (jobGroup) =>
+              !jobGroup[0].salary ||
+              jobGroup[0].salary?.max <=
                 (state.range[1] === 100
                   ? state.infinity
                   : state.range[1] * this.getters.getRangeMultiplier),

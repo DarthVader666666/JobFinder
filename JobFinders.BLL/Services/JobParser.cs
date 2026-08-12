@@ -111,7 +111,7 @@ namespace JobFinders.BLL.Services
         {
             var innerText = string.IsNullOrEmpty(setting?.Salary?.Value)
                 ? nodes?.FirstOrDefault(x => ContainsCurrencySymbols(x.InnerText))?.InnerText
-                : nodes?.FirstOrDefault(x => x.Attributes["class"] != null && x.Attributes["class"].Value.Contains(setting.Salary.Value))?.InnerText;
+                : nodes?.FirstOrDefault(x => x.Attributes[$"{setting.Salary.Attribute}"] != null && x.Attributes[$"{setting.Salary.Attribute}"].Value.Contains(setting.Salary.Value))?.InnerText;
 
             if (string.IsNullOrEmpty(innerText))
             {

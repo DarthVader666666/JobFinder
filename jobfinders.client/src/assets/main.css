@@ -12,3 +12,10 @@ body {
 .p-autocomplete-empty-message {
   display: none !important;
 }
+
+.p-dialog-close-button {
+  background: rgba(255, 255, 255, 0.8) !important;
+  &:hover {
+    background: white !important;
+  }
+}

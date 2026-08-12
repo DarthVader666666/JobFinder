@@ -1,16 +1,12 @@
 <script setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import JobItem from "./JobItem.vue";
 import NavigationButtons from "./NavigationButtons.vue";
 import { useStore } from "vuex";
 import { helper } from "@/helper.js";
+import JobGroup from "./JobGroup.vue";
 
 const store = useStore();
-
-const firstPage = computed({
-  get: () => store.getters.getFirstPage,
-  set: (value) => store.commit("setFirstPage", value),
-});
 
 const props = defineProps({
   toast: {
@@ -21,6 +17,19 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  jobs: {
+    type: Array,
+    default: () => [],
+  },
+  usePagination: {
+    type: Boolean,
+    default: true,
+  },
+});
+
+const firstPage = computed({
+  get: () => store.getters.getFirstPage,
+  set: (value) => store.commit("setFirstPage", value),
 });
 
 const rows = computed({
@@ -28,23 +37,19 @@ const rows = computed({
   set: (value) => store.commit("setRows", value),
 });
 
-const jobs = computed(() =>
-  props.savedJobsShown
-    ? store.getters.getSavedJobsCache
-    : store.getters.getFilteredJobs,
-);
-
 const slicedJobs = computed(() =>
-  jobs.value.slice(
-    firstPage.value * rows.value,
-    firstPage.value * rows.value + rows.value,
-  ),
+  props.usePagination
+    ? props.jobs.slice(
+        firstPage.value * rows.value,
+        firstPage.value * rows.value + rows.value,
+      )
+    : props.jobs,
 );
 
 const isFirstPage = computed(() => firstPage.value <= 0);
 const isLastPage = computed(
   () =>
-    firstPage.value * rows.value + slicedJobs.value.length >= jobs.value.length,
+    firstPage.value * rows.value + slicedJobs.value.length >= props.jobs.length,
 );
 
 const jobsRange = computed(() => [
@@ -52,9 +57,28 @@ const jobsRange = computed(() => [
   firstPage.value * rows.value + slicedJobs.value.length,
 ]);
 
+watch(rows, (newValue) => {
+  if (newValue > props.jobs.length) {
+    firstPage.value = 0;
+  }
+});
+
 function saveJob(job) {
-  const index = slicedJobs.value.indexOf(job);
-  var savedJob = slicedJobs.value[index];
+  var savedJob;
+
+  if (slicedJobs.value[0]?.length ?? false) {
+    slicedJobs.value.forEach((jobGroup) => {
+      var j = jobGroup.find((sj) => helper.areJobsEqual(sj, job));
+
+      if (j) {
+        savedJob = j;
+        return;
+      }
+    });
+  } else {
+    savedJob = slicedJobs.value.find((sj) => helper.areJobsEqual(sj, job));
+  }
+
   savedJob.saved = !savedJob.saved;
 
   if (savedJob.saved) {
@@ -76,7 +100,7 @@ function navigationHandler(direction) {
 
   if (
     direction === "forward" &&
-    firstPage.value * rows.value + slicedJobs.value.length < jobs.value.length
+    firstPage.value * rows.value + slicedJobs.value.length < props.jobs.length
   ) {
     firstPage.value++;
   }
@@ -85,11 +109,24 @@ function navigationHandler(direction) {
 }
 </script>
 <template>
-  <div class="job-list">
+  <div class="list">
     <div v-for="(job, index) in slicedJobs" :key="index">
-      <JobItem :job="job" @saveJob="saveJob"></JobItem>
+      <JobItem v-if="savedJobsShown" :job="job" @saveJob="saveJob"></JobItem>
+      <div v-else>
+        <JobGroup
+          v-if="job.length && job.length > 1"
+          :jobGroup="job"
+          :toast="props.toast"
+        ></JobGroup>
+        <JobItem
+          v-else
+          :job="job.length ? job[0] : job"
+          @saveJob="saveJob"
+        ></JobItem>
+      </div>
     </div>
     <NavigationButtons
+      v-if="props.usePagination"
       :isFirstPage="isFirstPage"
       :isLastPage="isLastPage"
       :jobsRange="jobsRange"
@@ -100,9 +137,7 @@ function navigationHandler(direction) {
 </template>
 
 <style scoped>
-.job-list {
-  padding-bottom: 230px;
-  width: 50%;
+.list {
   display: flex;
   flex-direction: column;
   gap: 15px;

@@ -19,7 +19,7 @@ const props = defineProps({
 <template>
   <div className="job-item">
     <div class="job-left">
-      <a className="job-link" :href="props.job.link" target="_blank">
+      <a class="job-link" :href="props.job.link" target="_blank">
         <div class="job-title">
           <span v-if="props.job.title.includes('Error:')" style="color: red"
             ><i class="pi pi-exclamation-circle"></i

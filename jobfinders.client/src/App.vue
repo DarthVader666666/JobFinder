@@ -49,6 +49,12 @@ const showSettingsModal = computed({
   set: (value) => store.commit("setShowSettingsModal", value),
 });
 
+const jobs = computed(() =>
+  savedJobsShown.value
+    ? store.getters.getSavedJobsCache
+    : store.getters.getFilteredJobs,
+);
+
 watch(savedJobs.value, (newValue) => {
   if (!newValue.length) {
     store.dispatch("showSavedJobs", false);
@@ -81,11 +87,11 @@ onBeforeUnmount(() => {
 function updateIsMobile() {
   if (window.innerWidth > 500) {
     if (showSearchBarModal.value) {
-      store.commit("setShowSearchBarModal", false);
+      showSearchBarModal.value = false;
     }
 
     if (showSettingsModal.value) {
-      store.commit("setShowSettingsModal", false);
+      showSettingsModal.value = false;
     }
   }
 }
@@ -161,7 +167,9 @@ function showSavedJobsHandler() {
       </div>
     </div>
     <JobList
+      class="job-list"
       :toast="toast"
+      :jobs="jobs"
       :firstPage="firstPage"
       :savedJobsShown="savedJobsShown"
       :class="{ mobileVisible: isJobsEmpty }"
@@ -280,6 +288,12 @@ function showSavedJobsHandler() {
   }
 }
 
+.job-list {
+  width: 50%;
+  padding-bottom: 230px;
+  min-width: 320px;
+}
+
 .sources-and-filter {
   padding: 15px;
   text-align: center;
@@ -290,11 +304,12 @@ function showSavedJobsHandler() {
 @media (max-width: 600px) {
   .main {
     padding: 0px;
+    justify-content: center;
   }
 
   .job-list {
     padding-top: 70px;
-    width: 100%;
+    width: 98%;
   }
 
   .settings {

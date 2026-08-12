@@ -1,21 +1,40 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useStore } from "vuex";
 import { helper } from "@/helper";
+import JobGroupModal from "./Modals/JobGroupModal.vue";
 
 const store = useStore();
-const finders = computed(() => store.getters.getFinders);
 
 const props = defineProps({
-  jobArray: {
+  jobGroup: {
     type: Array,
     default: () => [],
   },
+  toast: {
+    type: Object,
+    default: null,
+  },
+});
+
+const logos = ref([]);
+const showJobGroupModal = ref(false);
+
+const finders = computed(() => store.getters.getFinders);
+
+onMounted(() => {
+  props.jobGroup
+    .map((job) => job.logo)
+    .forEach((logo) => {
+      if (!logos.value.map((l) => l.source).includes(logo.source)) {
+        logos.value.push(logo);
+      }
+    });
 });
 
 function getValue(key) {
-  const value = props.jobArray.filter((job) => job[key] !== null);
-  return value.length > 0 ? value[0][key] : "";
+  const job = props.jobGroup.find((job) => job[key]);
+  return job ? job[key] : "";
 }
 
 const experience = getValue("experience");
@@ -23,79 +42,127 @@ const company = getValue("company");
 const location = getValue("location");
 const timePosted = getValue("timePosted");
 const salary = getValue("salary");
+
+function showJobGroupModalHandler() {
+  showJobGroupModal.value = true;
+}
 </script>
 
 <template>
-  <div className="job-item">
-    <div class="job-top">
-      <div className="job-link">
-        <div class="job-title">
-          <span
-            v-if="props.jobArray[0].title.includes('Error:')"
-            style="color: red"
-            ><i class="pi pi-exclamation-circle"></i
-            >{{ ` ${props.jobArray[0].title}` }}</span
-          >
-          <span v-else :title="props.jobArray[0].title">{{
-            props.jobArray[0].title
-          }}</span>
+  <div
+    class="job-group"
+    :class="showJobGroupModal ? 'invisible' : ''"
+    @click="showJobGroupModalHandler"
+  >
+    <div class="group-back"></div>
+    <div class="group-middle"></div>
+    <div class="group-front">
+      <div class="group-top">
+        <div>
+          <div class="group-title">
+            <span
+              v-if="props.jobGroup[0].title.includes('Error:')"
+              style="color: red"
+              ><i class="pi pi-exclamation-circle"></i
+              >{{ ` ${props.jobGroup[0].title}` }}</span
+            >
+            <span v-else :title="props.jobGroup[0].title">{{
+              props.jobGroup[0].title
+            }}</span>
+          </div>
+          <div class="group-details">
+            <span v-if="experience" :title="experience"
+              ><i class="pi pi-briefcase"></i>{{ experience }}</span
+            >
+            <span v-if="company" :title="company"
+              ><i class="pi pi-building"></i>{{ company }}</span
+            >
+            <span v-if="location" :title="location"
+              ><i class="pi pi-map-marker"></i>{{ location }}</span
+            >
+            <span v-if="timePosted" :title="timePosted"
+              ><i class="pi pi-clock"></i>{{ timePosted }}</span
+            >
+          </div>
         </div>
-        <div class="job-details">
-          <span v-if="experience" :title="experience"
-            ><i class="pi pi-briefcase"></i>{{ experience }}</span
-          >
-          <span v-if="company" :title="company"
-            ><i class="pi pi-building"></i>{{ company }}</span
-          >
-          <span v-if="location" :title="location"
-            ><i class="pi pi-map-marker"></i>{{ location }}</span
-          >
-          <span v-if="timePosted" :title="timePosted"
-            ><i class="pi pi-clock"></i>{{ timePosted }}</span
-          >
+        <div class="salary">
+          <span>{{ helper.formatSalary(salary) }}</span>
         </div>
       </div>
-      <span class="salary">{{ helper.formatSalary(salary) }}</span>
-    </div>
-
-    <div class="job-sources">
-      <div v-for="(job, index) in props.jobArray" :key="index" class="job-logo">
-        <img
-          v-if="job.logo?.source"
-          v-bind:src="finders.find((x) => x.source === job.logo?.source).img"
-        />
+      <div class="group-bottom">
+        <div v-for="(logo, index) in logos" :key="index" class="job-logo">
+          <img
+            v-if="logo.source"
+            v-bind:src="finders.find((x) => x.source === logo.source).img"
+          />
+        </div>
       </div>
     </div>
   </div>
+  <JobGroupModal
+    v-model:visible="showJobGroupModal"
+    :jobGroup="props.jobGroup"
+    :toast="props.toast"
+  >
+  </JobGroupModal>
 </template>
 
 <style scoped>
-.job-item {
-  display: flex;
-  flex-direction: column;
+.job-group {
+  position: relative;
   width: 100%;
   height: 150px;
-  padding: 10px;
-  background-color: rgb(215, 215, 215);
-  justify-content: space-between;
+}
+
+.group-back {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 140px;
+  width: 98%;
+  background-color: rgb(200, 200, 200);
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-.job-top {
+.group-middle {
+  position: absolute;
+  top: 3%;
+  right: 1%;
+  height: 140px;
+  width: 98%;
+  background-color: rgb(200, 200, 200);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.group-front {
+  position: absolute;
   display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  bottom: 0;
+  left: 0;
+  height: 140px;
+  width: 98%;
+  padding: 10px;
+  background-color: rgb(215, 215, 215);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+  &:hover {
+    background: rgb(233, 233, 233);
+    cursor: pointer;
+  }
+}
+
+.group-top {
+  display: flex;
+  justify-content: space-between;
   max-height: 80%;
 }
 
-.job-link {
-  max-height: 100%;
-  width: 100%;
-  border-radius: 10px 10px 0 0;
-  text-decoration: none;
-  color: black;
-}
-
-.job-title {
+.group-title {
   max-height: 60px;
   padding-bottom: 15px;
   overflow: hidden;
@@ -106,7 +173,7 @@ const salary = getValue("salary");
   -webkit-line-break: anywhere;
 }
 
-.job-details {
+.group-details {
   font-size: small;
   align-items: top;
   color: rgb(110, 110, 110);
@@ -131,16 +198,18 @@ const salary = getValue("salary");
 }
 
 .salary {
-  width: 20%;
+  max-width: 20%;
   font-size: large;
   font-weight: bold;
   word-break: break-word;
   text-align: end;
 }
 
-.job-sources {
+.group-bottom {
   display: flex;
   justify-content: end;
+  height: 20%;
+  overflow: hidden;
 }
 
 .job-logo {
@@ -154,8 +223,18 @@ const salary = getValue("salary");
   }
 }
 
-.job-item:hover {
-  background: rgb(233, 233, 233);
-  cursor: pointer;
+.invisible :deep(*) {
+  background: transparent;
+  color: transparent;
+  box-shadow: none;
+
+  &:hover {
+    background: transparent;
+  }
+
+  img,
+  i {
+    display: none;
+  }
 }
 </style>

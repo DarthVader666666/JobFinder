@@ -49,7 +49,6 @@ function cancelDownload() {
     background: transparent;
     color: lightblue;
     font-size: 1.4rem;
-    /* text-shadow: 2px 1px 2px rgba(0, 0, 0, 0.6); */
     border: 0;
   }
 }
