@@ -71,9 +71,9 @@ namespace JobFinders.Server.Services
         {
             if (string.IsNullOrEmpty(company)) return string.Empty;
 
-            var normalized = company.Trim();
+            var normalized = company.Trim().Replace("\"","");
 
-            var prefixes = new[] { "ООО ", "ЗАО ", "ОАО ", "АО ", "ИП ", "ТОО " };
+            var prefixes = new[] { "ООО ", "ЗАО ", "ОАО ", "АО ", "ИП ", "ТОО ", "РУП " };
             foreach (var prefix in prefixes)
             {
                 if (normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))

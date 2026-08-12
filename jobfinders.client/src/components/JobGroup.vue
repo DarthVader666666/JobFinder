@@ -1,10 +1,11 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { helper } from "@/helper";
 import JobGroupModal from "./Modals/JobGroupModal.vue";
 
 const store = useStore();
+const filteredJobs = computed(() => store.getters.getFilteredJobs);
 
 const props = defineProps({
   jobGroup: {
@@ -22,7 +23,16 @@ const showJobGroupModal = ref(false);
 
 const finders = computed(() => store.getters.getFinders);
 
+watch(props.jobGroup, (newValue) => {
+  updateLogos();
+});
+
 onMounted(() => {
+  updateLogos();
+});
+
+function updateLogos() {
+  logos.value = [];
   props.jobGroup
     .map((job) => job.logo)
     .forEach((logo) => {
@@ -30,7 +40,7 @@ onMounted(() => {
         logos.value.push(logo);
       }
     });
-});
+}
 
 function getValue(key) {
   const job = props.jobGroup.find((job) => job[key]);

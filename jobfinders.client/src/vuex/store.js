@@ -445,9 +445,11 @@ const store = createStore({
         }
 
         if (key === "orderBySalary") {
-          jobs = jobs.sort(
-            (x, y) => (y[0].salary?.max ?? 0) - (x[0].salary?.max ?? 0),
-          );
+          jobs = jobs.sort((xGroup, yGroup) => {
+            const xSalary = xGroup.find((x) => x.salary)?.salary;
+            const ySalary = yGroup.find((y) => y.salary)?.salary;
+            return (ySalary?.max ?? 0) - (xSalary?.max ?? 0);
+          });
         }
 
         if (key === "groupBySource") {

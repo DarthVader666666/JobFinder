@@ -116,10 +116,11 @@ const props = defineProps({
   flex-direction: column;
   justify-content: space-between;
   align-items: end;
-  min-width: 15%;
+  min-width: 17%;
 }
 
 .salary {
+  color: black;
   font-size: large;
   font-weight: bold;
   word-break: break-word;
