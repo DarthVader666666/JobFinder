@@ -455,37 +455,37 @@ const store = createStore({
         if (key === "groupBySource") {
           jobs = jobs.sort((x, y) => x[0].source.localeCompare(y[0].source));
         }
-
-        if (state.range[0]) {
-          const minRange = state.range[0] * this.getters.getRangeMultiplier;
-          const maxRange =
-            state.range[1] < 100
-              ? state.range[1] * this.getters.getRangeMultiplier
-              : state.infinity;
-
-          jobs = jobs.filter(
-            (jobGroup) =>
-              jobGroup[0].salary?.currency &&
-              (jobGroup[0].salary?.min === jobGroup[0].salary?.max
-                ? jobGroup[0].salary?.min >= minRange
-                : true) &&
-              jobGroup[0].salary?.min <= maxRange &&
-              jobGroup[0].salary?.max >= minRange &&
-              (jobGroup[0].salary?.min <= maxRange
-                ? true
-                : jobGroup[0].salary?.max <= maxRange),
-          );
-        } else {
-          jobs = jobs.filter(
-            (jobGroup) =>
-              !jobGroup[0].salary ||
-              jobGroup[0].salary?.max <=
-                (state.range[1] === 100
-                  ? state.infinity
-                  : state.range[1] * this.getters.getRangeMultiplier),
-          );
-        }
       });
+
+      if (state.range[0]) {
+        const minRange = state.range[0] * this.getters.getRangeMultiplier;
+        const maxRange =
+          state.range[1] < 100
+            ? state.range[1] * this.getters.getRangeMultiplier
+            : state.infinity;
+
+        jobs = jobs.filter(
+          (jobGroup) =>
+            jobGroup[0].salary?.currency &&
+            (jobGroup[0].salary?.min === jobGroup[0].salary?.max
+              ? jobGroup[0].salary?.min >= minRange
+              : true) &&
+            jobGroup[0].salary?.min <= maxRange &&
+            jobGroup[0].salary?.max >= minRange &&
+            (jobGroup[0].salary?.min <= maxRange
+              ? true
+              : jobGroup[0].salary?.max <= maxRange),
+        );
+      } else {
+        jobs = jobs.filter(
+          (jobGroup) =>
+            !jobGroup[0].salary ||
+            jobGroup[0].salary?.max <=
+              (state.range[1] === 100
+                ? state.infinity
+                : state.range[1] * this.getters.getRangeMultiplier),
+        );
+      }
 
       commit("setFilteredJobs", jobs);
     },
