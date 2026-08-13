@@ -131,16 +131,13 @@ const props = defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
   border-radius: 20px;
   &:hover {
     background-color: rgb(248, 250, 252);
-    /* box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.3); */
   }
   img {
-    width: 90%;
-    height: 30px;
-    padding: 3px;
+    height: 25px;
+    padding: 5px;
   }
 }
 

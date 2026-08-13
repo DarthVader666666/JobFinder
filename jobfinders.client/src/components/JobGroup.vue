@@ -200,7 +200,7 @@ function showJobGroupModalHandler() {
 }
 
 .salary {
-  max-width: 20%;
+  width: 30%;
   font-size: large;
   font-weight: bold;
   word-break: break-word;
@@ -209,6 +209,7 @@ function showJobGroupModalHandler() {
 
 .group-bottom {
   display: flex;
+  gap: 3px;
   justify-content: end;
   height: 20%;
   overflow: hidden;
@@ -219,8 +220,10 @@ function showJobGroupModalHandler() {
   align-items: center;
   justify-content: center;
   border-radius: 20px;
+
   img {
-    height: 30px;
+    max-height: 20px;
+    width: auto;
     padding: 3px;
   }
 }

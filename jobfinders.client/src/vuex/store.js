@@ -12,43 +12,43 @@ const store = createStore({
     showSettingsModal: false,
     finders: [
       {
-        img: "rabotaby-logo-large.png",
+        img: "rabotaby_logo.png",
         source: "RabotaBy",
         active: true,
       },
       {
-        img: "pracaby-logo-large.png",
+        img: "pracaby_logo.png",
         source: "PracaBy",
         active: true,
       },
 
       {
-        img: "bebee-logo-large.png",
+        img: "bebee_logo.png",
         source: "BeBee",
         active: true,
       },
       {
-        img: "joblum-logo-large.png",
+        img: "joblum_logo.png",
         source: "Joblum",
         active: true,
       },
       {
-        img: "belmeta-logo-large.png",
+        img: "belmeta_logo.png",
         source: "Belmeta",
         active: true,
       },
       {
-        img: "rework-logo-large.png",
+        img: "rework_logo.png",
         source: "Rework",
         active: true,
       },
       {
-        img: "gsz-logo-large.png",
+        img: "gsz_logo.png",
         source: "GSZ",
         active: true,
       },
       {
-        img: "headhunter-logo-large.png",
+        img: "hh_logo.png",
         source: "HeadHunter",
         active: true,
       },

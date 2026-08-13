@@ -46,9 +46,12 @@ function toggleAllSources(value) {
   </div>
   <div class="finder-options">
     <div class="finder-option" v-for="(finder, index) in finders" :key="index">
-      <label :for="finder.source">
-        <img v-bind:src="finder.img" :alt="finder.source" />
-      </label>
+      <div class="logo">
+        <label :for="finder.source">
+          <img v-bind:src="finder.img" :alt="finder.source" />
+        </label>
+      </div>
+
       <Checkbox
         @update:modelValue="checkFinder(finder, $event)"
         :binary="true"
@@ -78,12 +81,18 @@ function toggleAllSources(value) {
 .finder-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 10px;
+  gap: 14px;
   padding: 10px;
+}
+
+.logo {
+  align-content: center;
+  text-align: end;
+  width: 60px;
 
   img {
-    width: 60px;
-    height: 20px;
+    max-height: 20px;
+    max-width: 60px;
   }
 }
 
