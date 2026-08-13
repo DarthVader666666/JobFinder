@@ -27,6 +27,8 @@ const props = defineProps({
   },
 });
 
+const slicedJobs = computed(() => sliceJobs());
+
 const firstPage = computed({
   get: () => store.getters.getFirstPage,
   set: (value) => store.commit("setFirstPage", value),
@@ -36,15 +38,6 @@ const rows = computed({
   get: () => store.getters.getRows,
   set: (value) => store.commit("setRows", value),
 });
-
-const slicedJobs = computed(() =>
-  props.usePagination
-    ? props.jobs.slice(
-        firstPage.value * rows.value,
-        firstPage.value * rows.value + rows.value,
-      )
-    : props.jobs,
-);
 
 const isFirstPage = computed(() => firstPage.value <= 0);
 const isLastPage = computed(
@@ -62,6 +55,15 @@ watch(rows, (newValue) => {
     firstPage.value = 0;
   }
 });
+
+function sliceJobs() {
+  return props.usePagination
+    ? props.jobs.slice(
+        firstPage.value * rows.value,
+        firstPage.value * rows.value + rows.value,
+      )
+    : props.jobs;
+}
 
 function saveJob(job) {
   var savedJob;

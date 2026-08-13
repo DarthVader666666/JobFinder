@@ -1,11 +1,10 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { useStore } from "vuex";
 import { helper } from "@/helper";
 import JobGroupModal from "./Modals/JobGroupModal.vue";
 
 const store = useStore();
-const filteredJobs = computed(() => store.getters.getFilteredJobs);
 
 const props = defineProps({
   jobGroup: {
@@ -18,40 +17,38 @@ const props = defineProps({
   },
 });
 
-const logos = ref([]);
 const showJobGroupModal = ref(false);
 
+const logos = computed(() => updateLogos());
 const finders = computed(() => store.getters.getFinders);
 
-watch(props.jobGroup, (newValue) => {
-  updateLogos();
-});
-
-onMounted(() => {
-  updateLogos();
-});
-
 function updateLogos() {
-  logos.value = [];
+  if (!props.jobGroup.length) {
+    return [];
+  }
+
+  var logos = [];
   props.jobGroup
     .map((job) => job.logo)
     .forEach((logo) => {
-      if (!logos.value.map((l) => l.source).includes(logo.source)) {
-        logos.value.push(logo);
+      if (!logos.map((l) => l.source).includes(logo.source)) {
+        logos.push(logo);
       }
     });
+
+  return logos;
 }
 
 function getValue(key) {
-  const job = props.jobGroup.find((job) => job[key]);
-  return job ? job[key] : "";
+  return props.jobGroup[0][key] ?? "";
 }
 
-const experience = getValue("experience");
-const company = getValue("company");
-const location = getValue("location");
-const timePosted = getValue("timePosted");
-const salary = getValue("salary");
+const title = computed(() => getValue("title"));
+const experience = computed(() => getValue("experience"));
+const company = computed(() => getValue("company"));
+const location = computed(() => getValue("location"));
+const timePosted = computed(() => getValue("timePosted"));
+const salary = computed(() => getValue("salary"));
 
 function showJobGroupModalHandler() {
   showJobGroupModal.value = true;
@@ -70,15 +67,10 @@ function showJobGroupModalHandler() {
       <div class="group-top">
         <div>
           <div class="group-title">
-            <span
-              v-if="props.jobGroup[0].title.includes('Error:')"
-              style="color: red"
-              ><i class="pi pi-exclamation-circle"></i
-              >{{ ` ${props.jobGroup[0].title}` }}</span
+            <span v-if="title.includes('Error:')" style="color: red"
+              ><i class="pi pi-exclamation-circle"></i>{{ ` ${title}` }}</span
             >
-            <span v-else :title="props.jobGroup[0].title">{{
-              props.jobGroup[0].title
-            }}</span>
+            <span v-else :title="title">{{ title }}</span>
           </div>
           <div class="group-details">
             <span v-if="experience" :title="experience"
@@ -236,7 +228,6 @@ function showJobGroupModalHandler() {
 .invisible :deep(*) {
   background: transparent;
   color: transparent;
-  box-shadow: none;
 
   &:hover {
     background: transparent;
