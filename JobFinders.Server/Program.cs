@@ -24,6 +24,7 @@ builder.Services.AddScoped<IEmailSender, AzureEmailSender>();
 builder.Services.AddScoped<IHtmlLoader, HtmlLoader>();
 builder.Services.AddScoped<IJobParser, JobParser>();
 builder.Services.AddScoped<ITransliterator, Transliterator>();
+builder.Services.AddSingleton<IPageObserver, PageObserver>();
 
 builder.Services.Configure<List<JobFinderSetting>>(builder.Configuration.GetSection("JobFinderSettings"));
 

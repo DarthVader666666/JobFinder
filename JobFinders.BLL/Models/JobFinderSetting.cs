@@ -13,6 +13,7 @@
         public bool ConvertLocation { get; set; } = false;
         public Dictionary<string, string>? LocationDictionary { get; set; }
         public HtmlTag? VacancyTag { get; set; }
+        public HtmlTag? NavigationTag { get; set; }
         public HtmlAttribute? Salary { get; set; }
         public HtmlAttribute? Location { get; set; }
         public HtmlAttribute? Company { get; set; }
