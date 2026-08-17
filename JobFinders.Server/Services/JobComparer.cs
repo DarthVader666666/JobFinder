@@ -1,4 +1,7 @@
-﻿using JobFinders.BLL.Models;
+﻿using JobFinders.BLL.Interfaces;
+using JobFinders.BLL.Models;
+
+using NickBuhro.Translit;
 
 namespace JobFinders.Server.Services
 {
@@ -52,39 +55,42 @@ namespace JobFinders.Server.Services
 
         private string NormalizeCompanyName(string? company)
         {
-            if (string.IsNullOrEmpty(company)) return string.Empty;
+            if (string.IsNullOrEmpty(company))
+            {
+                return string.Empty;
+            }
 
-            var normalized = company.Trim();
-
-            var prefixes = new[] { "ООО ", "ЗАО ", "ОАО ", "АО ", "ИП ", "ТОО ", "ОДО " };
+            var normalized = company;
+            var prefixes = new[] { "ООО", "ЗАО", "ОАО", "АО", "ИП", "ТОО", "ОДО" };
 
             foreach (var prefix in prefixes)
             {
-                if (normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                if (normalized.StartsWith(prefix))
                 {
-                    normalized = normalized.Substring(prefix.Length).Trim();
+                    normalized = normalized.Replace(prefix , "");
                     break;
                 }
             }
 
-            return normalized.Replace("\"", "");
+            normalized = normalized.Trim();
+            normalized = normalized.Replace("\"", "").ToUpper();
+            normalized = Transliteration.LatinToCyrillic(normalized);
+
+            return normalized;
         }
 
         private int GetNormalizedSalaryHash(Salary? salary)
         {
-            if (salary is null) return 0;
-
             var hash = new HashCode();
-            hash.Add(salary.Min ?? 0);
-            hash.Add(salary.Max ?? 0);
-            hash.Add(_stringComparer.GetHashCode(salary.Currency ?? string.Empty));
+            hash.Add(salary?.Min ?? 0);
+            hash.Add(salary?.Max ?? 0);
+            hash.Add(_stringComparer.GetHashCode(salary?.Currency ?? string.Empty));
             return hash.ToHashCode();
         }
 
         private int GetNormalizedCompanyHash(string? company)
         {
-            if (string.IsNullOrEmpty(company)) return 0;
-            return _stringComparer.GetHashCode(NormalizeCompanyName(company));
+            return _stringComparer.GetHashCode(NormalizeCompanyName(company ?? ""));
         }
     }
 }

@@ -40,7 +40,11 @@ function updateLogos() {
 }
 
 function getValue(key) {
-  return props.jobGroup[0][key] ?? "";
+  const job = props.jobGroup.find(
+    (job) => job[key] != undefined && job[key] != null,
+  );
+
+  return job ? job[key] : "";
 }
 
 const title = computed(() => getValue("title"));

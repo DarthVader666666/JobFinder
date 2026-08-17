@@ -12,7 +12,7 @@ namespace JobFinders.BLL.Services
             _htmlLoader = htmlLoader;
         }
 
-        public async Task<IEnumerable<Job?>> ProcessAsync(JobFinderSetting? setting, JobsQuery? query, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Job>> ProcessAsync(JobFinderSetting? setting, JobsQuery? query, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

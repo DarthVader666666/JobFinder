@@ -80,6 +80,7 @@ const store = createStore({
     abortController: null,
     firstPage: 0,
     rows: 20,
+    hasMoreJobs: false,
   },
   getters: {
     getPending(state) {
@@ -141,6 +142,7 @@ const store = createStore({
               : state.range[1] * getters.getRangeMultiplier,
           currency: state.selectedCurrency,
         },
+        moreJobs: false,
       };
     },
     getSelectedCurrency(state) {
@@ -185,6 +187,9 @@ const store = createStore({
     },
     getRows(state) {
       return state.rows;
+    },
+    getHasMoreJobs(state) {
+      return state.hasMoreJobs;
     },
   },
   mutations: {
@@ -271,6 +276,9 @@ const store = createStore({
     setRows(state, value) {
       state.rows = value;
     },
+    setHasMoreJobs(state, value) {
+      state.hasMoreJobs = value;
+    },
   },
   actions: {
     async getFetch({ commit }, { url, usePending, func }) {
@@ -297,7 +305,7 @@ const store = createStore({
           }
         });
     },
-    async downloadJobs({ state, commit, dispatch, getters }) {
+    async downloadJobs({ state, commit, dispatch, getters }, payload) {
       if (state.abortController) {
         state.abortController.abort();
       }
@@ -306,20 +314,30 @@ const store = createStore({
       commit("setAbortController", abortController);
       commit("setPending", true);
 
+      var jobsRequest = getters.getJobsRequest;
+      jobsRequest.moreJobs = payload.moreJobs;
+
       return await axios
-        .post(`${state.serverUrl}/jobs/getjobs`, getters.getJobsRequest, {
+        .post(`${state.serverUrl}/jobs/getjobs`, jobsRequest, {
           signal: abortController.signal,
           headers: { "Content-Type": "application/json" },
         })
         .then((response) => {
           if (response.status === 200) {
-            commit("setFilteredJobs", response.data);
-            commit("setBufferedJobs", response.data);
+            commit("setFilteredJobs", response.data.jobGroups);
+            commit("setBufferedJobs", response.data.jobGroups);
+            commit("setHasMoreJobs", response.data.hasMoreJobs);
             helper.convertSalaries(state.selectedCurrency);
             helper.checkSavedJobs();
             dispatch("updateFilteredJobs");
             store.dispatch("showSavedJobs", false);
-            return { status: response.status };
+
+            store.dispatch("showSuccess", {
+              toast: payload.toast,
+              summary: "OK",
+              detail: `Найдено совпадений: ${response.data.jobGroups.length}`,
+            });
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }
         })
         .catch((error) => {
@@ -327,14 +345,22 @@ const store = createStore({
             commit("setFilteredJobs", [
               error.response.data.errorText ?? error.response.data,
             ]);
-            return {
-              status: error.response.status,
-              error: error.response.data.errorText ?? error.response.data,
-            };
-          }
 
-          if (axios.isCancel(error)) {
-            return { status: 499 };
+            if (error.response.status === 500) {
+              store.dispatch("showError", {
+                toast: payload.toast,
+                summary: "Ошибка сервера",
+                detail: `${error.response.error}`,
+              });
+            }
+
+            if (axios.isCancel(error) || error.response.status === 499) {
+              store.dispatch("showInfo", {
+                toast: payload.toast,
+                summary: "Поиск прерван",
+                detail: "Отменено пользователем",
+              });
+            }
           }
         })
         .finally(() => {
@@ -342,6 +368,7 @@ const store = createStore({
           commit("setPending", false);
         });
     },
+
     showSuccess(_, { toast, summary, detail }) {
       toast.add({
         severity: "success",

@@ -19,11 +19,13 @@ namespace JobFinders.Server.Controllers
         private readonly IJobFinderManager _jobFinderManager;
         private readonly IMemoryCache _cache;
         private readonly IMapper _automapper;
+        private readonly IPageObserver _pageObserver;
         private readonly List<JobFinderSetting> _jobFinderSettings;
 
-        public JobsController(IJobFinderManager jobFinderManager, IMemoryCache cache, IMapper automapper, IOptions<List<JobFinderSetting>> jobFinderSettings)
+        public JobsController(IJobFinderManager jobFinderManager, IPageObserver pageObserver, IMemoryCache cache, IMapper automapper, IOptions<List<JobFinderSetting>> jobFinderSettings)
         {
             _jobFinderManager = jobFinderManager;
+            _pageObserver = pageObserver;
             _cache = cache;
             _automapper = automapper;
             _jobFinderSettings = jobFinderSettings.Value;
@@ -39,13 +41,24 @@ namespace JobFinders.Server.Controllers
 
             var key = $"{request.Speciality}{request.Location}{string.Join('_', request?.Sources ?? [])}".ToUpper();
 
-            if (_cache.TryGetValue(key, out Job?[][]? cachedJobs))
-            { 
-                return Ok(cachedJobs);
+            var responseList = new ConcurrentBag<Job>();
+
+            if (_cache.TryGetValue(key, out JobsResponse? cachedResponse))
+            {
+                if (request?.MoreJobs ?? false)
+                {
+                    foreach (var jobGroup in cachedResponse?.JobGroups ?? [])
+                    {
+                        Array.ForEach(jobGroup, responseList.Add);
+                    }
+                }
+                else
+                { 
+                    return Ok(cachedResponse);
+                }
             }
 
             var parallelOptions = new ParallelOptions { CancellationToken = cancellationToken };
-            var responseList = new ConcurrentBag<Job?>();
 
             await Parallel.ForEachAsync(request?.Sources ?? [], parallelOptions, async (source, ct) =>
             {
@@ -60,29 +73,35 @@ namespace JobFinders.Server.Controllers
                 }
             });
 
-            var groupedResponse = responseList
-                .GroupBy(job => new Job
-                {
-                    Title = job?.Title,
-                    OriginalSalary = new Salary
+            var response = new JobsResponse
+            {
+                JobGroups = responseList
+                    .DistinctBy(job => job.Link)
+                    .GroupBy(job => new Job
                     {
-                        Currency = job?.OriginalSalary?.Currency,
-                        Min = job?.OriginalSalary?.Min,
-                        Max = job?.OriginalSalary?.Max,
-                    },
-                    Company = job?.Company
-                }, new JobComparer())
-                .Select(group => group.OrderBy(job => job?.Source).ToArray())
-                .ToArray();
+                        Title = job?.Title,
+                        OriginalSalary = new Salary
+                        {
+                            Currency = job?.OriginalSalary?.Currency,
+                            Min = job?.OriginalSalary?.Min,
+                            Max = job?.OriginalSalary?.Max,
+                        },
+                        Company = job?.Company
+                    }, new JobComparer())
+                    .Select(group => group.OrderBy(job => job?.Source).ToArray())
+                    .ToArray(),
+
+                HasMoreJobs = _pageObserver.HasMoreJobs
+            };                
 
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(30))
                 .SetAbsoluteExpiration(TimeSpan.FromHours(1))
                 .SetPriority(CacheItemPriority.Normal);
 
-            _cache.Set(key, groupedResponse, cacheOptions);
+            _cache.Set(key, response, cacheOptions);
 
-            return Ok(groupedResponse);
+            return Ok(response);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using JobFinders.BLL.Interfaces;
+﻿using System.Collections.Concurrent;
+
+using JobFinders.BLL.Interfaces;
 using JobFinders.BLL.Models;
 
 namespace JobFinders.BLL.Services
@@ -24,8 +26,8 @@ namespace JobFinders.BLL.Services
                 counter = new PageCounter(query.Source);
                 Speciality = query.Speciality;
                 Location = query.Location;
-                Counters?.Add(query.Source, counter);
-            }    
+                _ = Counters?.TryAdd(query.Source, counter);
+            }
 
             return Counters!.GetValueOrDefault(query.Source);
         }
@@ -34,15 +36,17 @@ namespace JobFinders.BLL.Services
         {
             if (Counters.TryGetValue(query.Source ?? "", out PageCounter? counter))
             {
-                if (query.HasNextPage)
+                counter.HasNextPage = query.HasNextPage;
+
+                if (counter.HasNextPage ?? false)
                 {
                     counter.CurrentPage++;
                 }
 
-                if (!query.HasNextPage && !counter.HasNextPage)
-                {
-                    Counters?.Remove(query?.Source);
-                }
+                //if (!query.HasNextPage && !counter.HasNextPage)
+                //{
+                //    _ = Counters?.TryRemove(query?.Source ?? "", out _);
+                //}                
             }
             else
             {
@@ -51,7 +55,7 @@ namespace JobFinders.BLL.Services
                     HasNextPage = query.HasNextPage
                 };
 
-                Counters?.Add(query.Source, newCounter);
+                _ = Counters?.TryAdd(query.Source, newCounter);
             }
         }
 
@@ -60,10 +64,11 @@ namespace JobFinders.BLL.Services
             var counter = Counters[source];
 
             counter?.CurrentPage = 0;
-            counter?.HasNextPage = false;
+            counter?.HasNextPage = null;
         }
 
-        private Dictionary<string, PageCounter> Counters { get; set; } = new();
+        public bool HasMoreJobs => Counters.Any(c => c.Value.HasNextPage ?? false);
+        private ConcurrentDictionary<string, PageCounter> Counters { get; set; } = new();
         private string? Speciality { get; set; }
         private string? Location { get; set; }
     }

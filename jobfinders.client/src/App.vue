@@ -55,6 +55,8 @@ const jobs = computed(() =>
     : store.getters.getFilteredJobs,
 );
 
+const hasMoreJobs = computed(() => store.getters.getHasMoreJobs);
+
 watch(savedJobs.value, (newValue) => {
   if (!newValue.length) {
     store.dispatch("showSavedJobs", false);
@@ -110,6 +112,14 @@ function showSavedJobsHandler() {
     resetFirstPage();
   }
 }
+
+async function downloadMoreJobs() {
+  await store.dispatch("downloadJobs", {
+    toast: toast,
+    moreJobs: hasMoreJobs.value,
+  });
+  resetFirstPage();
+}
 </script>
 
 <template>
@@ -153,7 +163,10 @@ function showSavedJobsHandler() {
   </div>
   <div class="main">
     <div class="settings" :class="{ mobileVisible: isJobsEmpty }">
-      <SearchBar @resetFirstPage="resetFirstPage"></SearchBar>
+      <SearchBar
+        @resetFirstPage="resetFirstPage"
+        @downloadMoreJobs="downloadMoreJobs"
+      ></SearchBar>
       <div class="sources-and-filter">
         <SourcesComponent
           :disableSources="savedJobsShown"
@@ -176,6 +189,9 @@ function showSavedJobsHandler() {
     ></JobList>
   </div>
   <div class="settings-buttons" :class="{ mobileVisible: isJobsEmpty }">
+    <Button v-if="hasMoreJobs" rounded severity="info" @click="downloadMoreJobs"
+      >Ещё</Button
+    >
     <Button rounded @click="helper.scrollUp()"
       ><i class="pi pi-arrow-up"></i
     ></Button>

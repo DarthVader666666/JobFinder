@@ -4,6 +4,6 @@ namespace JobFinders.BLL.Interfaces
 {
     public interface ITransliterator
     {
-        public string Transliterate(string? location, JobFinderSetting? setting);
+        public string Transliterate(string? word, JobFinderSetting? setting);
     }
 }

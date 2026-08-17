@@ -6,5 +6,6 @@ namespace JobFinders.BLL.Interfaces
     {
         Task UpdateCounterAsync(PageCounterQuery query);
         PageCounter? InitializeCounter(PageCounterQuery query);
+        bool HasMoreJobs { get; }
     }
 }

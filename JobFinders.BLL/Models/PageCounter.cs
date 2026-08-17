@@ -4,6 +4,6 @@
     {
         public string? Source { get; set; } = source;
         public int CurrentPage { get; set; } = 0;
-        public bool HasNextPage { get; set; } = false;
+        public bool? HasNextPage { get; set; }
     }
 }

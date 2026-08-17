@@ -9,15 +9,15 @@ import { searchbarHelper } from '@/searchbarHelper';
 const toast = useToast();
 const store = useStore()
 
-const emit = defineEmits(['resetFirstPage'])
-
-const jobs = computed(() => store.getters.getFilteredJobs)
+const emit = defineEmits(['downloadMoreJobs'])
 
 const filteredSpecialities = ref([]);
 const filteredLocations = ref([]);
 
 const speciality = computed({ get: () => store.getters.getSpeciality, set: (value) => store.commit('setSpeciality', value) })
 const location = computed({ get: () => store.getters.getLocation, set: (value) => store.commit('setLocation', value) })
+
+const hasMoreJobs = computed(() => store.getters.getHasMoreJobs);
 
 async function findJobs() {
   if(!(speciality.value && store.state.finders.some(x => x.active))) {
@@ -28,18 +28,8 @@ async function findJobs() {
   location.value = location.value.trim()
 
   store.commit('setShowSearchBarModal', false)
-
-  const response = await store.dispatch("downloadJobs");
-  emit('resetFirstPage')
-
-  if (response.status === 500) {
-    store.dispatch('showError', { toast: toast, summary: 'Ошибка сервера', detail: `${response.error}` });
-  } else if (response.status === 200){
-    store.dispatch('showSuccess', { toast: toast, summary: "OK", detail: `Найдено совпадений: ${jobs.value.length}` });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } else if (response.status === 499) {
-    store.dispatch('showInfo', { toast: toast, summary: "Поиск прерван", detail: 'Отменено пользователем' });
-  }
+  store.commit('setHasMoreJobs', false)
+  await store.dispatch("downloadJobs", { toast: toast, moreJobs: false });
 }
 
 function searchSpeciality(event) {
@@ -78,7 +68,8 @@ function searchLocation(event) {
       >
       </AutoComplete>
 
-      <div style="text-align: end;">
+      <div style="display: flex; gap: 10px; justify-content: end;">
+        <Button v-if="hasMoreJobs" class="find-btn" @click="emit('downloadMoreJobs')" severity="info" rounded>Загрузить ещё</button>
         <Button class="find-btn" type="submit">Найти</button>
       </div>
     </form>

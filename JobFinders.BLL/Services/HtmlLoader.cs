@@ -30,8 +30,13 @@ namespace JobFinders.BLL.Services
 
             var pageCounterQuery = new PageCounterQuery(setting?.Source, query?.Speciality, query?.Location);
             var counter = _pageObserver?.InitializeCounter(pageCounterQuery);
-            //var currentPage = setting?.ZeroBasedPagination ?? false ? counter?.CurrentPage : counter?.CurrentPage + 1;
-            var currentPage = setting?.ZeroBasedPagination ?? false ? 0 : 1;
+
+            if (counter?.HasNextPage is not null && !(bool)counter.HasNextPage)
+            {
+                return [];
+            }
+
+            var currentPage = setting?.ZeroBasedPagination ?? false ? counter?.CurrentPage : counter?.CurrentPage + 1;
 
             query?.Location = _transliterator.Transliterate(query?.Location, setting);
 
@@ -81,6 +86,8 @@ namespace JobFinders.BLL.Services
         {
             if (!(navigationNodes ?? []).Any())
             {
+                query?.HasNextPage = false;
+                _ = _pageObserver.UpdateCounterAsync(query);
                 return;
             }
 
@@ -88,7 +95,6 @@ namespace JobFinders.BLL.Services
             var hasNextPage = anchors.Any(node => int.TryParse(node.InnerText, out int pageNumber) && pageNumber > query?.CurrentPage);
 
             query?.HasNextPage = hasNextPage;
-
             _ = _pageObserver.UpdateCounterAsync(query);
         }
 

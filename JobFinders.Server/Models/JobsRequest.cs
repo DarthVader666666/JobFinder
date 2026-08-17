@@ -11,5 +11,6 @@ namespace JobFinders.Server.Models
         public string? Speciality { get; set; }
         public string? Location { get; set; }
         public Salary? Salary { get; set; }
+        public bool MoreJobs { get; set; } = false;
     }
 }
