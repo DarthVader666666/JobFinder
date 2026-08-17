@@ -42,11 +42,6 @@ namespace JobFinders.BLL.Services
                 {
                     counter.CurrentPage++;
                 }
-
-                //if (!query.HasNextPage && !counter.HasNextPage)
-                //{
-                //    _ = Counters?.TryRemove(query?.Source ?? "", out _);
-                //}                
             }
             else
             {
@@ -57,6 +52,13 @@ namespace JobFinders.BLL.Services
 
                 _ = Counters?.TryAdd(query.Source, newCounter);
             }
+        }
+
+        public void Reset()
+        {
+            Counters = new();
+            Speciality = null;
+            Location = null;
         }
 
         private void ResetCounter(string source) 

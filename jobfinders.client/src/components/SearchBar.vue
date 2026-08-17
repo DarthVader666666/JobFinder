@@ -33,17 +33,21 @@ async function findJobs() {
 }
 
 function searchSpeciality(event) {
-    const query = event.query.toLowerCase();
-    filteredSpecialities.value = query
-      ? searchbarHelper.specialities.filter((item) => item.toLowerCase().startsWith(query))
-      : [...searchbarHelper.specialities];
+  store.commit('setHasMoreJobs', false)
+
+  const query = event.query.toLowerCase();
+  filteredSpecialities.value = query
+    ? searchbarHelper.specialities.filter((item) => item.toLowerCase().startsWith(query))
+    : [...searchbarHelper.specialities];
 };
 
 function searchLocation(event) {
-    const query = event.query.toLowerCase();
-    filteredLocations.value = query
-      ? searchbarHelper.locations.filter((item) => item.toLowerCase().startsWith(query))
-      : [...searchbarHelper.locations];
+  store.commit('setHasMoreJobs', false)
+
+  const query = event.query.toLowerCase();
+  filteredLocations.value = query
+    ? searchbarHelper.locations.filter((item) => item.toLowerCase().startsWith(query))
+    : [...searchbarHelper.locations];
 };
 
 </script>

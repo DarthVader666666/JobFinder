@@ -34,6 +34,11 @@ namespace JobFinders.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> GetJobs([FromBody] JobsRequest? request, CancellationToken cancellationToken)
         {
+            if (!request?.MoreJobs ?? false)
+            {
+                _pageObserver.Reset();
+            }
+
             if (request is null || !ModelState.IsValid)
             {
                 return BadRequest();
@@ -53,7 +58,7 @@ namespace JobFinders.Server.Controllers
                     }
                 }
                 else
-                { 
+                {
                     return Ok(cachedResponse);
                 }
             }
@@ -76,7 +81,7 @@ namespace JobFinders.Server.Controllers
             var response = new JobsResponse
             {
                 JobGroups = responseList
-                    .DistinctBy(job => job.Link)
+                    .DistinctBy(job => job.Link?.ToUpper())
                     .GroupBy(job => new Job
                     {
                         Title = job?.Title,

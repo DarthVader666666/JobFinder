@@ -22,6 +22,7 @@ function checkFinder(finder, checked) {
   store.commit("checkFinder", { source: finder.source, active: checked });
   store.dispatch("updateFilteredJobs");
   emit("resetFirstPage");
+  store.commit("setHasMoreJobs", false);
   helper.scrollUp();
 }
 
@@ -29,6 +30,7 @@ function toggleAllSources(value) {
   store.commit("setAllFindersChecked", value);
   store.dispatch("updateFilteredJobs");
   emit("resetFirstPage");
+  store.commit("setHasMoreJobs", false);
   helper.scrollUp();
 }
 </script>
