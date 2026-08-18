@@ -34,14 +34,14 @@ namespace JobFinders.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> GetJobs([FromBody] JobsRequest? request, CancellationToken cancellationToken)
         {
-            if (!request?.MoreJobs ?? false)
-            {
-                _pageObserver.Reset();
-            }
-
             if (request is null || !ModelState.IsValid)
             {
                 return BadRequest();
+            }
+
+            if(!request.MoreJobs)
+            {
+                _pageObserver.Reset();
             }
 
             var key = $"{request.Speciality}{request.Location}{string.Join('_', request?.Sources ?? [])}".ToUpper();
@@ -50,14 +50,20 @@ namespace JobFinders.Server.Controllers
 
             if (_cache.TryGetValue(key, out JobsResponse? cachedResponse))
             {
-                if (request?.MoreJobs ?? false)
+                if (cachedResponse?.HasMoreJobs ?? false)
                 {
+                    if (_pageObserver.Counters.IsEmpty)
+                    {
+                        _pageObserver.Set(cachedResponse?.PageObserver, request?.Speciality, request?.Location);
+                    }
+
                     foreach (var jobGroup in cachedResponse?.JobGroups ?? [])
                     {
                         Array.ForEach(jobGroup, responseList.Add);
                     }
                 }
-                else
+
+                if (!request?.MoreJobs ?? false)
                 {
                     return Ok(cachedResponse);
                 }
@@ -97,12 +103,14 @@ namespace JobFinders.Server.Controllers
                     .ToArray(),
 
                 HasMoreJobs = _pageObserver.HasMoreJobs
-            };                
+            };
 
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(30))
                 .SetAbsoluteExpiration(TimeSpan.FromHours(1))
                 .SetPriority(CacheItemPriority.Normal);
+
+            response?.PageObserver?.Counters = new(_pageObserver.Counters);
 
             _cache.Set(key, response, cacheOptions);
 

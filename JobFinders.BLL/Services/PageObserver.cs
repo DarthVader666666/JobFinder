@@ -16,7 +16,7 @@ namespace JobFinders.BLL.Services
 
             if (Counters.TryGetValue(query.Source, out PageCounter? counter))
             {
-                if (query.Speciality != Speciality || query.Location != Location)
+                if (query.Speciality?.ToUpper() != Speciality || query.Location?.ToUpper() != Location)
                 {
                     ResetCounter(query.Source);
                 }
@@ -24,8 +24,8 @@ namespace JobFinders.BLL.Services
             else
             {
                 counter = new PageCounter(query.Source);
-                Speciality = query.Speciality;
-                Location = query.Location;
+                Speciality = query.Speciality?.ToUpper();
+                Location = query.Location?.ToUpper();
                 _ = Counters?.TryAdd(query.Source, counter);
             }
 
@@ -34,7 +34,12 @@ namespace JobFinders.BLL.Services
 
         public async Task UpdateCounterAsync(PageCounterQuery query)
         {
-            if (Counters.TryGetValue(query.Source ?? "", out PageCounter? counter))
+            if (string.IsNullOrEmpty(query.Source))
+            {
+                return;
+            }
+
+            if (Counters.TryGetValue(query.Source, out PageCounter? counter))
             {
                 counter.HasNextPage = query.HasNextPage;
 
@@ -61,6 +66,13 @@ namespace JobFinders.BLL.Services
             Location = null;
         }
 
+        public void Set(IPageObserver? pageObserver, string? speciality, string? location)
+        {
+            Counters = new(pageObserver?.Counters ?? []);
+            Speciality = speciality?.ToUpper();
+            Location = location?.ToUpper();
+        }
+
         private void ResetCounter(string source) 
         {
             var counter = Counters[source];
@@ -70,7 +82,7 @@ namespace JobFinders.BLL.Services
         }
 
         public bool HasMoreJobs => Counters.Any(c => c.Value.HasNextPage ?? false);
-        private ConcurrentDictionary<string, PageCounter> Counters { get; set; } = new();
+        public ConcurrentDictionary<string, PageCounter> Counters { get; set; } = new();
         private string? Speciality { get; set; }
         private string? Location { get; set; }
     }
