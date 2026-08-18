@@ -2,6 +2,7 @@
 {
     public class Job
     {
+        public int Index { get; set; }
         public string? Source { get; set; }
         public string? Link { get; set; }
         public string? Title { get; set; }

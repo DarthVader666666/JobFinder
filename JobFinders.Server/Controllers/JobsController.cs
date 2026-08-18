@@ -80,6 +80,8 @@ namespace JobFinders.Server.Controllers
 
                 foreach (var job in jobs)
                 {
+                    var maxIndex = responseList.IsEmpty ? 0 : responseList.Max(job => job.Index);
+                    job.Index = maxIndex + 1;
                     responseList.Add(job);
                 }
             });
@@ -88,6 +90,7 @@ namespace JobFinders.Server.Controllers
             {
                 JobGroups = responseList
                     .DistinctBy(job => job.Link?.ToUpper())
+                    .OrderBy(job => (job.Index, job.TimePosted), new TimePostedComparer())
                     .GroupBy(job => new Job
                     {
                         Title = job?.Title,
@@ -98,7 +101,7 @@ namespace JobFinders.Server.Controllers
                             Max = job?.OriginalSalary?.Max,
                         },
                         Company = job?.Company
-                    }, new JobComparer())
+                    }, new JobEqualityComparer())
                     .Select(group => group.OrderBy(job => job?.Source).ToArray())
                     .ToArray(),
 

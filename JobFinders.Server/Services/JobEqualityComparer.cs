@@ -5,7 +5,7 @@ using NickBuhro.Translit;
 
 namespace JobFinders.Server.Services
 {
-    public class JobComparer : IEqualityComparer<Job?>
+    public class JobEqualityComparer : IEqualityComparer<Job?>
     {
         private static readonly StringComparer _stringComparer = StringComparer.OrdinalIgnoreCase;
 
