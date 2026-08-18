@@ -382,7 +382,7 @@ const store = createStore({
         severity: "error",
         summary: summary,
         detail: detail,
-        life: 2000,
+        life: 5000,
       });
     },
     showInfo(_, { toast, summary, detail }) {

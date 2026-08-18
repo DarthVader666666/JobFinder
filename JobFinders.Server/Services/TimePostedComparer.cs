@@ -59,20 +59,19 @@ namespace JobFinders.Server.Services
                 }
                 else
                 {
-                    return 5;
+                    return 4;
                 }
             }
 
             var result = time switch
             {
-                var t when string.IsNullOrEmpty(t) => 5,
-                var t when Contains(hours) => 1,
-                var t when Contains(today) => 2,
-                var t when Contains(yesterday) => 3,
-                var t when Contains(days) => 4,
-                var t when Contains(weeks) => 5,
-                var t when Contains(months) => 6,
-                var t when Contains(years) => 7,
+                var t when string.IsNullOrEmpty(t) => 4,
+                var t when Contains(hours) || Contains(today) => 1,
+                var t when Contains(yesterday) => 2,
+                var t when Contains(days) => 3,
+                var t when Contains(weeks) => 4,
+                var t when Contains(months) => 5,
+                var t when Contains(years) => 6,
                 _ => CompareDate(),
             };
 
