@@ -9,7 +9,7 @@ import { searchbarHelper } from '@/searchbarHelper';
 const toast = useToast();
 const store = useStore()
 
-const emit = defineEmits(['downloadMoreJobs'])
+const emit = defineEmits(['downloadMoreJobs', 'resetFirstPage'])
 
 const filteredSpecialities = ref([]);
 const filteredLocations = ref([]);
@@ -30,6 +30,7 @@ async function findJobs() {
   store.commit('setShowSearchBarModal', false)
   store.commit('setHasMoreJobs', false)
   await store.dispatch("downloadJobs", { toast: toast, moreJobs: false });
+  emit('resetFirstPage')
 }
 
 function searchSpeciality(event) {
