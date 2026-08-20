@@ -317,56 +317,59 @@ const store = createStore({
       var jobsRequest = getters.getJobsRequest;
       jobsRequest.moreJobs = payload.moreJobs;
 
-      return await axios
-        .post(`${state.serverUrl}/jobs/getjobs`, jobsRequest, {
-          signal: abortController.signal,
-          headers: { "Content-Type": "application/json" },
-        })
-        .then((response) => {
-          if (response.status === 200) {
-            commit("setFilteredJobs", response.data.jobGroups);
-            commit("setBufferedJobs", response.data.jobGroups);
-            commit("setHasMoreJobs", response.data.hasMoreJobs);
-            helper.convertSalaries(state.selectedCurrency);
-            helper.checkSavedJobs();
-            dispatch("updateFilteredJobs");
-            store.dispatch("showSavedJobs", false);
+      try {
+        const response = await axios.post(
+          `${state.serverUrl}/jobs/getjobs`,
+          jobsRequest,
+          {
+            signal: abortController.signal,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
 
-            store.dispatch("showSuccess", {
+        if (response.status === 200) {
+          commit("setFilteredJobs", response.data.jobGroups);
+          commit("setBufferedJobs", response.data.jobGroups);
+          commit("setHasMoreJobs", response.data.hasMoreJobs);
+          helper.convertSalaries(state.selectedCurrency);
+          helper.checkSavedJobs();
+          dispatch("updateFilteredJobs");
+          store.dispatch("showSavedJobs", false);
+
+          store.dispatch("showSuccess", {
+            toast: payload.toast,
+            summary: "OK",
+            detail: `Найдено совпадений: ${response.data.jobGroups.length}`,
+          });
+          helper.scrollUp();
+        }
+      } catch (error) {
+        if (axios.isCancel(error)) {
+          store.dispatch("showInfo", {
+            toast: payload.toast,
+            summary: "Поиск прерван",
+            detail: "Отменено пользователем",
+          });
+          return;
+        }
+
+        if (error.response) {
+          commit("setFilteredJobs", [
+            error.response.data.errorText ?? error.response.data,
+          ]);
+
+          if (error.response.status === 500) {
+            store.dispatch("showError", {
               toast: payload.toast,
-              summary: "OK",
-              detail: `Найдено совпадений: ${response.data.jobGroups.length}`,
+              summary: "Ошибка сервера",
+              detail: `${error.response.error}`,
             });
-            window.scrollTo({ top: 0, behavior: "smooth" });
           }
-        })
-        .catch((error) => {
-          if (error.response) {
-            commit("setFilteredJobs", [
-              error.response.data.errorText ?? error.response.data,
-            ]);
-
-            if (error.response.status === 500) {
-              store.dispatch("showError", {
-                toast: payload.toast,
-                summary: "Ошибка сервера",
-                detail: `${error.response.error}`,
-              });
-            }
-
-            if (axios.isCancel(error) || error.response.status === 499) {
-              store.dispatch("showInfo", {
-                toast: payload.toast,
-                summary: "Поиск прерван",
-                detail: "Отменено пользователем",
-              });
-            }
-          }
-        })
-        .finally(() => {
-          commit("setAbortController", null);
-          commit("setPending", false);
-        });
+        }
+      } finally {
+        commit("setAbortController", null);
+        commit("setPending", false);
+      }
     },
 
     showSuccess(_, { toast, summary, detail }) {

@@ -26,11 +26,12 @@
                 else
                 {
                     context.Response.StatusCode = 500;
-                    await context.Response.WriteAsJsonAsync(new
-                    {
-                        errorText = ex.Message
-                    });
-                }                
+                }
+
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    errorText = ex.Message
+                });
             }
         }
     }
