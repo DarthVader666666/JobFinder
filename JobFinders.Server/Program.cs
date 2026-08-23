@@ -1,10 +1,11 @@
 using JobFinders.BLL.Interfaces;
 using JobFinders.BLL.Models;
 using JobFinders.BLL.Services;
+using JobFinders.Data;
 using JobFinders.Server.Configuration;
-using JobFinders.Server.Middleware;
 
 using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,11 +27,24 @@ builder.Services.AddScoped<IJobParser, JobParser>();
 builder.Services.AddScoped<ITransliterator, Transliterator>();
 builder.Services.AddSingleton<IPageObserver, PageObserver>();
 
+var connectionString = builder.Configuration["JobFinderDB"];
+builder.Services.AddDbContext<JobFinderDbContext>(options => options.UseSqlite(connectionString));
+
 builder.Services.Configure<List<JobFinderSetting>>(builder.Configuration.GetSection("JobFinderSettings"));
 
 var app = builder.Build();
 
-app.UseMiddleware<ExceptionMiddleware>();
+Directory.CreateDirectory("../DB");
+
+using var scope = app.Services.CreateAsyncScope();
+var dbContext = scope.ServiceProvider.GetService<JobFinderDbContext>();
+
+if (dbContext is null)
+{
+    throw new InvalidOperationException(nameof(dbContext) + $" - DbContext is null.");
+}
+
+await dbContext.Database.MigrateAsync();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
