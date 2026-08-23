@@ -1,9 +1,12 @@
 ﻿using System.Globalization;
 
+using JobFinders.BLL.Models;
+
 namespace JobFinders.Server.Services
 {
-    public class TimePostedComparer : IComparer<(int index, string? time)>
+    public class TimePostedComparer : IComparer<Job>
     {
+        private readonly DateTime now = DateTime.UtcNow.AddHours(3);
         private readonly string[] years = ["год", "года", "лет"];
         private readonly string[] months = ["месяц", "месяцев", "месяца", "мес."];
         private readonly string[] weeks = ["недели", "неделю", "недель", "неделя", "нед."];
@@ -11,71 +14,72 @@ namespace JobFinders.Server.Services
         private readonly string[] hours = ["час", "часов", "часа"];
         private readonly string[] yesterday = ["вчера"];
         private readonly string[] today = ["сегодня"];
+        private readonly string[] exactDate = ["декабр", "январ", "феврал", "март", "апрел", "ма", "июн", "июл", "август", "сентябр", "октябр", "ноябр"];
 
-        public int Compare((int index, string? time) x, (int index, string? time) y)
+        public int Compare(Job? x, Job? y)
         {
-            var firstTimeValue = GetTimeValue(x.time);
-            var secondTimeValue = GetTimeValue(y.time);
-            var compareResult = firstTimeValue.CompareTo(secondTimeValue);
+            var firstTimeValue = string.IsNullOrEmpty(x?.TimePosted) ? x?.Index : GetTimeValue(x.TimePosted);
+            var secondTimeValue = string.IsNullOrEmpty(y?.TimePosted) ? y?.Index : GetTimeValue(y.TimePosted);
+            var compareResult = firstTimeValue?.CompareTo(secondTimeValue) ?? 0;
 
 
             if (compareResult == 0)
             {
-                var first = firstTimeValue + x.index;
-                var secnd = secondTimeValue + y.index;
+                var first = firstTimeValue + x.Index;
+                var second = secondTimeValue + y.Index;
 
-                return first.CompareTo(secnd);
+                return first?.CompareTo(second) ?? 0;
             }
 
             return compareResult;
         }
 
-        private int GetTimeValue(string? time)
+        private int GetTimeValue(string time)
         {
-            bool Contains(string[] array)
+            try
             {
-                return !string.IsNullOrEmpty(time) && array.Any(item => time.Contains(item, StringComparison.InvariantCultureIgnoreCase));
+                var result = time switch
+                {
+                    var t when Contains(t, hours) || Contains(t, today) => 0,
+                    var t when Contains(t, yesterday) => 1,
+                    var t when Contains(t, days) => GetDaysSpan(t, 1),
+                    var t when Contains(t, weeks) => GetDaysSpan(t, 7),
+                    var t when Contains(t, months) => GetDaysSpan(t, 30),
+                    var t when Contains(t, years) => GetDaysSpan(t, 365),
+                    var t when Contains(t, exactDate) => CompareDate(time),
+                    _ => 366
+                };
+
+                return result;
+            }
+            catch
+            {
+                return 366;
+            }
+        }
+
+        private static bool Contains(string? time, string[] array)
+        {
+            return !string.IsNullOrEmpty(time) && array.Any(item => time.Contains(item, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        private static int GetDaysSpan(string time, int multiplier)
+        {
+            var timeArray = time.Split(' ');
+
+            if (timeArray.Length > 1)
+            {
+                var result = timeArray.FirstOrDefault(t => int.TryParse(t, out _));
+                return result is null ? multiplier : int.Parse(result) * multiplier;
             }
 
-            int CompareDate()
-            {
-                if (DateTime.TryParse(time ?? "", new CultureInfo("ru-RU"), out DateTime datePosted))
-                {
-                    var today = DateTime.UtcNow.AddHours(3);
-                    var days = (today - datePosted).Days;
+            return multiplier;
+        }
 
-                    var result = days switch
-                    {
-                        0 => 2,
-                        1 => 3,
-                        > 1 and < 7 => 4,
-                        >= 7 and <= 30 => 5,
-                        > 30 and < 365 => 6,
-                        >= 365 => 7,
-                        _ => 8
-                    };
-
-                    return result;
-                }
-                else
-                {
-                    return 4;
-                }
-            }
-
-            var result = time switch
-            {
-                var t when string.IsNullOrEmpty(t) => 4,
-                var t when Contains(hours) || Contains(today) => 1,
-                var t when Contains(yesterday) => 2,
-                var t when Contains(days) => 3,
-                var t when Contains(weeks) => 4,
-                var t when Contains(months) => 5,
-                var t when Contains(years) => 6,
-                _ => CompareDate(),
-            };
-
-            return result;
+        private int CompareDate(string time)
+        {
+            var daysSpan = (now - DateTime.Parse(time ?? "", new CultureInfo("ru-RU"))).Days;
+            return daysSpan;
         }
     }
 }
