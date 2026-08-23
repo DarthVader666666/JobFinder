@@ -90,7 +90,7 @@ namespace JobFinders.Server.Controllers
             {
                 JobGroups = responseList
                     .DistinctBy(job => job.Link?.ToUpper())
-                    .OrderBy(job => (job.Index, job.TimePosted), new TimePostedComparer())
+                    .OrderBy(job => job, new TimePostedComparer())
                     .GroupBy(job => new Job
                     {
                         Title = job?.Title,
