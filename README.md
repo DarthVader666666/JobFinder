@@ -22,13 +22,14 @@ flowchart LR
   end
 
   subgraph Domain[JobFinders.Domain]
+    direction LR
     Entities[Entities]
     Interfaces[Interfaces]
     Models[Models]
   end
 
-  DAL --> Domain
-  Application --> Domian
+  Domain --> DAL
+  Domain --> Application
 
   DAL <-.-> DB[(SQL DB)]
 ```
