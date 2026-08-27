@@ -16,7 +16,8 @@ flowchart LR
   end
 
   subgraph DAL[JobFinders.DAL]
-    IRepository[IRepository]
+    Repository[Repository]
+    UOW[UnitOfWork]
   end
 
   DAL --> Application
