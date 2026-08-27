@@ -4,8 +4,6 @@ flowchart LR
     Controllers(Controllers)
   end
 
-  Client[Web Client / VueJS] <--> API
-
   subgraph Application[JobFinders.Application]
     direction LR
     AzureEmailSender(AzureEmailSender)
@@ -30,6 +28,9 @@ flowchart LR
 
   Domain --> DAL
   Domain --> Application
-
+  Client[Web Client / VueJS] <--> API
+  API <-- Application
+  API <-- DAL
+  API <-- Domain
   DAL <-.-> DB[(SQL DB)]
 ```
