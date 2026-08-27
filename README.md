@@ -29,6 +29,7 @@ flowchart LR
   Domain --> DAL
   Domain --> Application
   Client[Web Client / VueJS] <--> API
+
   API <-- Application
   API <-- DAL
   API <-- Domain
