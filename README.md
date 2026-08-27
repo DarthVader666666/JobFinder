@@ -21,8 +21,14 @@ flowchart LR
     UOW[UnitOfWork]
   end
 
-  DAL --> Application
-  Application --> API
+  subgraph Domain[JobFinders.Domain]
+    Entities[Entities]
+    Interfaces[Interfaces]
+    Models[Models]
+  end
+
+  DAL --> Domain
+  Application --> Domian
 
   DAL <-.-> DB[(SQL DB)]
 ```
