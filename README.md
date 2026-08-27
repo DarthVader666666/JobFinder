@@ -1,27 +1,26 @@
 ```mermaid
 flowchart LR
-  subgraph Server[JobFinders.Server]
+  subgraph API[JobFinders.Api]
     Controllers(Controllers)
   end
 
-  Client[Web Client / VueJS] <--> Server
+  Client[Web Client / VueJS] <--> API
 
-  subgraph BLL[JobFinders.BLL]
+  subgraph Application[JobFinders.Application]
     direction LR
     AzureEmailSender(AzureEmailSender)
     HtmlLoader(HtmlLoader)
-    JobFinderManager(JobFinderManager)
-    JobParser(JobParser)
+    JobFinderManager(JobFinderManager)    
     PageObserver(PageObserver)
     Transliterator(Transliterator)
   end
 
-  subgraph DATA[JobFinders.Data]
+  subgraph DAL[JobFinders.DAL]
     IRepository[IRepository]
   end
 
-  DATA --> BLL
-  BLL --> Server
+  DAL --> Application
+  Application --> API
 
-  DATA <-.-> DB[(SQL DB)]
+  DAL <-.-> DB[(SQL DB)]
 ```
