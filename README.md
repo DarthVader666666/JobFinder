@@ -16,6 +16,7 @@ flowchart LR
   end
 
   subgraph DAL[JobFinders.DAL]
+    direction LR
     Repository[Repository]
     UOW[UnitOfWork]
   end
