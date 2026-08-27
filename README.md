@@ -30,8 +30,8 @@ flowchart LR
   Domain --> Application
   Client[Web Client / VueJS] <--> API
 
-  API <-- Application
-  API <-- DAL
-  API <-- Domain
+  Application --> API
+  DAL --> API
+  Domain --> API 
   DAL <-.-> DB[(SQL DB)]
 ```
