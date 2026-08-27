@@ -21,7 +21,7 @@ flowchart LR
     UOW[UnitOfWork]
   end
 
-  DAL --> Application
+  DAL <-- Application
   Application --> API
 
   DAL <-.-> DB[(SQL DB)]
