@@ -10,6 +10,7 @@ const store = createStore({
     sending: false,
     showSearchBarModal: false,
     showSettingsModal: false,
+    showLogInModal: false,
     finders: [
       {
         img: "rabotaby_logo.png",
@@ -191,6 +192,9 @@ const store = createStore({
     getHasMoreJobs(state) {
       return state.hasMoreJobs;
     },
+    getShowLogInModal(state) {
+      return state.showLogInModal;
+    },
   },
   mutations: {
     setPending(state, value) {
@@ -278,6 +282,9 @@ const store = createStore({
     },
     setHasMoreJobs(state, value) {
       state.hasMoreJobs = value;
+    },
+    setShowLogInModal(state, value) {
+      state.showLogInModal = value;
     },
   },
   actions: {

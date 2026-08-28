@@ -20,6 +20,7 @@ import { helper } from "./helper.js";
 import { useToast } from "primevue/usetoast";
 import { versionChecker } from "./versionChecker.js";
 import JobList from "./components/JobList.vue";
+import MenuModal from "./components/Modals/MenuModal.vue";
 
 const toast = useToast();
 const store = useStore();
@@ -47,6 +48,11 @@ const showSearchBarModal = computed({
 const showSettingsModal = computed({
   get: () => store.getters.getShowSettingsModal,
   set: (value) => store.commit("setShowSettingsModal", value),
+});
+
+const showLogInModal = computed({
+  get: () => store.getters.getShowLogInModal,
+  set: (value) => store.commit("setShowLogInModal", value),
 });
 
 const jobs = computed(() =>
@@ -102,6 +108,10 @@ function handleShowFeedbackModal(value) {
   showFeedbackModal.value = value;
 }
 
+function showLogInModalHandler(value) {
+  showLogInModal.value = value;
+}
+
 function resetFirstPage() {
   firstPage.value = 0;
 }
@@ -150,6 +160,12 @@ async function downloadMoreJobs() {
         icon="pi pi-bookmark"
         :label="`${savedJobs.length || ''}`"
         @click="showSavedJobsHandler"
+      ></Button>
+      <Button
+        icon="pi pi-cog"
+        severity="secondary"
+        rounded
+        @click="showLogInModalHandler(true)"
       ></Button>
       <div class="rates">
         <span>USD: {{ usdRate }}</span>
@@ -216,6 +232,7 @@ async function downloadMoreJobs() {
     :toast="toast"
     @handleShowFeedbackModal="handleShowFeedbackModal"
   ></FeedbackModal>
+  <MenuModal v-model:visible="showLogInModal"></MenuModal>
   <PendingModal v-model:visible="isPending"></PendingModal>
 </template>
 
