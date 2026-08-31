@@ -2,9 +2,11 @@
 using System.Security.Claims;
 using System.Text;
 
+using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -13,9 +15,12 @@ namespace JobFinders.Application.Services
     public class JwtService : IJwtService
     {
         private readonly JwtSettings _jwtSettings;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public JwtService(IConfiguration configuration)
+        public JwtService(IConfiguration configuration, IUnitOfWork unitOfWork)
         {
+            _unitOfWork = unitOfWork;
+
             _jwtSettings = new JwtSettings
             {
                 Secret = configuration["JwtSecret"],
@@ -25,24 +30,25 @@ namespace JobFinders.Application.Services
             };
         }
 
-        public string GenerateToken(string? userName, string? email, IEnumerable<string> roles)
+        public string GenerateToken(User? user)
         {
+            ArgumentNullException.ThrowIfNull(user);
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret ?? throw new InvalidOperationException("JwtSecret not configured"));
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userName),
-                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat,
-                    new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString(),
-                    ClaimValueTypes.Integer64)
+                new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
+
+            var roles = _unitOfWork.Roles.GetAll().Include(r => r.UserRoles).Where(r => r!.UserRoles!.Select(ur => ur.UserId).Contains(user.UserId)).Select(r => r.RoleName);
 
             foreach (var role in roles)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim(ClaimTypes.Role, role!));
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor

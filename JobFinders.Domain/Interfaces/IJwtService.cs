@@ -1,7 +1,9 @@
-﻿namespace JobFinders.Domain.Interfaces
+﻿using JobFinders.Domain.Entities;
+
+namespace JobFinders.Domain.Interfaces
 {
     public interface IJwtService
     {
-        string GenerateToken(string? userName, string? email, IEnumerable<string> roles);
+        string GenerateToken(User user);
     }
 }

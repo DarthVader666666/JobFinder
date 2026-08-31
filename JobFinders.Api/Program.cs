@@ -16,6 +16,7 @@ using System.Text;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,19 +61,41 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.ContainsKey("access_token"))
+            {
+                context.Token = context.Request.Cookies["access_token"];
+            }
+
+            return Task.CompletedTask;
+        }
+    };
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{ 
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+    options.SlidingExpiration = true;
 });
 
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
-
 builder.Services.AddScoped<IJobFinderManager, JobFinderManager>();
 builder.Services.AddScoped<IEmailSender, AzureEmailSender>();
 builder.Services.AddScoped<IHtmlLoader, HtmlLoader>();
 builder.Services.AddScoped<ITransliterator, Transliterator>();
 builder.Services.AddSingleton<IPageObserver, PageObserver>();
+builder.Services.AddScoped<IUserManager, UserManager>();
 builder.Services.AddScoped<IRepository<User>, Repository<User>>();
 builder.Services.AddScoped<IRepository<Role>, Repository<Role>>();
+builder.Services.AddScoped<IRepository<ConfirmationCode>, Repository<ConfirmationCode>>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.Configure<List<JobFinderSetting>>(builder.Configuration.GetSection("JobFinderSettings"));

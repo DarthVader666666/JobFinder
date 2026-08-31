@@ -573,6 +573,17 @@ const store = createStore({
           commit("setSending", false);
         });
     },
+    async sendCode({ state }, email) {
+      axios.post(
+        `${state.serverUrl}/auth/sendCode`,
+        {},
+        {
+          headers: {
+            Email: email,
+          },
+        },
+      );
+    },
   },
 });
 

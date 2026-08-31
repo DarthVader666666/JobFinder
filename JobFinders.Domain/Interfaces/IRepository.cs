@@ -2,9 +2,10 @@
 {
     public interface IRepository<TEntity> where TEntity : class
     {
+        TEntity? Get(object value);
         IQueryable<TEntity> GetAll();
         Task<TEntity> CreateAsync(TEntity entity);
-        TEntity Update(TEntity entity);
-        TEntity Remove(TEntity entity);
+        Task<TEntity> UpdateAsync(TEntity entity);
+        Task<TEntity> RemoveAsync(TEntity entity);
     }
 }

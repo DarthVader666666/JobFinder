@@ -3,6 +3,7 @@ using System;
 using JobFinders.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JobFinders.DAL.Migrations
 {
     [DbContext(typeof(JobFinderDbContext))]
-    partial class JobFinderDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260831135056_Added ConfirmationCode")]
+    partial class AddedConfirmationCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
@@ -35,7 +38,7 @@ namespace JobFinders.DAL.Migrations
 
                     b.HasKey("CodeId");
 
-                    b.ToTable("ConfirmationCodes", (string)null);
+                    b.ToTable("ConfirmationCodes");
                 });
 
             modelBuilder.Entity("JobFinders.Domain.Entities.Role", b =>
@@ -51,7 +54,7 @@ namespace JobFinders.DAL.Migrations
 
                     b.HasKey("RoleId");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("JobFinders.Domain.Entities.User", b =>
@@ -77,7 +80,7 @@ namespace JobFinders.DAL.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("JobFinders.Domain.Entities.UserRole", b =>
@@ -92,7 +95,7 @@ namespace JobFinders.DAL.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRoles", (string)null);
+                    b.ToTable("UserRoles");
                 });
 
             modelBuilder.Entity("JobFinders.Domain.Entities.User", b =>
