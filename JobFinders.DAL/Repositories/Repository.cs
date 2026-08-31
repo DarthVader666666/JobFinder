@@ -25,7 +25,7 @@ namespace JobFinders.DAL.Repositories
         public async Task<TEntity> CreateAsync(TEntity entity)
         {
             ArgumentNullException.ThrowIfNull(entity);
-            var newEntity =  await dbContext.AddAsync(entity);
+            var newEntity = await dbContext.AddAsync(entity);
             
             return newEntity.Entity;
         }

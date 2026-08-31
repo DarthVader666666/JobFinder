@@ -3,6 +3,7 @@ using System;
 using JobFinders.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JobFinders.DAL.Migrations
 {
     [DbContext(typeof(JobFinderDbContext))]
-    partial class JobFinderDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260831191525_Initialize Role Values")]
+    partial class InitializeRoleValues
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
@@ -34,9 +37,6 @@ namespace JobFinders.DAL.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("CodeId");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
 
                     b.ToTable("ConfirmationCodes");
                 });
@@ -116,15 +116,15 @@ namespace JobFinders.DAL.Migrations
                     b.ToTable("UserRoles");
                 });
 
-            modelBuilder.Entity("JobFinders.Domain.Entities.ConfirmationCode", b =>
+            modelBuilder.Entity("JobFinders.Domain.Entities.User", b =>
                 {
-                    b.HasOne("JobFinders.Domain.Entities.User", "User")
-                        .WithOne("ConfirmationCode")
-                        .HasForeignKey("JobFinders.Domain.Entities.ConfirmationCode", "UserId")
+                    b.HasOne("JobFinders.Domain.Entities.ConfirmationCode", "ConfirmationCode")
+                        .WithOne("User")
+                        .HasForeignKey("JobFinders.Domain.Entities.User", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("ConfirmationCode");
                 });
 
             modelBuilder.Entity("JobFinders.Domain.Entities.UserRole", b =>
@@ -146,6 +146,11 @@ namespace JobFinders.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("JobFinders.Domain.Entities.ConfirmationCode", b =>
+                {
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("JobFinders.Domain.Entities.Role", b =>
                 {
                     b.Navigation("UserRoles");
@@ -153,8 +158,6 @@ namespace JobFinders.DAL.Migrations
 
             modelBuilder.Entity("JobFinders.Domain.Entities.User", b =>
                 {
-                    b.Navigation("ConfirmationCode");
-
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618

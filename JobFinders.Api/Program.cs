@@ -17,6 +17,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using JobFinders.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -133,6 +134,7 @@ catch (Exception ex)
     return;
 }
 
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 

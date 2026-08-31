@@ -65,8 +65,7 @@ namespace JobFinders.Application.Services
                 await _unitOfWork.Users.CreateAsync(user);
                 await _unitOfWork.SaveChangesAsync();
 
-                var newUser = GetUserByEmail(email) ?? throw new NullReferenceException(nameof(user));
-                confirmationCode = new ConfirmationCode { UserId = newUser!.UserId, DateGenerated = DateTime.UtcNow.AddHours(3), Code = code };
+                confirmationCode = new ConfirmationCode { UserId = user!.UserId, DateGenerated = DateTime.UtcNow.AddHours(3), Code = code };
                 await _unitOfWork.ConfirmationCodes.CreateAsync(confirmationCode);
             }
             

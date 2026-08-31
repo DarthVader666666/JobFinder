@@ -28,6 +28,11 @@ namespace JobFinders.DAL
             {
                 role.HasKey(u => u.RoleId);
                 role.Property(r => r.RoleName).IsRequired(true).HasMaxLength(maxLength);
+                role.HasData(
+                    new Role { RoleId = 1, RoleName = "User" },
+                    new Role { RoleId = 2, RoleName = "Admin" },
+                    new Role { RoleId = 3, RoleName = "Owner" }
+                    );
             });
 
             modelBuilder.Entity<UserRole>(userRole =>
@@ -47,7 +52,7 @@ namespace JobFinders.DAL
             {
                 code.HasKey(c => c.CodeId);
                 code.Property(c => c.CodeId).ValueGeneratedOnAdd();
-                code.HasOne(c => c.User).WithOne(u => u.ConfirmationCode).HasForeignKey<User>().OnDelete(DeleteBehavior.Cascade);
+                code.HasOne(c => c.User).WithOne(u => u.ConfirmationCode).HasForeignKey<ConfirmationCode>(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
                 code.Property(c => c.DateGenerated).IsRequired(true);
                 code.Property(c => c.Code).IsRequired(true);
             });
