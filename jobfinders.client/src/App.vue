@@ -20,7 +20,7 @@ import { helper } from "./helper.js";
 import { useToast } from "primevue/usetoast";
 import { versionChecker } from "./versionChecker.js";
 import JobList from "./components/JobList.vue";
-import MenuModal from "./components/Modals/MenuModal.vue";
+import LogInModal from "./components/Modals/LogInModal.vue";
 
 const toast = useToast();
 const store = useStore();
@@ -232,7 +232,10 @@ async function downloadMoreJobs() {
     :toast="toast"
     @handleShowFeedbackModal="handleShowFeedbackModal"
   ></FeedbackModal>
-  <MenuModal v-model:visible="showLogInModal"></MenuModal>
+  <LogInModal
+    v-model:visible="showLogInModal"
+    @showLogInModalHandler="showLogInModalHandler"
+  ></LogInModal>
   <PendingModal v-model:visible="isPending"></PendingModal>
 </template>
 
