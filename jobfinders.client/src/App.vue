@@ -234,6 +234,7 @@ async function downloadMoreJobs() {
   ></FeedbackModal>
   <LogInModal
     v-model:visible="showLogInModal"
+    :toast="toast"
     @showLogInModalHandler="showLogInModalHandler"
   ></LogInModal>
   <PendingModal v-model:visible="isPending"></PendingModal>

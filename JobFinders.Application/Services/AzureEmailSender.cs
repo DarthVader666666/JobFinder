@@ -34,9 +34,9 @@ namespace JobFinders.Application.Services
                     body
                 );
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw;
             }
 
             return operation?.Value.Status == EmailSendStatus.Succeeded;

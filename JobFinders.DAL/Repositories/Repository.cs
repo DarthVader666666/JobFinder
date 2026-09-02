@@ -5,7 +5,7 @@ namespace JobFinders.DAL.Repositories
 {
     public class Repository<TEntity>(JobFinderDbContext dbContext): IRepository<TEntity> where TEntity : class
     {
-        public TEntity? Get(object value)
+        public TEntity? GetBy(object value)
         {
             TEntity? entity = value switch            
             {

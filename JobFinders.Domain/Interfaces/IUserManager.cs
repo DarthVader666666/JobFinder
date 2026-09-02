@@ -4,13 +4,11 @@ namespace JobFinders.Domain.Interfaces
 {
     public interface IUserManager
     {
-        User? GetUserByEmail(string email);
-        User? GetUserById(int id);
-        User? GetUserByCode(string code);
-        Task<bool> LogIn(User? user);
-        Task<bool> Register(User user);
-        bool DoesUserExist(string? email);
-        Task<string> GenerateCodeAsync(string email);
-        bool CodeExpired(string code);
+        bool TryGetUserByEmail(string email, out User? user);
+        Task<bool> RegisterUser(string? email, string? password);
+        Task ConfirmUser(User? user);
+        Task<string> GenerateCodeAsync(User? user);
+        bool IsCodeExpired(User? user, out ConfirmationCode? code);
+        string? GetCode(User? user);
     }
 }

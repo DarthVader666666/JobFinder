@@ -18,6 +18,7 @@ namespace JobFinders.DAL
             {
                 user.HasKey(u => u.UserId);
                 user.Property(u => u.UserId).ValueGeneratedOnAdd();
+                user.Property(u => u.Confirmed).HasDefaultValue(false);
                 user.HasIndex(u => u.Email).IsUnique();
                 user.Property(u => u.Email).IsRequired(true).HasMaxLength(maxLength);
                 user.Property(u => u.Name).HasMaxLength(maxLength);
@@ -53,7 +54,7 @@ namespace JobFinders.DAL
                 code.HasKey(c => c.CodeId);
                 code.Property(c => c.CodeId).ValueGeneratedOnAdd();
                 code.HasOne(c => c.User).WithOne(u => u.ConfirmationCode).HasForeignKey<ConfirmationCode>(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
-                code.Property(c => c.DateGenerated).IsRequired(true);
+                code.Property(c => c.ExpirationTime).IsRequired(true);
                 code.Property(c => c.Code).IsRequired(true);
             });
         }

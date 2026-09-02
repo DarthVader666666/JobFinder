@@ -573,16 +573,96 @@ const store = createStore({
           commit("setSending", false);
         });
     },
-    async sendCode({ state }, email) {
-      axios.post(
-        `${state.serverUrl}/auth/sendCode`,
-        {},
-        {
-          headers: {
-            Email: email,
+    async sendCode({ state, dispatch }, { email, toast }) {
+      return axios
+        .post(
+          `${state.serverUrl}/auth/sendCode`,
+          {},
+          {
+            headers: {
+              Email: email,
+            },
           },
-        },
-      );
+        )
+        .then((response) => response)
+        .catch((error) => {
+          if (error.response) {
+            dispatch("showError", {
+              toast: toast,
+              summary: "Ошибка",
+              detail: "Не удалось отправить код подтверждения",
+            });
+          }
+
+          return error.response;
+        });
+    },
+    async signUp({ state, dispatch }, { email, password, toast }) {
+      return axios
+        .post(
+          `${state.serverUrl}/auth/signUp`,
+          {},
+          {
+            headers: {
+              Email: email,
+              Password: password,
+            },
+          },
+        )
+        .then((response) => response)
+        .catch((error) => {
+          if (error.response) {
+            dispatch("showError", {
+              toast: toast,
+              summary: "Ошибка",
+              detail: `${error.response.data.errorText}`,
+            });
+          }
+
+          return error.response;
+        });
+    },
+    async signInWithCode({ state }, { email, code }) {
+      return axios
+        .post(
+          `${state.serverUrl}/auth/signInWithCode`,
+          {},
+          {
+            headers: {
+              Email: email,
+              Code: code,
+            },
+            withCredentials: true,
+          },
+        )
+        .then((response) => response)
+        .catch((error) => error.response);
+    },
+    async signInWithPassword({ state, dispatch }, { email, password, toast }) {
+      return axios
+        .post(
+          `${state.serverUrl}/auth/signInWithPassword`,
+          {},
+          {
+            headers: {
+              Email: email,
+              Password: password,
+            },
+            withCredentials: true,
+          },
+        )
+        .then((response) => response)
+        .catch((error) => {
+          if (error.response) {
+            dispatch("showError", {
+              toast: toast,
+              summary: "Ошибка",
+              detail: `${error.response.data.errorText}`,
+            });
+          }
+
+          return error.response;
+        });
     },
   },
 });

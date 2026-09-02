@@ -1,4 +1,4 @@
-﻿using JobFinders.Api.Models;
+﻿using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 
 using Microsoft.AspNetCore.Cors;
@@ -23,24 +23,88 @@ namespace JobFinders.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> SignUp([FromHeader(Name = "Email")] string? email, [FromHeader(Name = "Password")] string? password)
         {
+            ArgumentNullException.ThrowIfNullOrEmpty(email);
+            ArgumentNullException.ThrowIfNullOrEmpty(password);
+
+            if (_userManager.TryGetUserByEmail(email, out _))
+            {
+                return BadRequest(new { errorText = $"Пользователь {email} уже зарегестрирован" });
+            }
+
+            await SendCode(email);
+            await _userManager.RegisterUser(email, password);
+
             return Ok();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login([FromHeader(Name = "Authorization-Code")] string code)
+        public async Task<IActionResult> SignInWithCode([FromHeader(Name = "Email")] string email, [FromHeader(Name = "Code")] string code)
         {
-            if (_userManager.CodeExpired(code))
+            return await SignIn(email, code);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SignInWithPassword([FromHeader(Name = "Email")] string email, [FromHeader(Name = "Password")] string password)
+        {
+            return await SignIn(email, password, isPassword: true);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendCode([FromHeader(Name = "Email")] string email)
+        {
+            if (email is null)
             {
-                return BadRequest(new { errorText = "Код подтверждения истёк" });
+                return BadRequest(new { errorText = "Email is null" });
             }
 
-            var user = _userManager.GetUserByCode(code);
-
-            if (user is null)
+            if (!_userManager.TryGetUserByEmail(email, out User? user))
             {
-                return Unauthorized(new { errorText = "Неверный код" });
+                return BadRequest(new { errorText = "Пользователь не найден" });
+            }
+
+            string code = await _userManager.GenerateCodeAsync(user!);
+            var result = await _emailSender.SendEmailAsync(email, "Код подтверждения", code);
+
+            if (result)
+            {
+                return Ok();
+            }
+            else
+            { 
+                return StatusCode(500, new { errorText = "Could Not send code" });
+            }
+        }
+
+        private async Task<IActionResult> SignIn(string email, string value, bool isPassword = false)
+        {
+            if (!_userManager.TryGetUserByEmail(email, out User? user))
+            {
+                return BadRequest(new { errorText = "Пользователь не найден" });
+            }
+
+            if (isPassword && value != user?.Password)
+            {
+                return Unauthorized(new { errorText = "Неверный пароль" });
+            }
+
+            if (!isPassword)
+            {
+                if (_userManager.IsCodeExpired(user, out var confirmationCode))
+                {
+                    return BadRequest(new { errorText = "Код подтверждения истёк" });
+                }
+
+                if(value != confirmationCode?.Code)
+                { 
+                    return Unauthorized(new { errorText = "Неверный код" });
+                }
+            }
+
+            if (!user!.Confirmed)
+            {
+                await _userManager.ConfirmUser(user);
             }
 
             var token = _jwtService.GenerateToken(user);
@@ -57,27 +121,6 @@ namespace JobFinders.Api.Controllers
             Response.Cookies.Append("access_token", token, cookieOptions);
 
             return Ok();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> SendCode([FromHeader(Name = "Email")] string email)
-        {
-            if (email is null)
-            {
-                return BadRequest(new { errorText = "Email is null" });
-            }
-
-            string code = await _userManager.GenerateCodeAsync(email);
-            var result = await _emailSender.SendEmailAsync(email, "Код подтверждения", code);
-
-            if (result)
-            {
-                return Ok();
-            }
-            else
-            {
-                return StatusCode(500, new { errorText = "Could Not send code" });
-            }
         }
     }
 }

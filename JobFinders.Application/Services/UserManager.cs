@@ -1,72 +1,64 @@
 ﻿using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 
-using Microsoft.EntityFrameworkCore;
-
 namespace JobFinders.Application.Services
 {
     public class UserManager(IUnitOfWork unitOfWork) : IUserManager
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-        public User? GetUserByEmail(string? email)
+        public bool TryGetUserByEmail(string? email, out User? user)
         {
-            throw new NotImplementedException();
+            user = _unitOfWork.Users.GetBy(email ?? string.Empty);
+            return user is not null;
         }
 
-        public User? GetUserById(int id)
+        public string? GetCode(User? user)
         {
-            throw new NotImplementedException();
+            ArgumentNullException.ThrowIfNull(user);
+            return _unitOfWork.ConfirmationCodes.GetBy(user.UserId)?.Code;
         }
 
-        public User? GetUserByCode(string code)
+        public async Task<bool> RegisterUser(string? email, string? password)
         {
-            var user = _unitOfWork.ConfirmationCodes.GetAll().Include(c => c.User).FirstOrDefault(c => c.Code == code)?.User;
-            return user;
-        }
-
-        public Task<bool> LogIn(User? user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> Register(User user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool DoesUserExist(string? email)
-        {
-            var result = _unitOfWork.Users.GetAll().FirstOrDefault(u => u.Email == email) is not null;
-            return result;
-        }
-
-        public async Task<string> GenerateCodeAsync(string? email)
-        {
-            var random = new Random();
-            var code = random.Next(0, 10000).ToString("D4");
-
-            User? user;
-            ConfirmationCode? confirmationCode;
-
-            if (DoesUserExist(email))
+            if (TryGetUserByEmail(email, out User? user))
             {
-                user = _unitOfWork.Users.Get(email ?? string.Empty) ?? throw new NullReferenceException(nameof(user));
-                confirmationCode = _unitOfWork.ConfirmationCodes.Get(user.UserId) ?? throw new NullReferenceException(nameof(confirmationCode));
-
-                confirmationCode.DateGenerated = DateTime.UtcNow.AddHours(3);
-                confirmationCode.Code = code;
-
-                await _unitOfWork.ConfirmationCodes.UpdateAsync(confirmationCode);
+                return false;
             }
             else
             {
-                user = new User { Email = email };
+                user = new User { Email = email, Password = password };
                 await _unitOfWork.Users.CreateAsync(user);
                 await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+        }
 
-                confirmationCode = new ConfirmationCode { UserId = user!.UserId, DateGenerated = DateTime.UtcNow.AddHours(3), Code = code };
+        public async Task ConfirmUser(User? user)
+        {
+            user?.Confirmed = true;
+            await _unitOfWork.Users.UpdateAsync(user!);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<string> GenerateCodeAsync(User? user)
+        {
+            ArgumentNullException.ThrowIfNull(user);
+
+            var random = new Random();
+            var code = random.Next(0, 10000).ToString("D4");
+            var confirmationCode = _unitOfWork.ConfirmationCodes.GetBy(user.UserId);
+
+            if (confirmationCode is null)
+            {
+                confirmationCode = new ConfirmationCode { UserId = user!.UserId, ExpirationTime = DateTime.UtcNow.AddHours(3), Code = code };
                 await _unitOfWork.ConfirmationCodes.CreateAsync(confirmationCode);
+            }
+            else
+            {
+                confirmationCode.ExpirationTime = DateTime.UtcNow.AddHours(3).AddMinutes(1);
+                confirmationCode.Code = code;
+                await _unitOfWork.ConfirmationCodes.UpdateAsync(confirmationCode);
             }
             
             await _unitOfWork.SaveChangesAsync();
@@ -74,14 +66,15 @@ namespace JobFinders.Application.Services
             return code;
         }
 
-        public bool CodeExpired(string code)
+        public bool IsCodeExpired(User? user, out ConfirmationCode? code)
         {
-            var confirmationCode = _unitOfWork.ConfirmationCodes.GetAll().FirstOrDefault(x => x.Code == code) ?? throw new NullReferenceException("Не найден ConfirmationCode");
+            ArgumentNullException.ThrowIfNull(user);
 
+            code = _unitOfWork.ConfirmationCodes.GetAll().FirstOrDefault(x => x.UserId == user.UserId) ?? throw new NullReferenceException("Не найден ConfirmationCode");
             var now = DateTime.UtcNow.AddHours(3);
-            var span = now - confirmationCode.DateGenerated;
+            var expirationTime = code.ExpirationTime;
 
-            return span < TimeSpan.FromSeconds(60);
+            return now >= expirationTime;
         }
     }
 }

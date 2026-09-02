@@ -27,7 +27,7 @@ var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>();
 builder.Services.AddCors(options => options.AddPolicy("AllowClient",
     new CorsPolicyBuilder()
     .WithOrigins(origins ?? [])
-    .AllowAnyHeader().AllowAnyMethod().Build()));
+    .AllowAnyHeader().AllowAnyMethod().AllowCredentials().Build()));
 
 builder.Services.AddMemoryCache();
 builder.Services.ConfigureAutomapper();
