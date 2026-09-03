@@ -131,8 +131,7 @@ namespace JobFinders.Api.Controllers
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtExpiryMinutes"] ?? "60")),
-                Domain = _configuration["Environment"] == "Development" ? null : _configuration["JwtIssuer"]
+                Expires = DateTime.UtcNow.AddMinutes(60),
             };
 
             Response.Cookies.Append("access_token", token, cookieOptions);

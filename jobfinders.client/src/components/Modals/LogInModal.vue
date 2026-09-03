@@ -47,6 +47,7 @@ watch(code, async (newValue) => {
     const response = await store.dispatch("signInWithCode", {
       email: email.value,
       code: newValue,
+      toast: props.toast,
     });
 
     if (response.status != 200) {

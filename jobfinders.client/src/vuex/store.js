@@ -590,7 +590,7 @@ const store = createStore({
             dispatch("showError", {
               toast: toast,
               summary: "Ошибка",
-              detail: "Не удалось отправить код подтверждения",
+              detail: `${error.response.data?.errorText ?? "Не удалось отправить код подтверждения"}`,
             });
           }
 
@@ -622,7 +622,7 @@ const store = createStore({
           return error.response;
         });
     },
-    async signInWithCode({ state }, { email, code }) {
+    async signInWithCode({ state, dispatch }, { email, code, toast }) {
       return axios
         .post(
           `${state.serverUrl}/auth/signInWithCode`,
@@ -636,7 +636,17 @@ const store = createStore({
           },
         )
         .then((response) => response)
-        .catch((error) => error.response);
+        .catch((error) => {
+          if (error.response) {
+            dispatch("showError", {
+              toast: toast,
+              summary: "Ошибка",
+              detail: `${error.response.data.errorText}`,
+            });
+          }
+
+          return error.response;
+        });
     },
     async signInWithPassword({ state, dispatch }, { email, password, toast }) {
       return axios
