@@ -41,7 +41,7 @@ namespace JobFinders.Api.Controllers
 
                 if (result)
                 {
-                    await _userManager.RegisterUser(email, password);
+                    await _userManager.RegisterUser(email, password, code);
                 }
                 else
                 { 

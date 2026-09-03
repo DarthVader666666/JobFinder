@@ -5,7 +5,7 @@ namespace JobFinders.Domain.Interfaces
     public interface IUserManager
     {
         bool TryGetUserByEmail(string email, out User? user);
-        Task<bool> RegisterUser(string? email, string? password);
+        Task<bool> RegisterUser(string? email, string? password, string? code);
         Task ConfirmUser(User? user);
         Task<string> GenerateCodeAsync(User? user);
         string GenerateCode();

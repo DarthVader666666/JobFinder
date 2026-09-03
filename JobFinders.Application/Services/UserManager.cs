@@ -19,7 +19,7 @@ namespace JobFinders.Application.Services
             return _unitOfWork.ConfirmationCodes.GetBy(user.UserId)?.Code;
         }
 
-        public async Task<bool> RegisterUser(string? email, string? password)
+        public async Task<bool> RegisterUser(string? email, string? password, string? code)
         {
             if (TryGetUserByEmail(email, out User? user))
             {
@@ -30,6 +30,11 @@ namespace JobFinders.Application.Services
                 user = new User { Email = email, Password = password };
                 await _unitOfWork.Users.CreateAsync(user);
                 await _unitOfWork.SaveChangesAsync();
+
+                var confirmationCode = new ConfirmationCode { UserId = user.UserId, Code = code, ExpirationTime = DateTime.UtcNow.AddHours(3).AddMinutes(1) };
+                await _unitOfWork.ConfirmationCodes.CreateAsync(confirmationCode);
+                await _unitOfWork.SaveChangesAsync();
+
                 return true;
             }
         }
@@ -46,20 +51,10 @@ namespace JobFinders.Application.Services
             ArgumentNullException.ThrowIfNull(user);
 
             var code = GenerateCode();
-            var confirmationCode = _unitOfWork.ConfirmationCodes.GetBy(user.UserId);
-
-            if (confirmationCode is null)
-            {
-                confirmationCode = new ConfirmationCode { UserId = user!.UserId, ExpirationTime = DateTime.UtcNow.AddHours(3), Code = code };
-                await _unitOfWork.ConfirmationCodes.CreateAsync(confirmationCode);
-            }
-            else
-            {
-                confirmationCode.ExpirationTime = DateTime.UtcNow.AddHours(3).AddMinutes(1);
-                confirmationCode.Code = code;
-                await _unitOfWork.ConfirmationCodes.UpdateAsync(confirmationCode);
-            }
-            
+            var confirmationCode = _unitOfWork.ConfirmationCodes.GetBy(user.UserId) ?? throw new NullReferenceException("Код подтверждения не найден");
+            confirmationCode.ExpirationTime = DateTime.UtcNow.AddHours(3).AddMinutes(1);
+            confirmationCode.Code = code;
+            await _unitOfWork.ConfirmationCodes.UpdateAsync(confirmationCode);
             await _unitOfWork.SaveChangesAsync();
 
             return code;
