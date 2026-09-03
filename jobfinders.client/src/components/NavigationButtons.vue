@@ -30,7 +30,7 @@ const rows = computed({
   set: (value) => store.commit("setRows", value),
 });
 
-const emit = defineEmits(["navigationHandler", "changeRows"]);
+const emit = defineEmits(["navigationHandler"]);
 </script>
 
 <template>

@@ -128,7 +128,6 @@ async function downloadMoreJobs() {
     toast: toast,
     moreJobs: hasMoreJobs.value,
   });
-  resetFirstPage();
 }
 </script>
 

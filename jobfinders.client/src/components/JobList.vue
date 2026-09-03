@@ -42,7 +42,8 @@ const rows = computed({
 const isFirstPage = computed(() => firstPage.value <= 0);
 const isLastPage = computed(
   () =>
-    firstPage.value * rows.value + slicedJobs.value.length >= props.jobs.length,
+    firstPage.value * rows.value + slicedJobs.value.length >=
+    props.jobs.length - 1,
 );
 
 const jobsRange = computed(() => [
@@ -51,17 +52,22 @@ const jobsRange = computed(() => [
 ]);
 
 watch(rows, (newValue) => {
-  if (newValue > props.jobs.length) {
-    firstPage.value = 0;
+  while (firstPage.value * newValue > props.jobs.length) {
+    firstPage.value--;
   }
 });
 
 function sliceJobs() {
+  const firstPageNumber = firstPage.value;
+  const rowsNumber = rows.value;
+  const jobsLength = props.jobs.length;
+
+  const startIndex = firstPageNumber * rowsNumber;
+  const end = startIndex + rowsNumber;
+  const endIndex = end >= jobsLength ? jobsLength : end;
+
   return props.usePagination
-    ? props.jobs.slice(
-        firstPage.value * rows.value,
-        firstPage.value * rows.value + rows.value,
-      )
+    ? props.jobs.slice(startIndex, endIndex)
     : props.jobs;
 }
 

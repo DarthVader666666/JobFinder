@@ -59,6 +59,8 @@ watch(code, async (newValue) => {
 });
 
 function signInHandler() {
+  email.value = email.value.trim();
+
   if (!usePassword.value) {
     const responsePropmise = store.dispatch("sendCode", {
       email: email.value,
