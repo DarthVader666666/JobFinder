@@ -6,6 +6,7 @@ namespace JobFinders.Domain.Interfaces
     {
         IRepository<User> Users { get; set; }
         IRepository<Role> Roles { get; set; }
+        IRepository<UserRole> UserRoles { get; set; }
         IRepository<ConfirmationCode> ConfirmationCodes { get; set; }
         Task<int> SaveChangesAsync();
     }

@@ -40,6 +40,8 @@ namespace JobFinders.DAL
             {
                 userRole.HasKey(ur => new { ur.UserId, ur.RoleId });
 
+                userRole.Property(ur => ur.RoleId).HasDefaultValue(1);
+
                 userRole.HasOne(ur => ur.User)
                         .WithMany(u => u.UserRoles)
                         .HasForeignKey(ur => ur.UserId);

@@ -33,6 +33,9 @@ namespace JobFinders.Application.Services
 
                 var confirmationCode = new ConfirmationCode { UserId = user.UserId, Code = code, ExpirationTime = DateTime.UtcNow.AddHours(3).AddMinutes(1) };
                 await _unitOfWork.ConfirmationCodes.CreateAsync(confirmationCode);
+
+                var userRole = new UserRole { UserId = user.UserId };
+                await _unitOfWork.UserRoles.CreateAsync(userRole);
                 await _unitOfWork.SaveChangesAsync();
 
                 return true;

@@ -94,8 +94,11 @@ builder.Services.AddScoped<IHtmlLoader, HtmlLoader>();
 builder.Services.AddScoped<ITransliterator, Transliterator>();
 builder.Services.AddSingleton<IPageObserver, PageObserver>();
 builder.Services.AddScoped<IUserManager, UserManager>();
+
 builder.Services.AddScoped<IRepository<User>, Repository<User>>();
 builder.Services.AddScoped<IRepository<Role>, Repository<Role>>();
+builder.Services.AddScoped<IRepository<UserRole>, Repository<UserRole>>();
+
 builder.Services.AddScoped<IRepository<ConfirmationCode>, Repository<ConfirmationCode>>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
