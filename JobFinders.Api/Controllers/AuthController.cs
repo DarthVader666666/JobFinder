@@ -12,14 +12,12 @@ namespace JobFinders.Api.Controllers
         private readonly IJwtService _jwtService;
         private readonly IUserManager _userManager;
         private readonly IEmailSender _emailSender;
-        private readonly IConfiguration _configuration;
 
-        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender, IConfiguration configuration)
+        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender)
         {
             _jwtService = jwtService;
             _userManager = userManager;
             _emailSender = emailSender;
-            _configuration = configuration;
         }
 
         [HttpPost]
@@ -131,7 +129,7 @@ namespace JobFinders.Api.Controllers
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddMinutes(60),
+                Expires = DateTime.UtcNow.AddHours(3).AddMinutes(60),
             };
 
             Response.Cookies.Append("access_token", token, cookieOptions);
