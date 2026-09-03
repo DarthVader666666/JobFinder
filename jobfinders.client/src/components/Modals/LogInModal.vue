@@ -129,7 +129,9 @@ function startTimer() {
 
   timerInterval = setInterval(() => {
     time.value--;
+
     if (time.value <= 0) {
+      time.value = 0;
       clearInterval(timerInterval);
       timerInterval = null;
     }

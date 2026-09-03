@@ -8,6 +8,7 @@ namespace JobFinders.Domain.Interfaces
         Task<bool> RegisterUser(string? email, string? password);
         Task ConfirmUser(User? user);
         Task<string> GenerateCodeAsync(User? user);
+        string GenerateCode();
         bool IsCodeExpired(User? user, out ConfirmationCode? code);
         string? GetCode(User? user);
     }

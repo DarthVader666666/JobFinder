@@ -45,8 +45,7 @@ namespace JobFinders.Application.Services
         {
             ArgumentNullException.ThrowIfNull(user);
 
-            var random = new Random();
-            var code = random.Next(0, 10000).ToString("D4");
+            var code = GenerateCode();
             var confirmationCode = _unitOfWork.ConfirmationCodes.GetBy(user.UserId);
 
             if (confirmationCode is null)
@@ -62,6 +61,14 @@ namespace JobFinders.Application.Services
             }
             
             await _unitOfWork.SaveChangesAsync();
+
+            return code;
+        }
+
+        public string GenerateCode()
+        {
+            var random = new Random();
+            var code = random.Next(0, 10000).ToString("D4");
 
             return code;
         }

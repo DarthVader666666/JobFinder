@@ -33,8 +33,25 @@ namespace JobFinders.Api.Controllers
                 return BadRequest(new { errorText = $"Пользователь {email} уже зарегестрирован" });
             }
 
-            await SendCode(email);
-            await _userManager.RegisterUser(email, password);
+            string code = _userManager.GenerateCode();
+
+            try
+            {
+                var result = await _emailSender.SendEmailAsync(email, "Код подтверждения", code);
+
+                if (result)
+                {
+                    await _userManager.RegisterUser(email, password);
+                }
+                else
+                { 
+                    return BadRequest(new { errorText = "Не удалось отправить код подтверждения" });
+                }
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new { errorText = ex.Message.Contains("format") ? "Неверный формат адреса почты" : ex.Message });
+            }
 
             return Ok();
         }
@@ -114,8 +131,8 @@ namespace JobFinders.Api.Controllers
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddMinutes(15),
-                Domain = _configuration["JwtIssuer"]
+                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtExpiryMinutes"] ?? "60")),
+                Domain = _configuration["Environment"] == "Development" ? null : _configuration["JwtIssuer"]
             };
 
             Response.Cookies.Append("access_token", token, cookieOptions);
