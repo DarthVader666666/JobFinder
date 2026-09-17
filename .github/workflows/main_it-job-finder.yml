@@ -26,6 +26,9 @@ jobs:
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
+      - name: Run tests with dotnet
+        run: dotnet test --configuration Release --no-build
+
       - name: dotnet publish
         run: dotnet publish JobFinders.Api/JobFinders.Api.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
