@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\JobFinders.Application\JobFinders.Application.csproj" />
-    <ProjectReference Include="..\jobfinders.client\jobfinders.client.esproj" />
+    <ProjectReference Include="..\jobfinders.client\jobfinders.client.esproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\JobFinders.DAL\JobFinders.DAL.csproj" />
     <ProjectReference Include="..\JobFinders.Domain\JobFinders.Domain.csproj" />
   </ItemGroup>
