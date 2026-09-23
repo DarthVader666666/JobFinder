@@ -6,6 +6,8 @@ namespace JobFinders.Domain.Comparers
 {
     public class TimePostedComparer : IComparer<Job>
     {
+        private static readonly CultureInfo Culture = new("ru-RU");
+        private const int defaultValue = 366;
         private readonly DateTime now = DateTime.UtcNow.AddHours(3);
         private readonly string[] years = ["год", "года", "лет"];
         private readonly string[] months = ["месяц", "месяцев", "месяца", "мес."];
@@ -47,14 +49,14 @@ namespace JobFinders.Domain.Comparers
                     var t when Contains(t, months) => GetDaysSpan(t, 30),
                     var t when Contains(t, years) => GetDaysSpan(t, 365),
                     var t when Contains(t, exactDate) => CompareDate(time),
-                    _ => 366
+                    _ => defaultValue
                 };
 
                 return result;
             }
             catch
             {
-                return 366;
+                return defaultValue;
             }
         }
 
@@ -78,8 +80,12 @@ namespace JobFinders.Domain.Comparers
 
         private int CompareDate(string time)
         {
-            var daysSpan = (now - DateTime.Parse(time ?? "", new CultureInfo("ru-RU"))).Days;
-            return daysSpan;
+            if (DateTime.TryParse(time, Culture, DateTimeStyles.None, out var parsed))
+            {
+                return (now - parsed).Days;
+            }
+
+            return defaultValue;
         }
     }
 }

@@ -69,7 +69,11 @@ namespace JobFinders.Api.Controllers
                 }
             }
 
-            var parallelOptions = new ParallelOptions { CancellationToken = cancellationToken };
+            var parallelOptions = new ParallelOptions 
+            { 
+                CancellationToken = cancellationToken, 
+                MaxDegreeOfParallelism = Math.Max(1, request?.Sources?.Length ?? 1), 
+            };
 
             await Parallel.ForEachAsync(request?.Sources ?? [], parallelOptions, async (source, ct) =>
             {

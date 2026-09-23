@@ -16,6 +16,24 @@ namespace JobFinders.Application.Services
         private readonly ITransliterator _transliterator;
         private readonly IPageObserver _pageObserver;
 
+        private static readonly HttpClient HttpClient = CreateHttpClient();
+
+        private static HttpClient CreateHttpClient()
+        {
+            var handler = new SocketsHttpHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
+                ConnectTimeout = TimeSpan.FromSeconds(20),
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+            };
+
+            var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(60) };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+            client.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+            return client;
+        }
+
         public HtmlLoader(ITransliterator transliterator, IPageObserver pageObserver)
         {
             _transliterator = transliterator;
@@ -49,7 +67,13 @@ namespace JobFinders.Application.Services
 
             try
             {
-                var htmlDoc = await new HtmlWeb().LoadFromWebAsync(url ?? "");
+                var htmlDoc = new HtmlDocument();
+
+                using (var loadTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+                using (var stream = await HttpClient.GetStreamAsync(url ?? "", loadTimeout.Token))
+                {
+                    htmlDoc.Load(stream);
+                }
 
                 vacancyNodes = GetDescendantNodes(htmlDoc?.DocumentNode, setting?.VacancyTag);
                 var navigationNodes = GetDescendantNodes(htmlDoc?.DocumentNode, setting?.NavigationTag);
@@ -75,8 +99,7 @@ namespace JobFinders.Application.Services
                 var job = Parse(setting, node, url);
 
                 if (job is not null)
-                { 
-
+                {
                     yield return job;
                 }
             }
@@ -109,7 +132,5 @@ namespace JobFinders.Application.Services
                     .Where(n => n?.Attributes[tag.HtmlAttribute?.Attribute ?? ""] != null
                         && n.Attributes[tag.HtmlAttribute?.Attribute ?? ""].Value.Contains($"{tag.HtmlAttribute?.Value}")) ?? [];
         }
-
-
     }
 }
