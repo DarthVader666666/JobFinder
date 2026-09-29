@@ -11,5 +11,6 @@ namespace JobFinders.Domain.Interfaces
         string GenerateCode();
         bool IsCodeExpired(User? user, out ConfirmationCode? code);
         string? GetCode(User? user);
+        string[]? GetRoleNames(User? user);
     }
 }

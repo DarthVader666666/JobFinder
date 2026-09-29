@@ -13,6 +13,19 @@ namespace JobFinders.Application.Services
             return user is not null;
         }
 
+        public string[]? GetRoleNames(User? user)
+        {
+            if (user is null || user?.UserRoles?.Count == 0)
+            {
+                return null;
+            }
+
+            var roleIds = user?.UserRoles?.Select(ur => ur.RoleId) ?? [];
+            var roleNames = _unitOfWork.Roles.GetAll().Where(role => roleIds.Contains(role.RoleId)).Select(ur => ur.RoleName);
+
+            return roleNames.ToArray() as string[];
+        }
+
         public string? GetCode(User? user)
         {
             ArgumentNullException.ThrowIfNull(user);

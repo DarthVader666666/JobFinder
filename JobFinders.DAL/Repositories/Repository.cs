@@ -1,6 +1,8 @@
 ﻿using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace JobFinders.DAL.Repositories
 {
     public class Repository<TEntity>(JobFinderDbContext dbContext): IRepository<TEntity> where TEntity : class
@@ -9,7 +11,7 @@ namespace JobFinders.DAL.Repositories
         {
             TEntity? entity = value switch            
             {
-                string email when typeof(TEntity) == typeof(User) => dbContext.Users.FirstOrDefault(u => u.Email == email) as TEntity,
+                string email when typeof(TEntity) == typeof(User) => dbContext.Users.Include(u => u.UserRoles).FirstOrDefault(u => u.Email == email) as TEntity,
                 int userId when typeof(TEntity) == typeof(ConfirmationCode) => dbContext.ConfirmationCodes.FirstOrDefault(c => c.UserId == userId) as TEntity,
                 _ => null
             };

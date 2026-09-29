@@ -15,12 +15,9 @@ namespace JobFinders.Application.Services
     public class JwtService : IJwtService
     {
         private readonly JwtSettings _jwtSettings;
-        private readonly IUnitOfWork _unitOfWork;
 
-        public JwtService(IConfiguration configuration, IUnitOfWork unitOfWork)
+        public JwtService(IConfiguration configuration)
         {
-            _unitOfWork = unitOfWork;
-
             _jwtSettings = new JwtSettings
             {
                 Secret = configuration["JwtSecret"],
@@ -30,7 +27,7 @@ namespace JobFinders.Application.Services
             };
         }
 
-        public string GenerateToken(User? user)
+        public string GenerateToken(UserResponse? user)
         {
             ArgumentNullException.ThrowIfNull(user);
 
@@ -39,14 +36,13 @@ namespace JobFinders.Application.Services
 
             var claims = new List<Claim>
             {
+                new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
 
-            var roles = _unitOfWork.Roles.GetAll().Include(r => r.UserRoles).Where(r => r!.UserRoles!.Select(ur => ur.UserId).Contains(user.UserId)).Select(r => r.RoleName);
-
-            foreach (var role in roles)
+            foreach (var role in user.Roles ?? [])
             {
                 claims.Add(new Claim(ClaimTypes.Role, role!));
             }

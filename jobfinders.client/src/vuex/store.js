@@ -341,9 +341,9 @@ const store = createStore({
           helper.convertSalaries(state.selectedCurrency);
           helper.checkSavedJobs();
           dispatch("updateFilteredJobs");
-          store.dispatch("showSavedJobs", false);
+          dispatch("showSavedJobs", false);
 
-          store.dispatch("showSuccess", {
+          dispatch("showSuccess", {
             toast: payload.toast,
             summary: "OK",
             detail: `Найдено совпадений: ${response.data.jobGroups.length}`,
@@ -379,12 +379,12 @@ const store = createStore({
       }
     },
 
-    showSuccess(_, { toast, summary, detail }) {
+    showSuccess(_, { toast, summary, detail, life = 2000 }) {
       toast.add({
         severity: "success",
         summary: summary,
         detail: detail,
-        life: 2000,
+        life: life,
       });
     },
     showError(_, { toast, summary, detail }) {
@@ -635,7 +635,17 @@ const store = createStore({
             withCredentials: true,
           },
         )
-        .then((response) => response)
+        .then((response) => {
+          if (response.status === 200) {
+            dispatch("showSuccess", {
+              toast: toast,
+              summary: "Добро пожаловать",
+              detail: `Вы вошли как ${response.data.name ?? response.data.email}`,
+              life: 5000,
+            });
+          }
+          return response;
+        })
         .catch((error) => {
           if (error.response) {
             dispatch("showError", {
@@ -661,7 +671,17 @@ const store = createStore({
             withCredentials: true,
           },
         )
-        .then((response) => response)
+        .then((response) => {
+          if (response.status === 200) {
+            dispatch("showSuccess", {
+              toast: toast,
+              summary: "Добро пожаловать",
+              detail: `Вы вошли как ${response.data.name ?? response.data.email}`,
+              life: 5000,
+            });
+          }
+          return response;
+        })
         .catch((error) => {
           if (error.response) {
             dispatch("showError", {

@@ -1,5 +1,8 @@
-﻿using JobFinders.Domain.Entities;
+﻿using AutoMapper;
+
+using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
+using JobFinders.Domain.Models;
 
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -12,12 +15,14 @@ namespace JobFinders.Api.Controllers
         private readonly IJwtService _jwtService;
         private readonly IUserManager _userManager;
         private readonly IEmailSender _emailSender;
+        private readonly IMapper _mapper;
 
-        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender)
+        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender, IMapper mapper)
         {
             _jwtService = jwtService;
             _userManager = userManager;
             _emailSender = emailSender;
+            _mapper = mapper;
         }
 
         [HttpPost]
@@ -122,7 +127,11 @@ namespace JobFinders.Api.Controllers
                 await _userManager.ConfirmUser(user);
             }
 
-            var token = _jwtService.GenerateToken(user);
+
+            var userResponse = _mapper.Map<UserResponse>(user);
+            userResponse.Roles = _userManager.GetRoleNames(user);
+
+            var token = _jwtService.GenerateToken(userResponse);
 
             var cookieOptions = new CookieOptions
             {
@@ -134,7 +143,7 @@ namespace JobFinders.Api.Controllers
 
             Response.Cookies.Append("access_token", token, cookieOptions);
 
-            return Ok();
+            return Ok(userResponse);
         }
     }
 }
