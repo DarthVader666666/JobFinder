@@ -69,6 +69,7 @@ namespace JobFinders.Domain.Comparers
                 }
             }
 
+            normalized = normalized.Replace("-", " ");
             normalized = normalized.Trim();
             normalized = normalized.Replace("\"", "").ToUpper();
 
