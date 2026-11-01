@@ -58,16 +58,6 @@ namespace JobFinders.Domain.Comparers
             }
 
             var normalized = company;
-            var prefixes = new[] { "ООО", "ЗАО", "ОАО", "АО", "ИП", "ТОО", "ОДО" };
-
-            foreach (var prefix in prefixes)
-            {
-                if (normalized.StartsWith(prefix))
-                {
-                    normalized = normalized.Replace(prefix , "");
-                    break;
-                }
-            }
 
             normalized = normalized.Replace("-", " ");
             normalized = normalized.Trim();

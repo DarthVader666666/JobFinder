@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
 using JobFinders.Domain.Models;
+using System.Linq;
 
 namespace JobFinders.Application.Services
 {
@@ -17,6 +18,7 @@ namespace JobFinders.Application.Services
         private readonly string[] lari = { "₾" };
         private readonly string[] manat = { "₼" };
         private readonly string[] som = { "so'm" };
+        private readonly string[] prefixes = { "ООО", "ЗАО", "ОАО", "АО", "ИП", "ТОО", "ОДО" };
 
         private readonly string[] currencies;
 
@@ -40,7 +42,7 @@ namespace JobFinders.Application.Services
                 Link = (setting?.AddBaseUrlToHrefPrefix ?? false) ? setting.BaseUrl + href : href,
                 Title = GetTitle(anchor.InnerText),
                 OriginalSalary = GetSalary(descendants ?? [], setting),
-                Company = GetInnerText(descendants, setting?.Company),
+                Company = TrimCompanyPrefix(GetInnerText(descendants, setting?.Company)),
                 Experience = GetInnerText(descendants, setting?.Experience),
                 Location = GetInnerText(descendants, setting?.Location),
                 TimePosted = GetInnerText(descendants, setting?.TimePosted),
@@ -99,6 +101,17 @@ namespace JobFinders.Application.Services
                 .Contains(cssAttribute?.Value ?? ""))?.InnerText;
 
             return ConvertSpecialSymbols(innerText);
+        }
+
+        private string? TrimCompanyPrefix(string? company)
+        {
+            if (string.IsNullOrEmpty(company))
+            {
+                return company;
+            }
+
+            var prefix = prefixes.FirstOrDefault(company.StartsWith);
+            return string.IsNullOrEmpty(prefix) ? company : company.Replace(prefix, string.Empty).Trim();
         }
 
         private Salary? GetSalary(IEnumerable<HtmlNode>? nodes, JobFinderSetting? setting)
