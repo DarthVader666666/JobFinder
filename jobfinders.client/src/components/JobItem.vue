@@ -21,7 +21,13 @@ const props = defineProps({
     <div class="job-left">
       <a class="job-link" :href="props.job.link" target="_blank">
         <div class="job-title">
-          <span v-if="props.job.title.includes('Error:')" style="color: red"
+          <span
+            v-if="props.job.title.includes('Error:')"
+            style="
+              padding-left: 5px;
+              color: red;
+              text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+            "
             ><i class="pi pi-exclamation-circle"></i
             >{{ ` ${props.job.title}` }}</span
           >

@@ -84,7 +84,17 @@ namespace JobFinders.Application.Services
             }
             catch (Exception ex)
             {
-                return [new Job { Title = $"{setting?.Source} Error: {ex.Message}", Logo = new() { Source = setting?.Source, Url = url } }];
+                return [new Job 
+                { 
+                    Title = $"{setting?.Source} Error: {ex.Message}", 
+                    Source = setting?.Source, 
+                    Logo = new() { Source = setting?.Source, Url = url }, 
+                    Experience = "", 
+                    Location = "", 
+                    TimePosted = "", 
+                    Company = "", 
+                    Link = url
+                }];
             }
 
             jobs = JobsIterator(setting, vacancyNodes, url).DistinctBy(x => x.Link);

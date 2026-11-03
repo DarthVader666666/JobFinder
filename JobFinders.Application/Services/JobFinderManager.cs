@@ -21,8 +21,7 @@ namespace JobFinders.Application.Services
                 throw new Exception($"{nameof(JobFinderSetting)} not found");
             }
 
-            var jobs = (await _htmlLoader.GetJobsAsync(setting, query))
-                .Where(job => !(job.Experience is null && job.Location is null && job.Company is null && job.TimePosted is null));               
+            var jobs = (await _htmlLoader.GetJobsAsync(setting, query)).Where(job => !(job.Experience is null && job.Location is null && job.Company is null && job.TimePosted is null));
 
             return jobs ?? [];
         }
