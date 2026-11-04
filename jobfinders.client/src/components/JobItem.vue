@@ -24,9 +24,12 @@ const props = defineProps({
           <span
             v-if="props.job.title.includes('Error:')"
             style="
+              display: flex;
               padding-left: 5px;
               color: red;
-              text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+              text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+              align-content: center;
+              gap: 5px;
             "
             ><i class="pi pi-exclamation-circle"></i
             >{{ ` ${props.job.title}` }}</span

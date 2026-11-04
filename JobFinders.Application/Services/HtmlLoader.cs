@@ -86,7 +86,7 @@ namespace JobFinders.Application.Services
             {
                 return [new Job 
                 { 
-                    Title = $"{setting?.Source} Error: {ex.Message}", 
+                    Title = $"{setting?.Source} Error: {GetErrorMessage(ex.Message)}", 
                     Source = setting?.Source, 
                     Logo = new() { Source = setting?.Source, Url = url }, 
                     Experience = "", 
@@ -100,6 +100,15 @@ namespace JobFinders.Application.Services
             jobs = JobsIterator(setting, vacancyNodes, url).DistinctBy(x => x.Link);
 
             return jobs;
+        }
+
+        private static string GetErrorMessage(string fullMessage)
+        {
+            return fullMessage switch
+            {
+                var x when x.Contains("403") => "Ресурс запретил приложению доступ.",
+                _ => fullMessage
+            };
         }
 
         private IEnumerable<Job> JobsIterator(JobFinderSetting? setting, IEnumerable<HtmlNode> nodes, string? url)
