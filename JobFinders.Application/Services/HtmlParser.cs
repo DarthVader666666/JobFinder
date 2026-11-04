@@ -18,7 +18,11 @@ namespace JobFinders.Application.Services
         private readonly string[] lari = { "₾" };
         private readonly string[] manat = { "₼" };
         private readonly string[] som = { "so'm" };
-        private readonly string[] prefixes = { "ООО", "ЗАО", "ОАО", "АО", "ИП", "ТОО", "ОДО" };
+        private readonly string[] prefixes = { "ООО", "ЗАО", "ОАО", "АО", "ИП", "ТОО", "ОДО", "СООО", "УП", "РУП", "АСБ", 
+            "Частное предприятие", "Частное унитарное предприятие", "Государственное предприятие", "Общество с ограниченной ответственностью", "Открытое акционерное общество",
+            "Совместное общество с ограниченной ответственностью", "Белорусский государственный", "Государственное учреждение образования", "Учреждение образования",
+            "Республиканское производственное унитарное предприятие", "Республиканское унитарное предприятие", "Государственное учреждение", "Частное производственно-торговое унитарное предприятие",
+            "Коммунальное унитарное предприятие", "Производственное объединение", "Торговая компания" , "Производственное республиканское унитарное предприятие", "Производственное унитарное предприятие" };
 
         private readonly string[] currencies;
 
@@ -42,7 +46,7 @@ namespace JobFinders.Application.Services
                 Link = (setting?.AddBaseUrlToHrefPrefix ?? false) ? setting.BaseUrl + href : href,
                 Title = GetTitle(anchor.InnerText),
                 OriginalSalary = GetSalary(descendants ?? [], setting),
-                Company = TrimCompanyPrefix(GetInnerText(descendants, setting?.Company)),
+                Company = TrimCompanyPrefix(GetInnerText(descendants, setting?.Company))?.Replace("\"", ""),
                 Experience = GetInnerText(descendants, setting?.Experience),
                 Location = GetInnerText(descendants, setting?.Location),
                 TimePosted = GetInnerText(descendants, setting?.TimePosted),
@@ -110,8 +114,10 @@ namespace JobFinders.Application.Services
                 return company;
             }
 
-            var prefix = prefixes.FirstOrDefault(company.StartsWith);
-            return string.IsNullOrEmpty(prefix) ? company : company.Replace(prefix, string.Empty).Trim();
+            var prefix = prefixes.FirstOrDefault(p => company.StartsWith(p, StringComparison.InvariantCultureIgnoreCase));
+            company = string.IsNullOrEmpty(prefix) ? company : company.Replace(prefix, string.Empty).Trim();
+
+            return char.ToUpper(company[0]) + company[1..];
         }
 
         private Salary? GetSalary(IEnumerable<HtmlNode>? nodes, JobFinderSetting? setting)
