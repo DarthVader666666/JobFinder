@@ -3,13 +3,15 @@ using JobFinders.Domain.Interfaces;
 
 namespace JobFinders.Application.Services
 {
-    public class UserManager(IUnitOfWork unitOfWork) : IUserManager
+    public class UserManager(IUnitOfWork unitOfWork, ICryptoService cryptoService) : IUserManager
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ICryptoService _cryptoService = cryptoService;
 
         public bool TryGetUserByEmail(string? email, out User? user)
         {
-            user = _unitOfWork.Users.GetBy(email ?? string.Empty);
+            var encryptedEmail = _cryptoService.Encrypt(email);
+            user = _unitOfWork.Users.GetBy(encryptedEmail ?? string.Empty);
             return user is not null;
         }
 
@@ -40,7 +42,10 @@ namespace JobFinders.Application.Services
             }
             else
             {
-                user = new User { Email = email, Password = password };
+                var encryptedEmail = _cryptoService.Encrypt(email);
+                var encryptedPassword = _cryptoService.Encrypt(password);
+
+                user = new User { Email = encryptedEmail, Password = encryptedPassword };
                 await _unitOfWork.Users.CreateAsync(user);
                 await _unitOfWork.SaveChangesAsync();
 
@@ -62,11 +67,11 @@ namespace JobFinders.Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<string> GenerateCodeAsync(User? user)
+        public async Task<string> GenerateOneTimeCodeAsync(User? user)
         {
             ArgumentNullException.ThrowIfNull(user);
 
-            var code = GenerateCode();
+            var code = GenerateOneTimeCode();
             var confirmationCode = _unitOfWork.ConfirmationCodes.GetBy(user.UserId) ?? throw new NullReferenceException("Код подтверждения не найден");
             confirmationCode.ExpirationTime = DateTime.UtcNow.AddHours(3).AddMinutes(1);
             confirmationCode.Code = code;
@@ -76,7 +81,7 @@ namespace JobFinders.Application.Services
             return code;
         }
 
-        public string GenerateCode()
+        public string GenerateOneTimeCode()
         {
             var random = new Random();
             var code = random.Next(0, 10000).ToString("D4");

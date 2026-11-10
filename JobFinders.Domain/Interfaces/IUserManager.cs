@@ -7,8 +7,8 @@ namespace JobFinders.Domain.Interfaces
         bool TryGetUserByEmail(string email, out User? user);
         Task<bool> RegisterUser(string? email, string? password, string? code);
         Task ConfirmUser(User? user);
-        Task<string> GenerateCodeAsync(User? user);
-        string GenerateCode();
+        Task<string> GenerateOneTimeCodeAsync(User? user);
+        string GenerateOneTimeCode();
         bool IsCodeExpired(User? user, out ConfirmationCode? code);
         string? GetCode(User? user);
         string[]? GetRoleNames(User? user);

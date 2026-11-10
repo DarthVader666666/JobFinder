@@ -102,6 +102,8 @@ builder.Services.AddScoped<IRepository<UserRole>, Repository<UserRole>>();
 builder.Services.AddScoped<IRepository<ConfirmationCode>, Repository<ConfirmationCode>>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+builder.Services.AddSingleton<ICryptoService, AesCryptoService>();
+
 builder.Services.Configure<List<JobFinderSetting>>(builder.Configuration.GetSection("JobFinderSettings"));
 
 var connectionString = builder.Configuration["JobFinderDB"];

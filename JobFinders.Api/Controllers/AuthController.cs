@@ -16,13 +16,15 @@ namespace JobFinders.Api.Controllers
         private readonly IUserManager _userManager;
         private readonly IEmailSender _emailSender;
         private readonly IMapper _mapper;
+        private readonly ICryptoService _cryptoService;
 
-        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender, IMapper mapper)
+        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender, IMapper mapper, ICryptoService cryptoService)
         {
             _jwtService = jwtService;
             _userManager = userManager;
             _emailSender = emailSender;
             _mapper = mapper;
+            _cryptoService = cryptoService;
         }
 
         [HttpPost]
@@ -36,7 +38,7 @@ namespace JobFinders.Api.Controllers
                 return BadRequest(new { errorText = $"Пользователь {email} уже зарегестрирован" });
             }
 
-            string code = _userManager.GenerateCode();
+            string code = _userManager.GenerateOneTimeCode();
 
             try
             {
@@ -84,7 +86,7 @@ namespace JobFinders.Api.Controllers
                 return BadRequest(new { errorText = "Пользователь не найден" });
             }
 
-            string code = await _userManager.GenerateCodeAsync(user!);
+            string code = await _userManager.GenerateOneTimeCodeAsync(user!);
             var result = await _emailSender.SendEmailAsync(email, "Код подтверждения", code);
 
             if (result)
@@ -104,9 +106,14 @@ namespace JobFinders.Api.Controllers
                 return BadRequest(new { errorText = "Пользователь не найден" });
             }
 
-            if (isPassword && value != user?.Password)
+            if (isPassword)
             {
-                return Unauthorized(new { errorText = "Неверный пароль" });
+                var encryptedPassword = _cryptoService.Encrypt(value);
+
+                if (encryptedPassword != user?.Password) 
+                {
+                    return Unauthorized(new { errorText = "Неверный пароль" });
+                }
             }
 
             if (!isPassword)
@@ -130,6 +137,7 @@ namespace JobFinders.Api.Controllers
 
             var userResponse = _mapper.Map<UserResponse>(user);
             userResponse.Roles = _userManager.GetRoleNames(user);
+            userResponse.Email = _cryptoService.Decrypt(user.Email);
 
             var token = _jwtService.GenerateToken(userResponse);
 

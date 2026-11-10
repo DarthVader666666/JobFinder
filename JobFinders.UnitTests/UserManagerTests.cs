@@ -207,7 +207,7 @@ namespace JobFinders.UnitTests
         {
             var manager = CreateManager();
 
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => manager.GenerateCodeAsync(null));
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => manager.GenerateOneTimeCodeAsync(null));
 
             Assert.Equal("user", exception.ParamName);
         }
@@ -220,7 +220,7 @@ namespace JobFinders.UnitTests
                 .Returns((ConfirmationCode?)null);
             var manager = CreateManager();
 
-            await Assert.ThrowsAsync<NullReferenceException>(() => manager.GenerateCodeAsync(new User { UserId = 1 }));
+            await Assert.ThrowsAsync<NullReferenceException>(() => manager.GenerateOneTimeCodeAsync(new User { UserId = 1 }));
 
             _confirmationCodesRepoMock.Verify(x => x.UpdateAsync(It.IsAny<ConfirmationCode>()), Times.Never);
         }
@@ -241,7 +241,7 @@ namespace JobFinders.UnitTests
                 .ReturnsAsync((ConfirmationCode c) => c);
             var manager = CreateManager();
 
-            var code = await manager.GenerateCodeAsync(user);
+            var code = await manager.GenerateOneTimeCodeAsync(user);
 
             Assert.Matches(@"^\d{4}$", code);
             Assert.NotNull(updated);
@@ -261,7 +261,7 @@ namespace JobFinders.UnitTests
 
             for (int i = 0; i < 100; i++)
             {
-                var code = manager.GenerateCode();
+                var code = manager.GenerateOneTimeCode();
 
                 Assert.Matches(@"^\d{4}$", code);
             }

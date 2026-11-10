@@ -2,11 +2,9 @@
 using System.Security.Claims;
 using System.Text;
 
-using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
