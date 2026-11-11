@@ -15,7 +15,7 @@ namespace JobFinders.DAL.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.15");
 
             modelBuilder.Entity("JobFinders.Domain.Entities.ConfirmationCode", b =>
                 {
@@ -39,6 +39,32 @@ namespace JobFinders.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("ConfirmationCodes");
+                });
+
+            modelBuilder.Entity("JobFinders.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("TokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("TokenId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshToken");
                 });
 
             modelBuilder.Entity("JobFinders.Domain.Entities.Role", b =>
@@ -134,6 +160,17 @@ namespace JobFinders.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("JobFinders.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("JobFinders.Domain.Entities.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("JobFinders.Domain.Entities.UserRole", b =>
                 {
                     b.HasOne("JobFinders.Domain.Entities.Role", "Role")
@@ -161,6 +198,8 @@ namespace JobFinders.DAL.Migrations
             modelBuilder.Entity("JobFinders.Domain.Entities.User", b =>
                 {
                     b.Navigation("ConfirmationCode");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("UserRoles");
                 });

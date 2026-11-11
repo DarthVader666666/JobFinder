@@ -9,5 +9,6 @@
         public string? Password { get; set; }
         public virtual ICollection<UserRole>? UserRoles { get; set; }
         public virtual ConfirmationCode? ConfirmationCode { get; set; }
+        public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
     }
 }

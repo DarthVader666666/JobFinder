@@ -5,6 +5,7 @@ import { helper } from "@/helper";
 const store = createStore({
   state: {
     serverUrl: import.meta.env.VITE_API_URL,
+    environment: import.meta.env.VITE_API_ENV,
     nbrbCurrRateUrl: "https://api.nbrb.by/exrates/rates?periodicity=",
     pending: false,
     sending: false,
@@ -693,6 +694,61 @@ const store = createStore({
 
           return error.response;
         });
+    },
+    async refreshToken() {
+      const api = axios.create({
+        baseURL: store.state.serverUrl,
+        withCredentials: true,
+      });
+
+      let isRefreshing = false;
+      let failedQueue = [];
+
+      const processQueue = (error) => {
+        failedQueue.forEach((prom) => {
+          if (error) {
+            prom.reject(error);
+          } else {
+            prom.resolve();
+          }
+        });
+        failedQueue = [];
+      };
+
+      api.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+          const originalRequest = error.config;
+
+          if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+              return new Promise((resolve, reject) => {
+                failedQueue.push({ resolve, reject });
+              })
+                .then(() => {
+                  return api(originalRequest);
+                })
+                .catch((err) => Promise.reject(err));
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+              await api.post("/auth/refresh");
+              processQueue(null);
+              return api(originalRequest);
+            } catch (refreshError) {
+              processQueue(refreshError);
+              return Promise.reject(refreshError);
+            } finally {
+              isRefreshing = false;
+            }
+          }
+
+          return Promise.reject(error);
+        },
+      );
     },
   },
 });

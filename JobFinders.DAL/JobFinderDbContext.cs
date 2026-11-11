@@ -59,11 +59,21 @@ namespace JobFinders.DAL
                 code.Property(c => c.ExpirationTime).IsRequired(true);
                 code.Property(c => c.Code).IsRequired(true);
             });
+
+            modelBuilder.Entity<RefreshToken>(rt =>
+            {
+                rt.HasKey(rt => rt.TokenId);
+                rt.HasOne(rt => rt.User).WithMany(u => u.RefreshTokens).HasForeignKey(rt => rt.UserId).OnDelete(DeleteBehavior.Cascade);
+                rt.Property(rt => rt.UserId).IsRequired(true);
+                rt.Property(rt => rt.Token).IsRequired(true);
+                rt.Property(rt => rt.ExpiryDate).IsRequired(true);
+            });
         }
 
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Role> Roles { get; set; }
         public virtual DbSet<UserRole> UserRoles { get; set; }
         public virtual DbSet<ConfirmationCode> ConfirmationCodes { get; set; }
+        public virtual DbSet<RefreshToken> RefreshToken { get; set; }
     }
 }

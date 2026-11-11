@@ -8,6 +8,7 @@ namespace JobFinders.Domain.Interfaces
         IRepository<Role> Roles { get; set; }
         IRepository<UserRole> UserRoles { get; set; }
         IRepository<ConfirmationCode> ConfirmationCodes { get; set; }
+        IRepository<RefreshToken> RefreshTokens { get; set; }
         Task<int> SaveChangesAsync();
     }
 }
