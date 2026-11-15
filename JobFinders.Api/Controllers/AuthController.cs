@@ -4,6 +4,7 @@ using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,8 +22,10 @@ namespace JobFinders.Api.Controllers
         private readonly IMapper _mapper;
         private readonly ICryptoService _cryptoService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender, IMapper mapper, ICryptoService cryptoService, IUnitOfWork unitOfWork)
+        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender, IMapper mapper, ICryptoService cryptoService, 
+            IUnitOfWork unitOfWork, IConfiguration configuration)
         {
             _jwtService = jwtService;
             _userManager = userManager;
@@ -30,6 +33,7 @@ namespace JobFinders.Api.Controllers
             _mapper = mapper;
             _cryptoService = cryptoService;
             _unitOfWork = unitOfWork;
+            _configuration = configuration;
         }
 
         [HttpPost]
@@ -54,11 +58,15 @@ namespace JobFinders.Api.Controllers
                     await _userManager.RegisterUser(email, password, code);
                 }
                 else
-                { 
+                {
                     return BadRequest(new { errorText = "Не удалось отправить код подтверждения" });
                 }
             }
-            catch(Exception ex)
+            catch (DbUpdateException)
+            {
+                return StatusCode(500, new { errorText = "Ошибка записи пользователя в базу данных" });
+            }
+            catch (Exception ex)
             {
                 return BadRequest(new { errorText = ex.Message.Contains("format") ? "Неверный формат адреса почты" : ex.Message });
             }
@@ -115,7 +123,13 @@ namespace JobFinders.Api.Controllers
             else
             {
                 return Unauthorized();
-            }            
+            }
+        }
+
+        [Authorize]
+        public async Task<IActionResult> CheckInterceptor()
+        {
+            return Ok();
         }
 
         [HttpPost]
@@ -200,10 +214,10 @@ namespace JobFinders.Api.Controllers
         private async Task CreateTokens(UserResponse userResponse)
         {
              var accessToken = _jwtService.GenerateToken(userResponse);
-             AppendCookie("access_token", accessToken, DateTime.UtcNow.AddSeconds(60));
+             AppendCookie("access_token", accessToken, DateTime.UtcNow.AddSeconds(int.Parse(_configuration["AccessTokenMinutes"] ?? "")));
 
              var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-             var refreshExpiry = DateTime.UtcNow.AddDays(7);
+             var refreshExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["RefreshTokenDays"] ?? ""));
 
              await _unitOfWork.RefreshTokens.CreateAsync(new RefreshToken
              {

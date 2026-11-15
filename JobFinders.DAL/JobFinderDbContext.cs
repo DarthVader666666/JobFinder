@@ -74,6 +74,6 @@ namespace JobFinders.DAL
         public virtual DbSet<Role> Roles { get; set; }
         public virtual DbSet<UserRole> UserRoles { get; set; }
         public virtual DbSet<ConfirmationCode> ConfirmationCodes { get; set; }
-        public virtual DbSet<RefreshToken> RefreshToken { get; set; }
+        public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }

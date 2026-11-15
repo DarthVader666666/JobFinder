@@ -64,7 +64,7 @@ namespace JobFinders.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshToken");
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("JobFinders.Domain.Entities.Role", b =>

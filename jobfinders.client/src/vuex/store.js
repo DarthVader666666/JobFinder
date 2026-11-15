@@ -2,6 +2,64 @@ import { createStore } from "vuex";
 import axios from "axios";
 import { helper } from "@/helper";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve();
+    }
+  });
+  failedQueue = [];
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (originalRequest.url === "/auth/refresh") {
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => api(originalRequest))
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await api.post("/auth/refresh");
+        processQueue(null);
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError);
+
+        store.commit("setIsAuthenticated", false);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 const store = createStore({
   state: {
     serverUrl: import.meta.env.VITE_API_URL,
@@ -83,6 +141,7 @@ const store = createStore({
     firstPage: 0,
     rows: 20,
     hasMoreJobs: false,
+    isAuthentiacated: false,
   },
   getters: {
     getPending(state) {
@@ -196,6 +255,9 @@ const store = createStore({
     getShowLogInModal(state) {
       return state.showLogInModal;
     },
+    getIsAuthenticated(state) {
+      return state.isAuthentiacated;
+    },
   },
   mutations: {
     setPending(state, value) {
@@ -287,13 +349,16 @@ const store = createStore({
     setShowLogInModal(state, value) {
       state.showLogInModal = value;
     },
+    setAuthenticated(state, value) {
+      state.isAuthentiacated = value;
+    },
   },
   actions: {
     async getFetch({ commit }, { url, usePending, func }) {
       if (usePending) {
         commit("setPending", true);
       }
-      return await axios
+      return await api
         .get(url, {
           headers: { "Content-Type": "application/json" },
         })
@@ -326,7 +391,7 @@ const store = createStore({
       jobsRequest.moreJobs = payload.moreJobs;
 
       try {
-        const response = await axios.post(
+        const response = await api.post(
           `${state.serverUrl}/jobs/getjobs`,
           jobsRequest,
           {
@@ -352,7 +417,7 @@ const store = createStore({
           helper.scrollUp();
         }
       } catch (error) {
-        if (axios.isCancel(error)) {
+        if (api.isCancel(error)) {
           store.dispatch("showInfo", {
             toast: payload.toast,
             summary: "Поиск прерван",
@@ -415,7 +480,7 @@ const store = createStore({
     async downloadCurrencyRates({ state, commit, dispatch }, toast) {
       async function getRates(periodicity) {
         try {
-          const response = await axios.get(
+          const response = await api.get(
             `${state.nbrbCurrRateUrl}${periodicity}`,
             {
               headers: { "Content-Type": "application/json" },
@@ -548,7 +613,7 @@ const store = createStore({
     },
     async sendComment({ state, commit, dispatch }, { request, toast }) {
       commit("setSending", true);
-      await axios
+      await api
         .post(`${state.serverUrl}/user/sendComment`, request, {
           headers: { "Content-Type": "application/json" },
         })
@@ -575,7 +640,7 @@ const store = createStore({
         });
     },
     async sendCode({ state, dispatch }, { email, toast }) {
-      return axios
+      return api
         .post(
           `${state.serverUrl}/auth/sendCode`,
           {},
@@ -599,7 +664,7 @@ const store = createStore({
         });
     },
     async signUp({ state, dispatch }, { email, password, toast }) {
-      return axios
+      return api
         .post(
           `${state.serverUrl}/auth/signUp`,
           {},
@@ -624,7 +689,7 @@ const store = createStore({
         });
     },
     async signInWithCode({ state, dispatch }, { email, code, toast }) {
-      return axios
+      return api
         .post(
           `${state.serverUrl}/auth/signInWithCode`,
           {},
@@ -660,7 +725,7 @@ const store = createStore({
         });
     },
     async signInWithPassword({ state, dispatch }, { email, password, toast }) {
-      return axios
+      return api
         .post(
           `${state.serverUrl}/auth/signInWithPassword`,
           {},
@@ -695,60 +760,26 @@ const store = createStore({
           return error.response;
         });
     },
-    async refreshToken() {
-      const api = axios.create({
-        baseURL: store.state.serverUrl,
-        withCredentials: true,
-      });
-
-      let isRefreshing = false;
-      let failedQueue = [];
-
-      const processQueue = (error) => {
-        failedQueue.forEach((prom) => {
-          if (error) {
-            prom.reject(error);
-          } else {
-            prom.resolve();
+    async intercept({ dispatch }, { toast }) {
+      const url = store.state.serverUrl + "/auth/checkInterceptor";
+      api
+        .post(url, null, { withCredentials: true })
+        .then((response) => {
+          if (response.status === 200) {
+            dispatch("showSuccess", {
+              toast: toast,
+              summary: "Ok",
+              detail: `${response.data.okText}`,
+            });
           }
+        })
+        .catch(() => {
+          store.dispatch("showError", {
+            toast: toast,
+            summary: "Unautharized",
+            detail: "Пользователь не авторизован",
+          });
         });
-        failedQueue = [];
-      };
-
-      api.interceptors.response.use(
-        (response) => response,
-        async (error) => {
-          const originalRequest = error.config;
-
-          if (error.response?.status === 401 && !originalRequest._retry) {
-            if (isRefreshing) {
-              return new Promise((resolve, reject) => {
-                failedQueue.push({ resolve, reject });
-              })
-                .then(() => {
-                  return api(originalRequest);
-                })
-                .catch((err) => Promise.reject(err));
-            }
-
-            originalRequest._retry = true;
-            isRefreshing = true;
-
-            try {
-              await api.post("/auth/refresh");
-              processQueue(null);
-              return api(originalRequest);
-            } catch (refreshError) {
-              processQueue(refreshError);
-              return Promise.reject(refreshError);
-            } finally {
-              isRefreshing = false;
-            }
-          }
-
-          return Promise.reject(error);
-        },
-      );
     },
   },
 });

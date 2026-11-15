@@ -21,7 +21,6 @@ import { useToast } from "primevue/usetoast";
 import { versionChecker } from "./versionChecker.js";
 import JobList from "./components/JobList.vue";
 import LogInModal from "./components/Modals/LogInModal.vue";
-import axios from "axios";
 
 const toast = useToast();
 const store = useStore();
@@ -131,26 +130,8 @@ async function downloadMoreJobs() {
   });
 }
 
-function handleRefresh() {
-  const url = store.state.serverUrl + "/auth/refresh";
-  axios
-    .post(url, null, { withCredentials: true })
-    .then((response) => {
-      if (response.status === 200) {
-        store.dispatch("showSuccess", {
-          toast: toast,
-          summary: "Ok",
-          detail: `${response.data.okText}`,
-        });
-      }
-    })
-    .catch(() => {
-      store.dispatch("showError", {
-        toast: toast,
-        summary: "Unautharized",
-        detail: "Пользователь не авторизован",
-      });
-    });
+function handleInterceptor() {
+  store.dispatch("intercept", { toast: toast });
 }
 </script>
 
@@ -194,7 +175,7 @@ function handleRefresh() {
         icon="pi pi-user"
         severity="secondary"
         rounded
-        @click="handleRefresh"
+        @click="handleInterceptor"
       ></Button>
       <div class="rates">
         <span>USD: {{ usdRate }}</span>
