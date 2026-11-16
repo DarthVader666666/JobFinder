@@ -26,7 +26,7 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (originalRequest.url === "/auth/refresh") {
+    if (originalRequest.url === "/auth/refreshToken") {
       return Promise.reject(error);
     }
 
@@ -43,7 +43,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post("/auth/refresh");
+        await api.post("/auth/refreshToken");
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
@@ -70,6 +70,7 @@ const store = createStore({
     showSearchBarModal: false,
     showSettingsModal: false,
     showLogInModal: false,
+    showUserModal: false,
     finders: [
       {
         img: "rabotaby_logo.png",
@@ -141,7 +142,7 @@ const store = createStore({
     firstPage: 0,
     rows: 20,
     hasMoreJobs: false,
-    isAuthentiacated: false,
+    isAuthenticated: false,
   },
   getters: {
     getPending(state) {
@@ -189,6 +190,9 @@ const store = createStore({
     },
     getShowSettingsModal(state) {
       return state.showSettingsModal;
+    },
+    getShowUserModal(state) {
+      return state.showUserModal;
     },
     getJobsRequest(state, getters) {
       return {
@@ -256,7 +260,7 @@ const store = createStore({
       return state.showLogInModal;
     },
     getIsAuthenticated(state) {
-      return state.isAuthentiacated;
+      return state.isAuthenticated;
     },
   },
   mutations: {
@@ -310,6 +314,9 @@ const store = createStore({
     setShowSettingsModal(state, value) {
       state.showSettingsModal = value;
     },
+    setShowUserModal(state, value) {
+      state.showUserModal = value;
+    },
     setSelectedCurrency(state, value) {
       state.selectedCurrency = value;
     },
@@ -349,8 +356,8 @@ const store = createStore({
     setShowLogInModal(state, value) {
       state.showLogInModal = value;
     },
-    setAuthenticated(state, value) {
-      state.isAuthentiacated = value;
+    setIsAuthenticated(state, value) {
+      state.isAuthenticated = value;
     },
   },
   actions: {
@@ -688,7 +695,7 @@ const store = createStore({
           return error.response;
         });
     },
-    async signInWithCode({ state, dispatch }, { email, code, toast }) {
+    async signInWithCode({ state, dispatch, commit }, { email, code, toast }) {
       return api
         .post(
           `${state.serverUrl}/auth/signInWithCode`,
@@ -703,11 +710,11 @@ const store = createStore({
         )
         .then((response) => {
           if (response.status === 200) {
+            commit("setIsAuthenticated", true);
             dispatch("showSuccess", {
               toast: toast,
               summary: "Добро пожаловать",
               detail: `Вы вошли как ${response.data.name ?? response.data.email}`,
-              life: 5000,
             });
           }
           return response;
@@ -724,7 +731,10 @@ const store = createStore({
           return error.response;
         });
     },
-    async signInWithPassword({ state, dispatch }, { email, password, toast }) {
+    async signInWithPassword(
+      { state, commit, dispatch },
+      { email, password, toast },
+    ) {
       return api
         .post(
           `${state.serverUrl}/auth/signInWithPassword`,
@@ -739,11 +749,11 @@ const store = createStore({
         )
         .then((response) => {
           if (response.status === 200) {
+            commit("setIsAuthenticated", true);
             dispatch("showSuccess", {
               toast: toast,
               summary: "Добро пожаловать",
               detail: `Вы вошли как ${response.data.name ?? response.data.email}`,
-              life: 5000,
             });
           }
           return response;
@@ -760,8 +770,57 @@ const store = createStore({
           return error.response;
         });
     },
-    async intercept({ dispatch }, { toast }) {
-      const url = store.state.serverUrl + "/auth/checkInterceptor";
+    async logOut({ state, commit, dispatch }, { toast }) {
+      return api
+        .post(`${state.serverUrl}/auth/logOut`)
+        .then((response) => {
+          if (response.status === 200) {
+            commit("setIsAuthenticated", false);
+            dispatch("showSuccess", {
+              toast: toast,
+              summary: "Выход произошел успешно",
+              detail: `Пользователь ${response.data.name} вышел из системы`,
+            });
+          }
+          return response;
+        })
+        .catch((error) => {
+          if (error.response) {
+            dispatch("showError", {
+              toast: toast,
+              summary: "Ошибка",
+              detail: `${error.response.data.errorText}`,
+            });
+          }
+
+          return error.response;
+        });
+    },
+    async checkAuthentication({ state, commit, dispatch }, { toast }) {
+      return api
+        .get(`${state.serverUrl}/auth/checkAuthentication`)
+        .then((response) => {
+          if (response.status === 200) {
+            commit("setIsAuthenticated", response.data.isAuthenticated);
+          }
+        })
+        .catch((error) => {
+          if (error.response.status === 401) {
+            commit("setIsAuthenticated", error.response.data.isAuthenticated);
+          } else {
+            dispatch("showError", {
+              toast: toast,
+              summary: "Ошибка",
+              detail: "Ошибка проверки аутентификации",
+            });
+          }
+        });
+    },
+    async refreshToken({ state }) {
+      api.post(state.serverUrl + "/auth/refreshToken");
+    },
+    async intercept({ state, dispatch }, { toast }) {
+      const url = state.serverUrl + "/auth/checkInterceptor";
       api
         .post(url, null, { withCredentials: true })
         .then((response) => {

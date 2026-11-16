@@ -9,6 +9,7 @@ import PendingModal from "./components/Modals/PendingModal.vue";
 import SearchBarModal from "./components/Modals/SearchBarModal.vue";
 import FeedbackModal from "./components/Modals/FeedbackModal.vue";
 import SettingsModal from "./components/Modals/SettingsModal.vue";
+import UserModal from "./components/Modals/UserModal.vue";
 
 import SearchBar from "./components/SearchBar.vue";
 import SourcesComponent from "./components/SourcesComponent.vue";
@@ -55,6 +56,11 @@ const showLogInModal = computed({
   set: (value) => store.commit("setShowLogInModal", value),
 });
 
+const showUserModal = computed({
+  get: () => store.getters.getShowUserModal,
+  set: (value) => store.commit("setShowUserModal", value),
+});
+
 const jobs = computed(() =>
   savedJobsShown.value
     ? store.getters.getSavedJobsCache
@@ -62,6 +68,8 @@ const jobs = computed(() =>
 );
 
 const hasMoreJobs = computed(() => store.getters.getHasMoreJobs);
+
+const isAuthenticated = computed(() => store.getters.getIsAuthenticated);
 
 watch(savedJobs.value, (newValue) => {
   if (!newValue.length) {
@@ -85,6 +93,10 @@ onMounted(async () => {
   usdRate.value = store.getters.getUsdRate;
   eurRate.value = store.getters.getEurRate;
   rubRate.value = store.getters.getRubRate;
+
+  await store;
+  await store.dispatch("checkAuthentication", { toast: toast });
+
   helper.scrollUp();
 });
 
@@ -112,6 +124,10 @@ function showLogInModalHandler(value) {
   showLogInModal.value = value;
 }
 
+function showUserModalHandler(value) {
+  showUserModal.value = value;
+}
+
 function resetFirstPage() {
   firstPage.value = 0;
 }
@@ -130,8 +146,9 @@ async function downloadMoreJobs() {
   });
 }
 
-function handleInterceptor() {
-  store.dispatch("intercept", { toast: toast });
+function handleLogOut() {
+  store.dispatch("logOut", { toast: toast });
+  showUserModalHandler(false);
 }
 </script>
 
@@ -165,18 +182,26 @@ function handleInterceptor() {
         @click="showSavedJobsHandler"
       ></Button>
       <Button
+        v-if="isAuthenticated"
+        icon="pi pi-user"
+        severity="secondary"
+        rounded
+        @click="showUserModalHandler(true)"
+      ></Button>
+      <Button
+        v-else
         icon="pi pi-cog"
         severity="secondary"
         rounded
         @click="showLogInModalHandler(true)"
       ></Button>
       <Button
-        v-if="store.state.environment === 'development'"
-        icon="pi pi-user"
+        icon="pi pi-arrow-up"
         severity="secondary"
         rounded
-        @click="handleInterceptor"
+        @click="store.dispatch('checkAuthentication', { toast: toast })"
       ></Button>
+
       <div class="rates">
         <span>USD: {{ usdRate }}</span>
         <span>EUR: {{ eurRate }}</span>
@@ -247,6 +272,10 @@ function handleInterceptor() {
     :toast="toast"
     @showLogInModalHandler="showLogInModalHandler"
   ></LogInModal>
+  <UserModal
+    v-model:visible="showUserModal"
+    @handleLogOut="handleLogOut"
+  ></UserModal>
   <PendingModal v-model:visible="isPending"></PendingModal>
 </template>
 

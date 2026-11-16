@@ -2,9 +2,11 @@
 using System.Security.Claims;
 using System.Text;
 
+using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -13,16 +15,19 @@ namespace JobFinders.Application.Services
     public class JwtService : IJwtService
     {
         private readonly JwtSettings _jwtSettings;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public JwtService(IConfiguration configuration)
+        public JwtService(IConfiguration configuration, IUnitOfWork unitOfWork)
         {
             _jwtSettings = new JwtSettings
             {
                 Secret = configuration["JwtSecret"],
                 Audience = configuration["JwtAudience"],
                 Issuer = configuration["JwtIssuer"],
-                ExpiryMinutes = int.Parse(configuration["JwtExpiryMinutes"] ?? throw new InvalidOperationException("JwtExpiryMinutes not configured")),
+                ExpiryMinutes = int.Parse(configuration["AccessTokenMinutes"] ?? throw new InvalidOperationException("AccessTokenMinutes not configured")),
             };
+
+            _unitOfWork = unitOfWork;
         }
 
         public string GenerateToken(UserResponse? user)
@@ -56,6 +61,22 @@ namespace JobFinders.Application.Services
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        public async Task RevokeRefreshToken(int userId)
+        {
+            var refreshTokens = _unitOfWork.RefreshTokens.GetAll() as DbSet<RefreshToken> ?? throw new NullReferenceException();
+
+            var tokens = await refreshTokens
+                .Where(t => t.UserId == userId && t.IsRevoked == false)
+                .ToListAsync();
+
+            foreach (var token in tokens)
+            {
+                token.IsRevoked = true;
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

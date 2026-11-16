@@ -4,6 +4,7 @@ using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -86,6 +87,28 @@ namespace JobFinders.Api.Controllers
             return await SignIn(email, password, isPassword: true);
         }
 
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> LogOut()
+        {
+            if (User is not null && (User!.Identity?.IsAuthenticated ?? false))
+            {
+                var id = int.Parse(User.Claims.FirstOrDefault(x => x.Type == "id")?.Value ?? throw new NullReferenceException());
+                await _jwtService.RevokeRefreshToken(id);
+                var name = User.Claims.FirstOrDefault(x => x.Type == "name")?.Value;
+
+                Response.Cookies.Delete("access_token");
+                Response.Cookies.Delete("refresh_token");
+
+                return Ok(new { name = string.IsNullOrEmpty(name) ? User.Claims.FirstOrDefault(x => x.Type == "email")?.Value : string.Empty });
+            }
+            else
+            {
+                var email = User!.Claims.FirstOrDefault(x => x.Type == "email");
+                return StatusCode(500, new { errorText = $"Ошибка при выходе {email} из системы" });
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> SendCode([FromHeader(Name = "Email")] string email)
         {
@@ -113,27 +136,21 @@ namespace JobFinders.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCurrentUser()
+        public async Task<IActionResult> CheckAuthentication()
         {
             if (User?.Identity?.IsAuthenticated ?? false)
             {                
                 var email = User?.Claims?.FirstOrDefault(x => x.Type == "email")?.Value;
-                return Ok(new { okText = $"Пользователь {email} в системе" });
+                return Ok(new { isAuthenticated = true });
             }
             else
             {
-                return Unauthorized();
+                return Unauthorized(new { isAuthenticated = false });
             }
         }
 
-        [Authorize]
-        public async Task<IActionResult> CheckInterceptor()
-        {
-            return Ok();
-        }
-
         [HttpPost]
-        public async Task<IActionResult> Refresh()
+        public async Task<IActionResult> RefreshToken()
         {
             var refreshToken = Request.Cookies["refresh_token"];
 
@@ -214,7 +231,7 @@ namespace JobFinders.Api.Controllers
         private async Task CreateTokens(UserResponse userResponse)
         {
              var accessToken = _jwtService.GenerateToken(userResponse);
-             AppendCookie("access_token", accessToken, DateTime.UtcNow.AddSeconds(int.Parse(_configuration["AccessTokenMinutes"] ?? "")));
+             AppendCookie("access_token", accessToken, DateTime.UtcNow.AddMinutes(int.Parse(_configuration["AccessTokenMinutes"] ?? "")));
 
              var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
              var refreshExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["RefreshTokenDays"] ?? ""));

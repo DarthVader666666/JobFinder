@@ -37,7 +37,7 @@ var jwtSettings = new JwtSettings
     Secret = builder.Configuration["JwtSecret"],
     Audience = builder.Configuration["JwtAudience"],
     Issuer = builder.Configuration["JwtIssuer"],
-    ExpiryMinutes = int.Parse(builder.Configuration["JwtExpiryMinutes"] ?? throw new InvalidOperationException("JwtExpiryMinutes not configured")),
+    ExpiryMinutes = int.Parse(builder.Configuration["AccessTokenMinutes"] ?? throw new InvalidOperationException("AccessTokenMinutes not configured")),
 };
 
 var key = Encoding.ASCII.GetBytes(jwtSettings?.Secret ?? throw new InvalidOperationException("JwtSecret not configured"));
