@@ -284,7 +284,7 @@ namespace JobFinders.UnitTests
         public void IsCodeExpired_WhenNoConfirmationCodeFound_ThrowsNullReferenceException()
         {
             _confirmationCodesRepoMock
-                .Setup(x => x.GetAll())
+                .Setup(x => x.All)
                 .Returns(Array.Empty<ConfirmationCode>().AsQueryable());
             var manager = CreateManager();
 
@@ -297,7 +297,7 @@ namespace JobFinders.UnitTests
             var user = new User { UserId = 1 };
             var codeEntity = new ConfirmationCode { UserId = 1, Code = "1234", ExpirationTime = DateTime.UtcNow.AddMinutes(-1) };
             _confirmationCodesRepoMock
-                .Setup(x => x.GetAll())
+                .Setup(x => x.All)
                 .Returns(new[] { codeEntity }.AsQueryable());
             var manager = CreateManager();
 
@@ -313,7 +313,7 @@ namespace JobFinders.UnitTests
             var user = new User { UserId = 1 };
             var codeEntity = new ConfirmationCode { UserId = 1, Code = "1234", ExpirationTime = DateTime.UtcNow.AddHours(5) };
             _confirmationCodesRepoMock
-                .Setup(x => x.GetAll())
+                .Setup(x => x.All)
                 .Returns(new[] { codeEntity }.AsQueryable());
             var manager = CreateManager();
 

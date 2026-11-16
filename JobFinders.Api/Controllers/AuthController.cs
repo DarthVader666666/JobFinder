@@ -159,7 +159,7 @@ namespace JobFinders.Api.Controllers
                 return Unauthorized();
             }
 
-            var dbSet = _unitOfWork.RefreshTokens.GetAll() as DbSet<RefreshToken>;
+            var dbSet = _unitOfWork.RefreshTokens.All as DbSet<RefreshToken>;
 
             var storedToken = await dbSet!
                 .Include(t => t.User)

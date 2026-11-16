@@ -65,7 +65,7 @@ namespace JobFinders.Application.Services
 
         public async Task RevokeRefreshToken(int userId)
         {
-            var refreshTokens = _unitOfWork.RefreshTokens.GetAll() as DbSet<RefreshToken> ?? throw new NullReferenceException();
+            var refreshTokens = _unitOfWork.RefreshTokens.All as DbSet<RefreshToken> ?? throw new NullReferenceException();
 
             var tokens = await refreshTokens
                 .Where(t => t.UserId == userId && t.IsRevoked == false)

@@ -18,11 +18,8 @@ namespace JobFinders.DAL.Repositories
 
             return entity;
         }
-        
-        public IQueryable<TEntity> GetAll()
-        {
-            return dbContext.Set<TEntity>();
-        }
+
+        public IQueryable<TEntity> All => dbContext.Set<TEntity>();
         
         public async Task<TEntity> CreateAsync(TEntity entity)
         {

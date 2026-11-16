@@ -23,7 +23,7 @@ namespace JobFinders.Application.Services
             }
 
             var roleIds = user?.UserRoles?.Select(ur => ur.RoleId) ?? [];
-            var roleNames = _unitOfWork.Roles.GetAll().Where(role => roleIds.Contains(role.RoleId)).Select(ur => ur.RoleName);
+            var roleNames = _unitOfWork.Roles.All.Where(role => roleIds.Contains(role.RoleId)).Select(ur => ur.RoleName);
 
             return roleNames.ToArray() as string[];
         }
@@ -93,7 +93,7 @@ namespace JobFinders.Application.Services
         {
             ArgumentNullException.ThrowIfNull(user);
 
-            code = _unitOfWork.ConfirmationCodes.GetAll().FirstOrDefault(x => x.UserId == user.UserId) ?? throw new NullReferenceException("Не найден ConfirmationCode");
+            code = _unitOfWork.ConfirmationCodes.All.FirstOrDefault(x => x.UserId == user.UserId) ?? throw new NullReferenceException("Не найден ConfirmationCode");
             var now = DateTime.UtcNow.AddHours(3);
             var expirationTime = code.ExpirationTime;
 
