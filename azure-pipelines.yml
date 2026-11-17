@@ -8,10 +8,40 @@ variables:
 stages:
 
 # ---------------------------------------------------------
-# STAGE 1: UNIT TESTS & INTEGRATION TESTS (Runs in parallel)
+# STAGE 1: BUILD
+# ---------------------------------------------------------
+- stage: Build
+  displayName: 'Build and Publish'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build Job'
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Set up .NET Core'
+      inputs:
+        version: $(dotnetSdkVersion)
+    
+    - script: dotnet build --configuration $(buildConfiguration)
+      displayName: 'Build with dotnet'
+      
+    - script: dotnet publish JobFinders.Api/JobFinders.Api.csproj -c $(buildConfiguration) -o "$(Build.ArtifactStagingDirectory)/myapp"
+      displayName: 'dotnet publish'
+      
+    - task: PublishPipelineArtifact@1
+      displayName: 'Upload artifact for deployment job'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/myapp'
+        artifact: '.net-app'
+        publishLocation: 'pipeline'
+
+# ---------------------------------------------------------
+# STAGE 2: TESTS (Runs in parallel, depends on Build)
 # ---------------------------------------------------------
 - stage: Test
   displayName: 'Run Tests'
+  dependsOn: Build
   jobs:
   - job: UnitTests
     displayName: 'Unit Tests'
@@ -38,41 +68,11 @@ stages:
       displayName: 'Run integration tests with dotnet'
 
 # ---------------------------------------------------------
-# STAGE 2: BUILD & PUBLISH ARTIFACT
-# ---------------------------------------------------------
-- stage: Build
-  displayName: 'Build and Publish'
-  dependsOn: Test
-  jobs:
-  - job: BuildJob
-    displayName: 'Build Job'
-    pool:
-      vmImage: 'windows-latest'
-    steps:
-    - task: UseDotNet@2
-      displayName: 'Set up .NET Core'
-      inputs:
-        version: $(dotnetSdkVersion)
-    
-    - script: dotnet build --configuration $(buildConfiguration)
-      displayName: 'Build with dotnet'
-      
-    - script: dotnet publish JobFinders.Api/JobFinders.Api.csproj -c $(buildConfiguration) -o "$(Build.ArtifactStagingDirectory)/myapp"
-      displayName: 'dotnet publish'
-      
-    - task: PublishPipelineArtifact@1
-      displayName: 'Upload artifact for deployment job'
-      inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/myapp'
-        artifact: '.net-app'
-        publishLocation: 'pipeline'
-
-# ---------------------------------------------------------
-# STAGE 3: DEPLOY TO AZURE WEB APP
+# STAGE 3: DEPLOY (Depends on Tests passing)
 # ---------------------------------------------------------
 - stage: Deploy
   displayName: 'Deploy to Azure'
-  dependsOn: Build
+  dependsOn: Test
   jobs:
   - deployment: DeployWebApp
     displayName: 'Deploy Web App'
@@ -87,6 +87,7 @@ stages:
             displayName: 'Download artifact from build job'
             inputs:
               artifactName: '.net-app'
+              
           - task: AzureRmWebAppDeployment@4
             displayName: 'Deploy to Azure Web App'
             inputs:
