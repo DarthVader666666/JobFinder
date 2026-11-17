@@ -2,7 +2,6 @@ trigger:
 - main
 
 variables:
-  # Using .NET 10 as per your GitHub Actions file
   dotnetSdkVersion: '10.x'
   buildConfiguration: 'Release'
 
@@ -88,21 +87,12 @@ stages:
             displayName: 'Download artifact from build job'
             inputs:
               artifactName: '.net-app'
-              # By default, it downloads to $(Pipeline.Workspace)/.net-app
-              
-          # Note: Unlike GitHub Actions which uses OIDC (Workload Identity Federation) 
-          # with azure/login, Azure DevOps natively handles Azure authentication 
-          # via the "azureSubscription" service connection parameter below.
           - task: AzureRmWebAppDeployment@4
             displayName: 'Deploy to Azure Web App'
             inputs:
               ConnectionType: 'AzureRM'
-              # Replace the value below with the name of your Azure Service Connection in Azure DevOps
+
               azureSubscription: 'Pay-As-You-Go Dev/Test(7ea259f7-c666-4703-b4c1-df983f852504)'
               appType: 'webApp'
               WebAppName: 'it-job-finder'
               packageForLinux: '$(Pipeline.Workspace)/.net-app'
-              # If you want to deploy to the 'Production' slot specifically:
-              # DeployToSlotOrASE: true
-              # ResourceGroupName: 'YourResourceGroup'
-              # SlotName: 'Production'
