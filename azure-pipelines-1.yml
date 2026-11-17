@@ -1,24 +1,108 @@
-# ASP.NET Core
-# Build and test ASP.NET Core projects targeting .NET Core.
-# Add steps that run tests, create a NuGet package, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
 trigger:
 - main
 
-pool:
-  vmImage: 'windows-latest'
-
 variables:
+  # Using .NET 10 as per your GitHub Actions file
+  dotnetSdkVersion: '10.x'
   buildConfiguration: 'Release'
 
-steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
-- task: AzureRmWebAppDeployment@5
-  inputs:
-    ConnectionType: 'AzureRM'
-    azureSubscription: 'Pay-As-You-Go Dev/Test(1)(7ea259f7-c666-4703-b4c1-df983f852504)'
-    appType: 'webApp'
-    WebAppName: 'it-job-finder'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+stages:
+
+# ---------------------------------------------------------
+# STAGE 1: UNIT TESTS & INTEGRATION TESTS (Runs in parallel)
+# ---------------------------------------------------------
+- stage: Test
+  displayName: 'Run Tests'
+  jobs:
+  - job: UnitTests
+    displayName: 'Unit Tests'
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Set up .NET Core'
+      inputs:
+        version: $(dotnetSdkVersion)
+    - script: dotnet test JobFinders.UnitTests/JobFinders.UnitTests.csproj --configuration $(buildConfiguration)
+      displayName: 'Run unit tests with dotnet'
+
+  - job: IntegrationTests
+    displayName: 'Integration Tests'
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Set up .NET Core'
+      inputs:
+        version: $(dotnetSdkVersion)
+    - script: dotnet test JobFinders.IntegrationalTests/JobFinders.IntegrationalTests.csproj --configuration $(buildConfiguration)
+      displayName: 'Run integration tests with dotnet'
+
+# ---------------------------------------------------------
+# STAGE 2: BUILD & PUBLISH ARTIFACT
+# ---------------------------------------------------------
+- stage: Build
+  displayName: 'Build and Publish'
+  dependsOn: Test
+  jobs:
+  - job: BuildJob
+    displayName: 'Build Job'
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Set up .NET Core'
+      inputs:
+        version: $(dotnetSdkVersion)
+    
+    - script: dotnet build --configuration $(buildConfiguration)
+      displayName: 'Build with dotnet'
+      
+    - script: dotnet publish JobFinders.Api/JobFinders.Api.csproj -c $(buildConfiguration) -o "$(Build.ArtifactStagingDirectory)/myapp"
+      displayName: 'dotnet publish'
+      
+    - task: PublishPipelineArtifact@1
+      displayName: 'Upload artifact for deployment job'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/myapp'
+        artifact: '.net-app'
+        publishLocation: 'pipeline'
+
+# ---------------------------------------------------------
+# STAGE 3: DEPLOY TO AZURE WEB APP
+# ---------------------------------------------------------
+- stage: Deploy
+  displayName: 'Deploy to Azure'
+  dependsOn: Build
+  jobs:
+  - deployment: DeployWebApp
+    displayName: 'Deploy Web App'
+    pool:
+      vmImage: 'windows-latest'
+    environment: 'Production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download artifact from build job'
+            inputs:
+              artifactName: '.net-app'
+              # By default, it downloads to $(Pipeline.Workspace)/.net-app
+              
+          # Note: Unlike GitHub Actions which uses OIDC (Workload Identity Federation) 
+          # with azure/login, Azure DevOps natively handles Azure authentication 
+          # via the "azureSubscription" service connection parameter below.
+          - task: AzureRmWebAppDeployment@4
+            displayName: 'Deploy to Azure Web App'
+            inputs:
+              ConnectionType: 'AzureRM'
+              # Replace the value below with the name of your Azure Service Connection in Azure DevOps
+              azureSubscription: 'Pay-As-You-Go Dev/Test(7ea259f7-c666-4703-b4c1-df983f852504)'
+              appType: 'webApp'
+              WebAppName: 'it-job-finder'
+              packageForLinux: '$(Pipeline.Workspace)/.net-app'
+              # If you want to deploy to the 'Production' slot specifically:
+              # DeployToSlotOrASE: true
+              # ResourceGroupName: 'YourResourceGroup'
+              # SlotName: 'Production'
