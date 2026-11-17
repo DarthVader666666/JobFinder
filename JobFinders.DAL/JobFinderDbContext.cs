@@ -68,6 +68,14 @@ namespace JobFinders.DAL
                 rt.Property(rt => rt.Token).IsRequired(true);
                 rt.Property(rt => rt.ExpiryDate).IsRequired(true);
             });
+
+            modelBuilder.Entity<JobSearchRequest>(jsr =>
+            {
+                jsr.HasKey(rt => rt.Id);
+                jsr.HasOne(rt => rt.User).WithMany(u => u.JobSearchRequests).HasForeignKey(rt => rt.UserId).OnDelete(DeleteBehavior.Cascade);
+                jsr.Property(rt => rt.UserId).IsRequired(true);
+                jsr.Property(rt => rt.TimeSent).IsRequired(true);
+            });
         }
 
         public virtual DbSet<User> Users { get; set; }
@@ -75,5 +83,6 @@ namespace JobFinders.DAL
         public virtual DbSet<UserRole> UserRoles { get; set; }
         public virtual DbSet<ConfirmationCode> ConfirmationCodes { get; set; }
         public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+        public virtual DbSet<JobSearchRequest> JobSearchRequests { get; set; }
     }
 }

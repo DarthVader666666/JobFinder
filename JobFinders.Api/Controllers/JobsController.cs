@@ -2,14 +2,17 @@
 
 using JobFinders.Api.Models;
 
+using MapsterMapper;
+
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
-using AutoMapper;
+
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 using JobFinders.Domain.Comparers;
+using JobFinders.Api.Attributes;
 
 namespace JobFinders.Api.Controllers
 {
@@ -18,19 +21,20 @@ namespace JobFinders.Api.Controllers
     {
         private readonly IJobFinderManager _jobFinderManager;
         private readonly IMemoryCache _cache;
-        private readonly IMapper _automapper;
+        private readonly IMapper _mapster;
         private readonly IPageObserver _pageObserver;
         private readonly List<JobFinderSetting> _jobFinderSettings;
 
-        public JobsController(IJobFinderManager jobFinderManager, IPageObserver pageObserver, IMemoryCache cache, IMapper automapper, IOptions<List<JobFinderSetting>> jobFinderSettings)
+        public JobsController(IJobFinderManager jobFinderManager, IPageObserver pageObserver, IMemoryCache cache, IMapper mapster, IOptions<List<JobFinderSetting>> jobFinderSettings)
         {
             _jobFinderManager = jobFinderManager;
             _pageObserver = pageObserver;
             _cache = cache;
-            _automapper = automapper;
+            _mapster = mapster;
             _jobFinderSettings = jobFinderSettings.Value;
         }
 
+        [InterceptRequest]
         [HttpPost]
         public async Task<IActionResult> GetJobs([FromBody] JobsRequest? request, CancellationToken cancellationToken)
         {
@@ -78,7 +82,7 @@ namespace JobFinders.Api.Controllers
             await Parallel.ForEachAsync(request?.Sources ?? [], parallelOptions, async (source, ct) =>
             {
                 var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
-                var query = _automapper.Map<JobsRequest?, JobsQuery>(request);
+                var query = _mapster.Map<JobsRequest?, JobsQuery>(request);
 
                 var jobs = await _jobFinderManager.ProcessAsync(setting, query, ct);
 

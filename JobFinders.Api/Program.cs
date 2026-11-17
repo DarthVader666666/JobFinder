@@ -16,7 +16,6 @@ using System.Text;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using JobFinders.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +29,7 @@ builder.Services.AddCors(options => options.AddPolicy("AllowClient",
     .AllowAnyHeader().AllowAnyMethod().AllowCredentials().Build()));
 
 builder.Services.AddMemoryCache();
-builder.Services.ConfigureAutomapper();
+builder.Services.ConfigureMapster();
 
 var jwtSettings = new JwtSettings
 {
@@ -95,6 +94,7 @@ builder.Services.AddScoped<IRepository<Role>, Repository<Role>>();
 builder.Services.AddScoped<IRepository<UserRole>, Repository<UserRole>>();
 builder.Services.AddScoped<IRepository<ConfirmationCode>, Repository<ConfirmationCode>>();
 builder.Services.AddScoped<IRepository<RefreshToken>, Repository<RefreshToken>>();
+builder.Services.AddScoped<IRepository<JobSearchRequest>, Repository<JobSearchRequest>>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddSingleton<ICryptoService, AesCryptoService>();
@@ -145,9 +145,7 @@ app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapDefaultControllerRoute();
 
 app.Run();
 

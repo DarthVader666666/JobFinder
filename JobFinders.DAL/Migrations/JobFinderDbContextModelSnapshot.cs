@@ -41,6 +41,34 @@ namespace JobFinders.DAL.Migrations
                     b.ToTable("ConfirmationCodes");
                 });
 
+            modelBuilder.Entity("JobFinders.Domain.Entities.JobSearchRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sources")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Speciality")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("TimeSent")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("JobSearchRequests");
+                });
+
             modelBuilder.Entity("JobFinders.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("TokenId")
@@ -160,6 +188,17 @@ namespace JobFinders.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("JobFinders.Domain.Entities.JobSearchRequest", b =>
+                {
+                    b.HasOne("JobFinders.Domain.Entities.User", "User")
+                        .WithMany("JobSearchRequests")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("JobFinders.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("JobFinders.Domain.Entities.User", "User")
@@ -198,6 +237,8 @@ namespace JobFinders.DAL.Migrations
             modelBuilder.Entity("JobFinders.Domain.Entities.User", b =>
                 {
                     b.Navigation("ConfirmationCode");
+
+                    b.Navigation("JobSearchRequests");
 
                     b.Navigation("RefreshTokens");
 

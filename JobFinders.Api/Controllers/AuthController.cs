@@ -1,16 +1,16 @@
-﻿using AutoMapper;
-
-using JobFinders.Domain.Entities;
+﻿using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using System.Security.Cryptography;
+
+using Mapster;
+using MapsterMapper;
 
 namespace JobFinders.Api.Controllers
 {
@@ -20,18 +20,18 @@ namespace JobFinders.Api.Controllers
         private readonly IJwtService _jwtService;
         private readonly IUserManager _userManager;
         private readonly IEmailSender _emailSender;
-        private readonly IMapper _mapper;
+        private readonly IMapper _mapster;
         private readonly ICryptoService _cryptoService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
 
-        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender, IMapper mapper, ICryptoService cryptoService, 
+        public AuthController(IJwtService jwtService, IUserManager userManager, IEmailSender emailSender, IMapper mapster, ICryptoService cryptoService, 
             IUnitOfWork unitOfWork, IConfiguration configuration)
         {
             _jwtService = jwtService;
             _userManager = userManager;
             _emailSender = emailSender;
-            _mapper = mapper;
+            _mapster = mapster;
             _cryptoService = cryptoService;
             _unitOfWork = unitOfWork;
             _configuration = configuration;
@@ -172,7 +172,7 @@ namespace JobFinders.Api.Controllers
 
             storedToken.IsRevoked = true;
 
-            var userResponse = _mapper.Map<UserResponse>(storedToken.User);
+            var userResponse = _mapster.Map<UserResponse>(storedToken.User);
 
             await CreateTokens(userResponse);
 
@@ -219,7 +219,7 @@ namespace JobFinders.Api.Controllers
                 await _userManager.ConfirmUser(user);
             }
 
-            var userResponse = _mapper.Map<UserResponse>(user);
+            var userResponse = _mapster.Map<UserResponse>(user);
             userResponse.Roles = _userManager.GetRoleNames(user);
             userResponse.Email = _cryptoService.Decrypt(user.Email);
 
