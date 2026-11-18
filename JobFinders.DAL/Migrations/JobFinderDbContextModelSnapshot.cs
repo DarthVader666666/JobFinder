@@ -41,34 +41,6 @@ namespace JobFinders.DAL.Migrations
                     b.ToTable("ConfirmationCodes");
                 });
 
-            modelBuilder.Entity("JobFinders.Domain.Entities.JobSearchRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Location")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Sources")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Speciality")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("TimeSent")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("JobSearchRequests");
-                });
-
             modelBuilder.Entity("JobFinders.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("TokenId")
@@ -126,6 +98,37 @@ namespace JobFinders.DAL.Migrations
                             RoleId = 3,
                             RoleName = "Owner"
                         });
+                });
+
+            modelBuilder.Entity("JobFinders.Domain.Entities.SearchResult", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Response")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sources")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Speciality")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("TimeSent")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SearchResults");
                 });
 
             modelBuilder.Entity("JobFinders.Domain.Entities.User", b =>
@@ -188,10 +191,10 @@ namespace JobFinders.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("JobFinders.Domain.Entities.JobSearchRequest", b =>
+            modelBuilder.Entity("JobFinders.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("JobFinders.Domain.Entities.User", "User")
-                        .WithMany("JobSearchRequests")
+                        .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -199,10 +202,10 @@ namespace JobFinders.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("JobFinders.Domain.Entities.RefreshToken", b =>
+            modelBuilder.Entity("JobFinders.Domain.Entities.SearchResult", b =>
                 {
                     b.HasOne("JobFinders.Domain.Entities.User", "User")
-                        .WithMany("RefreshTokens")
+                        .WithMany("JobSearchRequests")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

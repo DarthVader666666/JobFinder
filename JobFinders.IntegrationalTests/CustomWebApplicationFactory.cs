@@ -29,6 +29,9 @@ namespace JobFinders.IntegrationalTests
             Environment.SetEnvironmentVariable("JwtIssuer", "jobfinder-test");
             Environment.SetEnvironmentVariable("JwtExpiryMinutes", "60");
             Environment.SetEnvironmentVariable("Email", "recipient@example.com");
+            Environment.SetEnvironmentVariable("AesKey", "integration-test-aes-key11111111");
+            Environment.SetEnvironmentVariable("AesIV", "integrationAesIV");
+
         }
 
         public new HttpClient CreateClient()

@@ -94,7 +94,7 @@ builder.Services.AddScoped<IRepository<Role>, Repository<Role>>();
 builder.Services.AddScoped<IRepository<UserRole>, Repository<UserRole>>();
 builder.Services.AddScoped<IRepository<ConfirmationCode>, Repository<ConfirmationCode>>();
 builder.Services.AddScoped<IRepository<RefreshToken>, Repository<RefreshToken>>();
-builder.Services.AddScoped<IRepository<JobSearchRequest>, Repository<JobSearchRequest>>();
+builder.Services.AddScoped<IRepository<SearchResult>, Repository<SearchResult>>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddSingleton<ICryptoService, AesCryptoService>();

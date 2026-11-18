@@ -55,22 +55,30 @@ namespace JobFinders.Api.Attributes
 
             var userId = user?.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
 
-            var jobSearchRequest = new JobSearchRequest
+            var searchResult = new SearchResult
             {
                 UserId = int.Parse(userId ?? ""),
                 Speciality = request.Speciality,
                 Sources = JsonSerializer.Serialize(request.Sources ?? []),
                 TimeSent = DateTime.UtcNow,
-            };
-
-            await _unitOfWork.JobSearchRequests.CreateAsync(jobSearchRequest);
-            await _unitOfWork.SaveChangesAsync();
+            };            
 
             if (executedContext.Result is ObjectResult { Value: JobsResponse jobsResponse })
             {
-                var topJobGroup = jobsResponse?.JobGroups?.FirstOrDefault(group => group.Any(job => job?.Title?.Contains(request.Speciality!, StringComparison.InvariantCultureIgnoreCase) ?? false));
+                bool predicate(Job job, JobsRequest request)
+                {
+                    var titleParts = job?.Title?.ToUpper().Split(' ', '-');
+                    var specialityParts = request?.Speciality?.ToUpper().Split(' ', '-');
+                    return titleParts?.Any(tp => specialityParts!.Any(sp => tp.Contains(sp))) ?? false;
+                }
 
+                var topJobGroup = jobsResponse?.JobGroups?.FirstOrDefault(group => group.Any(job => predicate(job, request)));
+                var jsonResponse = JsonSerializer.Serialize(topJobGroup);
+                searchResult.Response = jsonResponse;
             }
+
+            await _unitOfWork.SearchResults.CreateAsync(searchResult);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }
