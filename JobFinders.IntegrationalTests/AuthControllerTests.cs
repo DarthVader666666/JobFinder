@@ -1,9 +1,7 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 
 using JobFinders.DAL;
-using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 
 using Microsoft.Extensions.DependencyInjection;
