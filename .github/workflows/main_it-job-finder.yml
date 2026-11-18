@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - it-job-finder
+name: Build, test and deploy ASP.Net Core app to Azure Web App - it-job-finder
 
 on:
   push:
@@ -10,38 +10,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-unit-tests:
-    runs-on: windows-latest
-    permissions:
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: '10.x'
-
-      - name: Run unit tests with dotnet
-        run: dotnet test JobFinders.UnitTests/JobFinders.UnitTests.csproj --configuration Release
-
-  test-integration-tests:
-    runs-on: windows-latest
-    permissions:
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: '10.x'
-
-      - name: Run integration tests with dotnet
-        run: dotnet test JobFinders.IntegrationalTests/JobFinders.IntegrationalTests.csproj --configuration Release
-
   build:
     runs-on: windows-latest
     permissions:
@@ -61,15 +29,49 @@ jobs:
       - name: dotnet publish
         run: dotnet publish JobFinders.Api/JobFinders.Api.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact for test and deployment jobs
         uses: actions/upload-artifact@v7
         with:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
 
-  deploy:
+  test-unit-tests:
     runs-on: windows-latest
     needs: build
+    permissions:
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.x'
+
+      - name: Run unit tests with dotnet
+        run: dotnet test JobFinders.UnitTests/JobFinders.UnitTests.csproj --configuration Release --no-build
+
+  test-integration-tests:
+    runs-on: windows-latest
+    needs: build
+    permissions:
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.x'
+
+      - name: Run integration tests with dotnet
+        run: dotnet test JobFinders.IntegrationalTests/JobFinders.IntegrationalTests.csproj --configuration Release --no-build
+
+  deploy:
+    runs-on: windows-latest
+    needs: [test-unit-tests, test-integration-tests]
     permissions:
       id-token: write #This is required for requesting the JWT
       contents: read #This is required for actions/checkout
@@ -79,7 +81,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -94,4 +96,3 @@ jobs:
           app-name: 'it-job-finder'
           slot-name: 'Production'
           package: .
-          
