@@ -3,6 +3,7 @@ using System.Text.Json;
 
 using JobFinders.DAL;
 using JobFinders.Domain.Interfaces;
+using JobFinders.Domain.Services;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -185,7 +186,7 @@ namespace JobFinders.IntegrationalTests
                 var cryptoService = scope.ServiceProvider.GetRequiredService<ICryptoService>();
                 var user = db.Users.FirstOrDefault(u => u.Email == cryptoService.Encrypt(email));
                 var code = db.ConfirmationCodes.First(c => c.UserId == user.UserId);
-                code.ExpirationTime = DateTime.UtcNow.AddHours(2).AddMinutes(-1);
+                code.ExpirationTime = TimeService.Now.AddHours(2).AddMinutes(-1);
                 db.SaveChanges();
             }
 
@@ -209,7 +210,7 @@ namespace JobFinders.IntegrationalTests
         {
             var response = await PostAsync("/Auth/SendCode", ("Email", "missing@example.com"));
 
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             Assert.Equal("Пользователь не найден", await GetErrorTextAsync(response));
         }
 

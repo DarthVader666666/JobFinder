@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 
 using Mapster;
 using MapsterMapper;
+using JobFinders.Domain.Services;
 
 namespace JobFinders.Api.Controllers
 {
@@ -119,7 +120,7 @@ namespace JobFinders.Api.Controllers
 
             if (!_userManager.TryGetUserByEmail(email, out User? user))
             {
-                return BadRequest(new { errorText = "Пользователь не найден" });
+                return NotFound(new { errorText = "Пользователь не найден" });
             }
 
             string code = await _userManager.GenerateOneTimeCodeAsync(user!);
@@ -165,7 +166,7 @@ namespace JobFinders.Api.Controllers
                 .Include(t => t.User)
                 .FirstOrDefaultAsync(t => t.Token == refreshToken && !t.IsRevoked);
 
-            if (storedToken == null || storedToken.ExpiryDate < DateTime.UtcNow)
+            if (storedToken == null || storedToken.ExpiryDate < TimeService.Now)
             { 
                 return Unauthorized();
             }
@@ -231,10 +232,10 @@ namespace JobFinders.Api.Controllers
         private async Task CreateTokens(UserResponse userResponse)
         {
              var accessToken = _jwtService.GenerateToken(userResponse);
-             AppendCookie("access_token", accessToken, DateTime.UtcNow.AddMinutes(int.Parse(_configuration["AccessTokenMinutes"] ?? "")));
+             AppendCookie("access_token", accessToken, TimeService.Now.AddMinutes(int.Parse(_configuration["AccessTokenMinutes"] ?? "")));
 
              var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-             var refreshExpiry = DateTime.UtcNow.AddDays(int.Parse(_configuration["RefreshTokenDays"] ?? ""));
+             var refreshExpiry = TimeService.Now.AddDays(int.Parse(_configuration["RefreshTokenDays"] ?? ""));
 
              await _unitOfWork.RefreshTokens.CreateAsync(new RefreshToken
              {

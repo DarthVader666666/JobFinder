@@ -1,5 +1,6 @@
 ﻿using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
+using JobFinders.Domain.Services;
 
 namespace JobFinders.Application.Services
 {
@@ -49,7 +50,7 @@ namespace JobFinders.Application.Services
                 await _unitOfWork.Users.CreateAsync(user);
                 await _unitOfWork.SaveChangesAsync();
 
-                var confirmationCode = new ConfirmationCode { UserId = user.UserId, Code = code, ExpirationTime = DateTime.UtcNow.AddHours(3).AddMinutes(1) };
+                var confirmationCode = new ConfirmationCode { UserId = user.UserId, Code = code, ExpirationTime = TimeService.Now.AddHours(3).AddMinutes(1) };
                 await _unitOfWork.ConfirmationCodes.CreateAsync(confirmationCode);
 
                 var userRole = new UserRole { UserId = user.UserId };
@@ -73,7 +74,7 @@ namespace JobFinders.Application.Services
 
             var code = GenerateOneTimeCode();
             var confirmationCode = _unitOfWork.ConfirmationCodes.GetBy(user.UserId) ?? throw new NullReferenceException("Код подтверждения не найден");
-            confirmationCode.ExpirationTime = DateTime.UtcNow.AddHours(3).AddMinutes(1);
+            confirmationCode.ExpirationTime = TimeService.Now.AddHours(3).AddMinutes(1);
             confirmationCode.Code = code;
             await _unitOfWork.ConfirmationCodes.UpdateAsync(confirmationCode);
             await _unitOfWork.SaveChangesAsync();
@@ -94,7 +95,7 @@ namespace JobFinders.Application.Services
             ArgumentNullException.ThrowIfNull(user);
 
             code = _unitOfWork.ConfirmationCodes.All.FirstOrDefault(x => x.UserId == user.UserId) ?? throw new NullReferenceException("Не найден ConfirmationCode");
-            var now = DateTime.UtcNow.AddHours(3);
+            var now = TimeService.Now.AddHours(3);
             var expirationTime = code.ExpirationTime;
 
             return now >= expirationTime;

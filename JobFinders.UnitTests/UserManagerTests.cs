@@ -1,6 +1,7 @@
 using JobFinders.Application.Services;
 using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
+using JobFinders.Domain.Services;
 
 using Moq;
 using Xunit;
@@ -65,20 +66,15 @@ namespace JobFinders.UnitTests
             Assert.Null(user);
         }
 
-        //[Fact]
-        //public void TryGetUserByEmail_WhenEmailIsNull_QueriesWithEmptyString()
-        //{
-        //    _usersRepoMock
-        //        .Setup(x => x.GetBy(""))
-        //        .Returns(new User { UserId = 1, Email = "user@example.com" });
-        //    var manager = CreateManager();
+        [Fact]
+        public void TryGetUserByEmail_WhenEmailIsNull()
+        {
+            var manager = CreateManager();
+            var result = manager.TryGetUserByEmail(null, out User? user);
 
-        //    var result = manager.TryGetUserByEmail(null, out User? user);
-
-        //    Assert.True(result);
-        //    Assert.NotNull(user);
-        //    _usersRepoMock.Verify(x => x.GetBy(string.Empty), Times.Once);
-        //}
+            Assert.False(result);
+            Assert.Null(user);
+        }
 
         [Fact]
         public void GetCode_WhenUserIsNull_ThrowsArgumentNullException()
@@ -136,35 +132,37 @@ namespace JobFinders.UnitTests
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Never);
         }
 
-        //[Fact]
-        //public async Task RegisterUser_WhenUserIsNew_CreatesUserConfirmationCodeAndRole()
-        //{
-        //    const string email = "new@example.com";
-        //    const string password = "secret";
-        //    const string code = "5678";
+        [Fact]
+        public async Task RegisterUser_WhenUserIsNew_CreatesUserConfirmationCodeAndRole()
+        {
+            const string email = "new@example.com";
+            const string password = "secret";
+            const string code = "5678";
 
-        //    _usersRepoMock
-        //        .Setup(x => x.GetBy(It.IsAny<object>()))
-        //        .Returns((User?)null);
-        //    _usersRepoMock
-        //        .Setup(x => x.CreateAsync(It.IsAny<User>()))
-        //        .Callback<User>(u => u.UserId = 42)
-        //        .ReturnsAsync((User u) => u);
-        //    var manager = CreateManager();
+            _usersRepoMock
+                .Setup(x => x.GetBy(It.IsAny<object>()))
+                .Returns((User?)null);
+            _usersRepoMock
+                .Setup(x => x.CreateAsync(It.IsAny<User>()))
+                .Callback<User>(u => u.UserId = 42)
+                .ReturnsAsync((User u) => u);
+            var manager = CreateManager();
 
-        //    var result = await manager.RegisterUser(email, password, code);
+            var result = await manager.RegisterUser(email, password, code);
 
-        //    Assert.True(result);
-        //    _usersRepoMock.Verify(x => x.CreateAsync(It.Is<User>(u =>
-        //        u.Email == email && u.Password == password)), Times.Once);
-        //    _confirmationCodesRepoMock.Verify(x => x.CreateAsync(It.Is<ConfirmationCode>(c =>
-        //        c.UserId == 42 && c.Code == code)), Times.Once);
-        //    _userRolesRepoMock.Verify(x => x.CreateAsync(It.Is<UserRole>(r => r.UserId == 42)), Times.Once);
-        //    _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
-        //}
+            Assert.True(result);
+
+            var encryptedEmail = _cryptoService.Object.Encrypt(email);
+            var encryptedPassword = _cryptoService.Object.Encrypt(password);
+
+            _usersRepoMock.Verify(x => x.CreateAsync(It.Is<User>(u => u.Email == encryptedEmail && u.Password == encryptedPassword)), Times.Once);
+            _confirmationCodesRepoMock.Verify(x => x.CreateAsync(It.Is<ConfirmationCode>(c => c.UserId == 42 && c.Code == code)), Times.Once);
+            _userRolesRepoMock.Verify(x => x.CreateAsync(It.Is<UserRole>(r => r.UserId == 42)), Times.Once);
+            _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
+        }
 
         [Fact]
-        public async Task RegisterUser_SetsConfirmationCodeExpirationToThreeHoursAndOneMinuteFromUtcNow()
+        public async Task RegisterUser_SetsConfirmationCodeExpirationToThreeHoursAndOneMinuteFromNow()
         {
             ConfirmationCode? captured = null;
             _usersRepoMock
@@ -185,8 +183,8 @@ namespace JobFinders.UnitTests
             Assert.NotNull(captured);
             Assert.InRange(
                 captured!.ExpirationTime,
-                DateTime.UtcNow.AddHours(3).AddMinutes(1).AddSeconds(-30),
-                DateTime.UtcNow.AddHours(3).AddMinutes(1).AddSeconds(30));
+                TimeService.Now.AddHours(3).AddMinutes(1).AddSeconds(-30),
+                TimeService.Now.AddHours(3).AddMinutes(1).AddSeconds(30));
         }
 
         [Fact]
@@ -232,7 +230,7 @@ namespace JobFinders.UnitTests
         public async Task GenerateCodeAsync_WhenConfirmationCodeExists_ReturnsFourDigitCodeAndRefreshesCode()
         {
             var user = new User { UserId = 1 };
-            var existing = new ConfirmationCode { UserId = 1, Code = "old", ExpirationTime = DateTime.UtcNow.AddHours(1) };
+            var existing = new ConfirmationCode { UserId = 1, Code = "old", ExpirationTime = TimeService.Now.AddHours(1) };
 
             ConfirmationCode? updated = null;
             _confirmationCodesRepoMock
@@ -252,8 +250,8 @@ namespace JobFinders.UnitTests
             Assert.Equal(code, updated!.Code);
             Assert.InRange(
                 updated.ExpirationTime,
-                DateTime.UtcNow.AddHours(3).AddMinutes(1).AddSeconds(-30),
-                DateTime.UtcNow.AddHours(3).AddMinutes(1).AddSeconds(30));
+                TimeService.Now.AddHours(3).AddMinutes(1).AddSeconds(-30),
+                TimeService.Now.AddHours(3).AddMinutes(1).AddSeconds(30));
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Once);
         }
 
@@ -295,7 +293,7 @@ namespace JobFinders.UnitTests
         public void IsCodeExpired_WhenCodeExpired_ReturnsTrueAndSetsCode()
         {
             var user = new User { UserId = 1 };
-            var codeEntity = new ConfirmationCode { UserId = 1, Code = "1234", ExpirationTime = DateTime.UtcNow.AddMinutes(-1) };
+            var codeEntity = new ConfirmationCode { UserId = 1, Code = "1234", ExpirationTime = TimeService.Now.AddMinutes(-1) };
             _confirmationCodesRepoMock
                 .Setup(x => x.All)
                 .Returns(new[] { codeEntity }.AsQueryable());
@@ -311,7 +309,7 @@ namespace JobFinders.UnitTests
         public void IsCodeExpired_WhenCodeNotExpired_ReturnsFalse()
         {
             var user = new User { UserId = 1 };
-            var codeEntity = new ConfirmationCode { UserId = 1, Code = "1234", ExpirationTime = DateTime.UtcNow.AddHours(5) };
+            var codeEntity = new ConfirmationCode { UserId = 1, Code = "1234", ExpirationTime = TimeService.Now.AddHours(5) };
             _confirmationCodesRepoMock
                 .Setup(x => x.All)
                 .Returns(new[] { codeEntity }.AsQueryable());

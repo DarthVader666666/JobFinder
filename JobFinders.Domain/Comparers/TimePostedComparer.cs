@@ -1,4 +1,5 @@
 ﻿using JobFinders.Domain.Models;
+using JobFinders.Domain.Services;
 
 using System.Globalization;
 
@@ -8,7 +9,7 @@ namespace JobFinders.Domain.Comparers
     {
         private static readonly CultureInfo Culture = new("ru-RU");
         private const int defaultValue = 366;
-        private readonly DateTime now = DateTime.UtcNow.AddHours(3);
+        private readonly DateTime now = TimeService.Now.AddHours(3);
         private readonly string[] years = ["год", "года", "лет"];
         private readonly string[] months = ["месяц", "месяцев", "месяца", "мес."];
         private readonly string[] weeks = ["недели", "неделю", "недель", "неделя", "нед."];

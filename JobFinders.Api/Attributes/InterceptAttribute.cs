@@ -1,7 +1,9 @@
 ﻿using JobFinders.Api.Models;
+using JobFinders.Application.Services;
 using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
+using JobFinders.Domain.Services;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -28,12 +30,12 @@ namespace JobFinders.Api.Attributes
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
+            var executedContext = await next();
+
             if (context is null)
             {
                 return;
             }
-
-            var executedContext = await next();
 
             var user = context.HttpContext.User;
             var isAuthenticated = user?.Identity?.IsAuthenticated ?? false;
@@ -53,17 +55,22 @@ namespace JobFinders.Api.Attributes
                 return;
             }
 
-            var userId = user?.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            var userId = int.Parse(user?.Claims.FirstOrDefault(x => x.Type == "id")?.Value ?? "");
+            var serializedSources = JsonSerializer.Serialize(request.Sources ?? []);
 
             var searchResult = new SearchResult
             {
-                UserId = int.Parse(userId ?? ""),
+                UserId = userId,
                 Speciality = request.Speciality,
-                Sources = JsonSerializer.Serialize(request.Sources ?? []),
-                TimeSent = DateTime.UtcNow,
-            };            
+                Sources = serializedSources,
+                TimeSent = TimeService.Now,
+            };
 
-            if (executedContext.Result is ObjectResult { Value: JobsResponse jobsResponse })
+            var hasEqualResults = _unitOfWork.SearchResults.All
+                    .Where(sr => sr.TimeSent >= TimeService.Today && sr.UserId == userId)
+                    .Any(sr => (sr.Location ?? "") == request.Location && sr.Speciality == request.Speciality && sr.Sources == serializedSources);
+
+            if (!hasEqualResults && executedContext.Result is ObjectResult { Value: JobsResponse jobsResponse })
             {
                 bool predicate(Job job, JobsRequest request)
                 {
@@ -75,10 +82,10 @@ namespace JobFinders.Api.Attributes
                 var topJobGroup = jobsResponse?.JobGroups?.FirstOrDefault(group => group.Any(job => predicate(job, request)));
                 var jsonResponse = JsonSerializer.Serialize(topJobGroup);
                 searchResult.Response = jsonResponse;
-            }
 
-            await _unitOfWork.SearchResults.CreateAsync(searchResult);
-            await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.SearchResults.CreateAsync(searchResult);
+                await _unitOfWork.SaveChangesAsync();
+            }
         }
     }
 }
