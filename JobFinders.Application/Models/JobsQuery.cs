@@ -1,4 +1,6 @@
-﻿namespace JobFinders.Domain.Models
+﻿using JobFinders.Domain.Models;
+
+namespace JobFinders.Application.Models
 {
     public class JobsQuery
     {

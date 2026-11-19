@@ -2,6 +2,8 @@
 
 using HtmlAgilityPack;
 
+using JobFinders.Application.Interfaces;
+using JobFinders.Application.Models;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 

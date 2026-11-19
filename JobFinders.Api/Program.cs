@@ -17,6 +17,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using JobFinders.Api.Middleware;
+using JobFinders.Application.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,6 +89,7 @@ builder.Services.AddScoped<IHtmlLoader, HtmlLoader>();
 builder.Services.AddScoped<ITransliterator, Transliterator>();
 builder.Services.AddSingleton<IPageObserver, PageObserver>();
 builder.Services.AddScoped<IUserManager, UserManager>();
+builder.Services.AddScoped<IJobsSearchService, JobsSearchService>();
 
 builder.Services.AddScoped<IRepository<User>, Repository<User>>();
 builder.Services.AddScoped<IRepository<Role>, Repository<Role>>();

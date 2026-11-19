@@ -2,7 +2,7 @@
 
 using JobFinders.Domain.Models;
 
-namespace JobFinders.Api.Models
+namespace JobFinders.Application.Models
 {
     public class JobsRequest
     {

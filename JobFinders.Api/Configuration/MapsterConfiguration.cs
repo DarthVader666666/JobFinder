@@ -2,9 +2,9 @@
 
 using MapsterMapper;
 
-using JobFinders.Api.Models;
 using JobFinders.Domain.Entities;
 using JobFinders.Domain.Models;
+using JobFinders.Application.Models;
 
 namespace JobFinders.Api.Configuration
 {

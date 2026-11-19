@@ -1,6 +1,7 @@
-﻿using JobFinders.Domain.Models;
+﻿using JobFinders.Application.Models;
+using JobFinders.Domain.Models;
 
-namespace JobFinders.Domain.Interfaces
+namespace JobFinders.Application.Interfaces
 {
     public interface IJobFinderManager
     {

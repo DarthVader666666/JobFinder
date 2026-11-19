@@ -13,25 +13,23 @@ using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 using JobFinders.Domain.Comparers;
 using JobFinders.Api.Attributes;
+using JobFinders.Application.Models;
+using JobFinders.Application.Interfaces;
 
 namespace JobFinders.Api.Controllers
 {
     [EnableCors("AllowClient")]
     public class JobsController : Controller
     {
-        private readonly IJobFinderManager _jobFinderManager;
+        private readonly IJobsSearchService _jobsSearchService;
         private readonly IMemoryCache _cache;
-        private readonly IMapper _mapster;
         private readonly IPageObserver _pageObserver;
-        private readonly List<JobFinderSetting> _jobFinderSettings;
 
-        public JobsController(IJobFinderManager jobFinderManager, IPageObserver pageObserver, IMemoryCache cache, IMapper mapster, IOptions<List<JobFinderSetting>> jobFinderSettings)
+        public JobsController(IJobFinderManager jobFinderManager, IJobsSearchService jobsSearchService, IPageObserver pageObserver, IMemoryCache cache, IOptions<List<JobFinderSetting>> jobFinderSettings)
         {
-            _jobFinderManager = jobFinderManager;
+            _jobsSearchService = jobsSearchService;
             _pageObserver = pageObserver;
             _cache = cache;
-            _mapster = mapster;
-            _jobFinderSettings = jobFinderSettings.Value;
         }
 
         [InterceptRequest]
@@ -52,7 +50,7 @@ namespace JobFinders.Api.Controllers
 
             var responseList = new ConcurrentBag<Job>();
 
-            if (_cache.TryGetValue(key, out JobsResponse? cachedResponse))
+            if (_cache.TryGetValue(key, out JobsSearchResult? cachedResponse))
             {
                 if (cachedResponse?.HasMoreJobs ?? false)
                 {
@@ -71,50 +69,11 @@ namespace JobFinders.Api.Controllers
                 {
                     return Ok(cachedResponse);
                 }
-            }
+            }            
 
-            var parallelOptions = new ParallelOptions 
-            { 
-                CancellationToken = cancellationToken, 
-                MaxDegreeOfParallelism = Math.Max(1, request?.Sources?.Length ?? 1), 
-            };
+            var response = await _jobsSearchService.SearchAsync(request, responseList, cancellationToken);
 
-            await Parallel.ForEachAsync(request?.Sources ?? [], parallelOptions, async (source, ct) =>
-            {
-                var setting = _jobFinderSettings.FirstOrDefault(x => x.Source == source);
-                var query = _mapster.Map<JobsRequest?, JobsQuery>(request);
-
-                var jobs = await _jobFinderManager.ProcessAsync(setting, query, ct);
-
-                foreach (var job in jobs)
-                {
-                    var maxIndex = responseList.IsEmpty ? 0 : responseList.Max(job => job.Index);
-                    job.Index = maxIndex + 1;
-                    responseList.Add(job);
-                }
-            });
-
-            var response = new JobsResponse
-            {
-                JobGroups = responseList
-                    .DistinctBy(job => job.Link?.ToUpper())
-                    .OrderBy(job => job, new TimePostedComparer())
-                    .GroupBy(job => new Job
-                    {
-                        Title = job?.Title,
-                        OriginalSalary = new Salary
-                        {
-                            Currency = job?.OriginalSalary?.Currency,
-                            Min = job?.OriginalSalary?.Min,
-                            Max = job?.OriginalSalary?.Max,
-                        },
-                        Company = job?.Company
-                    }, new JobEqualityComparer())
-                    .Select(group => group.OrderBy(job => job?.Source).ToArray())
-                    .ToArray(),
-
-                HasMoreJobs = _pageObserver.HasMoreJobs
-            };
+            response.HasMoreJobs = _pageObserver.HasMoreJobs;
 
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(30))

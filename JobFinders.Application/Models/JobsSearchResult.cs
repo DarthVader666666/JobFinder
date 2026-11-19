@@ -1,9 +1,9 @@
 ﻿using JobFinders.Application.Services;
 using JobFinders.Domain.Models;
 
-namespace JobFinders.Api.Models
+namespace JobFinders.Application.Models
 {
-    public class JobsResponse
+    public class JobsSearchResult
     {
         public Job[][]? JobGroups { get; set; }
         public PageObserver? PageObserver { get; set; } = new PageObserver();

@@ -1,4 +1,5 @@
-﻿using JobFinders.Domain.Interfaces;
+﻿using JobFinders.Application.Interfaces;
+using JobFinders.Application.Models;
 using JobFinders.Domain.Models;
 
 namespace JobFinders.Application.Services

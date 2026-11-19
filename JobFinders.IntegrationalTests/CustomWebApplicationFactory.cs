@@ -1,3 +1,4 @@
+using JobFinders.Application.Interfaces;
 using JobFinders.Domain.Interfaces;
 
 using Microsoft.AspNetCore.Hosting;

@@ -1,3 +1,4 @@
+using JobFinders.Application.Models;
 using JobFinders.Application.Services;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;

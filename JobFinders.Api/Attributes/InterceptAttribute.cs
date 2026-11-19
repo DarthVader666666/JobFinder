@@ -1,5 +1,4 @@
-﻿using JobFinders.Api.Models;
-using JobFinders.Application.Services;
+﻿using JobFinders.Application.Models;
 using JobFinders.Domain.Entities;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
@@ -70,18 +69,23 @@ namespace JobFinders.Api.Attributes
                     .Where(sr => sr.TimeSent >= TimeService.Today && sr.UserId == userId)
                     .Any(sr => (sr.Location ?? "") == request.Location && sr.Speciality == request.Speciality && sr.Sources == serializedSources);
 
-            if (!hasEqualResults && executedContext.Result is ObjectResult { Value: JobsResponse jobsResponse })
+            if (!hasEqualResults && executedContext.Result is ObjectResult { Value: JobsSearchResult jobsResponse })
             {
+                char[] separators = [' ', '-', '\\', '/', '|', ','];
+
+                IEnumerable<string> getParts(string? line) => line?.ToUpper()?.Split(separators).Where(x => !string.IsNullOrWhiteSpace(x)) ?? [];
+
                 bool predicate(Job job, JobsRequest request)
                 {
-                    var titleParts = job?.Title?.ToUpper().Split(' ', '-');
-                    var specialityParts = request?.Speciality?.ToUpper().Split(' ', '-');
+                    var titleParts = getParts(job?.Title);
+                    var specialityParts = getParts(request?.Speciality);
                     return titleParts?.Any(tp => specialityParts!.Any(sp => tp.Contains(sp))) ?? false;
                 }
 
                 var topJobGroup = jobsResponse?.JobGroups?.FirstOrDefault(group => group.Any(job => predicate(job, request)));
                 var jsonResponse = JsonSerializer.Serialize(topJobGroup);
                 searchResult.Response = jsonResponse;
+                searchResult.Location = request.Location == string.Empty ? null : request.Location;
 
                 await _unitOfWork.SearchResults.CreateAsync(searchResult);
                 await _unitOfWork.SaveChangesAsync();

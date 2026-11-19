@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 
+using JobFinders.Application.Models;
 using JobFinders.Domain.Interfaces;
 using JobFinders.Domain.Models;
 
